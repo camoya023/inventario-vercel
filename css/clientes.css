@@ -1,0 +1,151 @@
+/* =========================================================================
+   ESTILOS DEL MÓDULO DE CLIENTES
+   ========================================================================= */
+
+/* Contenedor de la barra de herramientas y botón de colapso */
+.page-toolbar-container {
+    margin-bottom: 15px;
+}
+
+/* Botón para colapsar/expandir filtros */
+#btn-toggle-filtros-clientes {
+    margin-bottom: 10px;
+}
+
+#btn-toggle-filtros-clientes .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+#btn-toggle-filtros-clientes[aria-expanded="false"] .fa-chevron-down {
+    transform: rotate(-90deg);
+}
+
+/* Contenido colapsable de la barra de herramientas - específico para clientes */
+#filtros-clientes-content.page-toolbar-collapsible {
+    max-height: 250px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+}
+
+#filtros-clientes-content.page-toolbar-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Estilos para la barra de herramientas */
+.page-toolbar-collapsible .page-toolbar {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Estilos para las filas del toolbar */
+.page-toolbar-collapsible .toolbar-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.page-toolbar-collapsible .search-form-container {
+    flex: 1;
+    min-width: 250px;
+}
+
+.page-toolbar-collapsible .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.page-toolbar-collapsible .form-label-inline {
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.page-toolbar-collapsible .action-button-container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Ajustes para botones más compactos */
+.page-toolbar-collapsible .button-sm {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+}
+
+/* Badges de Estado */
+.badge {
+    padding: 0.3em 0.6em;
+    font-size: 0.75em;
+    font-weight: bold;
+    border-radius: 0.25rem;
+    display: inline-block;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+}
+
+.badge-success {
+    color: #fff;
+    background-color: #28a745;
+}
+
+.badge-danger {
+    color: #fff;
+    background-color: #dc3545;
+}
+
+.badge-warning {
+    color: #212529;
+    background-color: #ffc107;
+}
+
+/* Estilos para botones de acción en la tabla */
+.button-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.button-icon:hover {
+    opacity: 0.7;
+}
+
+.button-icon-info {
+    color: #17a2b8;
+}
+
+.button-icon-info:hover {
+    color: #117a8b;
+}
+
+.button-icon-warning {
+    color: #ffc107;
+}
+
+.button-icon-warning:hover {
+    color: #e0a800;
+}
+
+.button-icon-danger {
+    color: #dc3545;
+}
+
+.button-icon-danger:hover {
+    color: #c82333;
+}

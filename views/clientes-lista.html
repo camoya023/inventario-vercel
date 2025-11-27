@@ -1,0 +1,88 @@
+<div class="page-content-wrapper">
+
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Lista de Clientes</h2>
+        <button id="btn-abrir-modal-nuevo-cliente" class="button button-primary">
+            <i class="fas fa-plus"></i> Nuevo Cliente
+        </button>
+    </div>
+
+    <div class="page-toolbar-container">
+        <button id="btn-toggle-filtros-clientes" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-clientes-content">
+            <i class="fas fa-filter"></i> Opciones y Filtros <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="filtros-clientes-content" class="page-toolbar-collapsible">
+            <div class="page-toolbar">
+                <!-- Primera fila: Búsqueda y filtros -->
+                <div class="toolbar-row">
+                    <div class="search-form-container">
+                        <input type="search" id="input-buscar-clientes" class="form-input" placeholder="Buscar por nombre, código, identificación...">
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtro-estado-cliente" class="form-label-inline">Estado:</label>
+                        <select id="filtro-estado-cliente" class="form-input-select">
+                            <option value="Activo" selected>Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Segunda fila: Botones de acción -->
+                <div class="toolbar-row">
+                    <div class="action-button-container">
+                        <button id="btn-importar-clientes" class="button button-secondary button-sm">
+                            <i class="fas fa-file-upload"></i> Importar
+                        </button>
+                        <button id="btn-exportar-clientes" class="button button-secondary button-sm">
+                            <i class="fas fa-file-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table-default">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre Cliente</th>
+                    <th>Teléfono Principal</th>
+                    <th>Estado</th>
+                    <th>Última Compra</th>
+                    <th class="text-right">Últ. Domicilio</th>
+                    <th class="column-actions text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-clientes">
+                <tr>
+                    <td colspan="7" class="text-center" style="padding:20px; font-style:italic;">
+                        Cargando clientes...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="pagination-controls-clientes" class="pagination-controls">
+        <button id="btn-prev-page-clientes" class="button button-secondary" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span id="page-info-clientes" class="page-info">Página 1 de 1</span>
+        <button id="btn-next-page-clientes" class="button button-secondary" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="items-per-page-selector" style="display: none;">
+            <label for="select-items-per-page-clientes">Mostrar:</label>
+            <select id="select-items-per-page-clientes" class="form-input-select form-input-select-sm">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span>registros</span>
+        </div>
+    </div>
+</div>
