@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "name": "inventrack-vercel",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión de Inventario - Inventrack",
+  "private": true
+}
