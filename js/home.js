@@ -93,13 +93,39 @@ async function verificarSesion() {
     const { data: { session: supabaseSession }, error: sessionError } = await client.auth.getSession();
 
     if (supabaseSession && !sessionError) {
-      console.log('[HOME] Sesion activa en Supabase');
+      console.log('[HOME] Sesion activa en Supabase, obteniendo perfil completo...');
 
-      // Crear datos de usuario desde la sesión de Supabase
+      // Obtener perfil del usuario con JOIN de empresa y rol
+      const { data: perfil, error: perfilError } = await client
+        .from('perfiles')
+        .select(`
+          *,
+          empresa:empresas(id, nombre_empresa),
+          rol:roles(id, nombre, descripcion)
+        `)
+        .eq('id', supabaseSession.user.id)
+        .single();
+
+      if (perfilError || !perfil) {
+        console.error('[HOME] Error obteniendo perfil:', perfilError);
+        limpiarSesion();
+        redirigirALogin();
+        return;
+      }
+
+      console.log('[HOME] Perfil obtenido:');
+      console.log('[HOME]   Nombre:', perfil.nombre_completo);
+      console.log('[HOME]   Empresa:', perfil.empresa?.nombre_empresa);
+
+      // Crear datos de usuario completos
       const userData = {
         id: supabaseSession.user.id,
         email: supabaseSession.user.email,
-        nombre_completo: supabaseSession.user.user_metadata?.nombre_completo || supabaseSession.user.email
+        nombre_completo: perfil.nombre_completo || supabaseSession.user.email,
+        empresa_id: perfil.empresa_id,
+        empresa_nombre: perfil.empresa?.nombre_empresa || '',
+        rol_id: perfil.rol_id,
+        rol_nombre: perfil.rol?.nombre || ''
       };
 
       console.log('[HOME] Usuario obtenido de Supabase:', userData.email);

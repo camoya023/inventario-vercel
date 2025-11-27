@@ -204,11 +204,37 @@ async function realizarLogin(email, password, rememberMe) {
     console.log('[LOGIN] User ID:', data.user.id);
     console.log('[LOGIN] User Email:', data.user.email);
 
-    // Crear datos de usuario desde la información de Supabase Auth
+    // Obtener perfil del usuario con JOIN de empresa y rol
+    console.log('[LOGIN] Obteniendo perfil del usuario...');
+    const { data: perfil, error: perfilError } = await client
+      .from('perfiles')
+      .select(`
+        *,
+        empresa:empresas(id, nombre_empresa),
+        rol:roles(id, nombre, descripcion)
+      `)
+      .eq('id', data.user.id)
+      .single();
+
+    if (perfilError || !perfil) {
+      console.error('[LOGIN] ✗ Error obteniendo perfil:', perfilError);
+      handleLoginError('Usuario sin perfil asignado. Contacta al administrador.');
+      return;
+    }
+
+    console.log('[LOGIN] ✓ Perfil obtenido:');
+    console.log('[LOGIN]   Nombre:', perfil.nombre_completo);
+    console.log('[LOGIN]   Empresa:', perfil.empresa?.nombre_empresa);
+
+    // Crear datos de usuario completos
     const userData = {
       id: data.user.id,
       email: data.user.email,
-      nombre_completo: data.user.user_metadata?.nombre_completo || data.user.email
+      nombre_completo: perfil.nombre_completo || data.user.email,
+      empresa_id: perfil.empresa_id,
+      empresa_nombre: perfil.empresa?.nombre_empresa || '',
+      rol_id: perfil.rol_id,
+      rol_nombre: perfil.rol?.nombre || ''
     };
 
     console.log('[LOGIN] Datos de usuario creados:', userData);
