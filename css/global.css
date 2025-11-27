@@ -1,0 +1,306 @@
+/* =========================================================================
+   VARIABLES CSS GLOBALES - SISTEMA DE DESIGN
+   ========================================================================= */
+
+:root {
+  /* Colores Primarios */
+  --color-primary: #1572E8;
+  --color-primary-dark: #0d5aa7;
+  --color-primary-light: #4d8ced;
+
+  /* Colores Secundarios */
+  --color-secondary: #ffffff;
+  --color-secondary-light: #f8f9fa;
+  --color-secondary-dark: #e9ecef;
+
+  /* Colores de Estado */
+  --color-success: #198754;
+  --color-success-light: #d1e7dd;
+  --color-danger: #dc3545;
+  --color-danger-light: #f8d7da;
+  --color-warning: #ffc107;
+  --color-warning-light: #fff3cd;
+  --color-info: #0dcaf0;
+  --color-info-light: #d1ecf1;
+
+  /* Colores de Fondo */
+  --bg-body: #ffffff;
+  --bg-light: #f8f9fa;
+  --bg-lighter: #fdfdfe;
+  --bg-dark: #343a40;
+  --bg-darker: #212529;
+
+  /* Colores de Texto */
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --text-white: #ffffff;
+
+  /* Colores de Bordes */
+  --border-color: #e9ecef;
+  --border-color-light: #dee2e6;
+  --border-color-dark: #adb5bd;
+
+  /* Tipografía */
+  --font-family-base: Arial, sans-serif;
+  --font-family-heading: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 24px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-base: 1.5;
+
+  /* Espaciado */
+  --spacing-xs: 0.25rem;  /* 4px */
+  --spacing-sm: 0.5rem;   /* 8px */
+  --spacing-md: 1rem;     /* 16px */
+  --spacing-lg: 1.5rem;   /* 24px */
+  --spacing-xl: 2rem;     /* 32px */
+  --spacing-xxl: 3rem;    /* 48px */
+
+  /* Bordes y Radios */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 12px;
+  --border-width: 1px;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-sidebar: 2px 0 5px rgba(0, 0, 0, 0.1);
+
+  /* Transiciones */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-base: 0.3s ease-in-out;
+  --transition-slow: 0.4s ease-out;
+
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+
+  /* Anchos de Contenedor */
+  --container-sm: 540px;
+  --container-md: 720px;
+  --container-lg: 960px;
+  --container-xl: 1140px;
+  --container-xxl: 1320px;
+
+  /* Sidebar */
+  --sidebar-width: 200px;
+  --sidebar-bg: var(--bg-body);
+
+  /* Header/Top Container */
+  --header-bg: var(--color-primary);
+  --header-color: var(--text-white);
+  --header-padding: 20px;
+
+  /* Tables */
+  --table-cell-padding: 12px 15px;
+  --table-border-color: var(--border-color);
+  --table-stripe-bg: var(--bg-light);
+  --table-hover-bg: #f5f5f5;
+
+  /* Forms */
+  --form-input-padding: 8px 12px;
+  --form-input-border: var(--border-width) solid var(--border-color);
+  --form-input-border-radius: var(--border-radius-sm);
+  --form-input-focus-border: var(--color-primary);
+  --form-input-error-border: var(--color-danger);
+
+  /* Buttons - Tamaños */
+  --btn-padding-sm: 4px 8px;
+  --btn-padding-md: 8px 16px;
+  --btn-padding-lg: 12px 24px;
+  --btn-font-size-sm: var(--font-size-xs);
+  --btn-font-size-md: var(--font-size-sm);
+  --btn-font-size-lg: var(--font-size-base);
+
+  /* Cards */
+  --card-padding: var(--spacing-md);
+  --card-border: var(--border-width) solid var(--border-color-light);
+  --card-border-radius: var(--border-radius-lg);
+  --card-bg: var(--bg-body);
+
+  /* Modales */
+  --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+  --modal-content-bg: var(--bg-body);
+  --modal-border-radius: var(--border-radius-lg);
+  --modal-padding: var(--spacing-lg);
+
+  /* KPI Cards específicas */
+  --kpi-card-bg: var(--bg-body);
+  --kpi-card-border: var(--border-width) solid var(--border-color-light);
+  --kpi-card-padding: var(--spacing-md);
+  --kpi-card-border-radius: var(--border-radius-lg);
+  --kpi-value-color: var(--text-primary);
+  --kpi-label-color: var(--text-secondary);
+}
+
+/* =========================================================================
+   CLASES UTILITARIAS GLOBALES
+   ========================================================================= */
+
+/* Reset y Base */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--text-primary);
+  background-color: var(--bg-body);
+  margin: 0;
+  padding: 0;
+}
+
+/* Utilidades de Texto */
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.text-white { color: var(--text-white) !important; }
+.text-success { color: var(--color-success) !important; }
+.text-danger { color: var(--color-danger) !important; }
+.text-warning { color: var(--color-warning) !important; }
+.text-info { color: var(--color-info) !important; }
+
+/* Utilidades de Fondo */
+.bg-primary { background-color: var(--color-primary) !important; }
+.bg-secondary { background-color: var(--color-secondary) !important; }
+.bg-success { background-color: var(--color-success) !important; }
+.bg-danger { background-color: var(--color-danger) !important; }
+.bg-warning { background-color: var(--color-warning) !important; }
+.bg-info { background-color: var(--color-info) !important; }
+.bg-light { background-color: var(--bg-light) !important; }
+.bg-dark { background-color: var(--bg-dark) !important; }
+.bg-white { background-color: var(--bg-body) !important; }
+
+/* Utilidades de Espaciado */
+.m-0 { margin: 0 !important; }
+.mt-0 { margin-top: 0 !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.ml-0 { margin-left: 0 !important; }
+.mr-0 { margin-right: 0 !important; }
+
+.p-0 { padding: 0 !important; }
+.pt-0 { padding-top: 0 !important; }
+.pb-0 { padding-bottom: 0 !important; }
+.pl-0 { padding-left: 0 !important; }
+.pr-0 { padding-right: 0 !important; }
+
+.m-1 { margin: var(--spacing-xs) !important; }
+.m-2 { margin: var(--spacing-sm) !important; }
+.m-3 { margin: var(--spacing-md) !important; }
+.m-4 { margin: var(--spacing-lg) !important; }
+.m-5 { margin: var(--spacing-xl) !important; }
+
+.p-1 { padding: var(--spacing-xs) !important; }
+.p-2 { padding: var(--spacing-sm) !important; }
+.p-3 { padding: var(--spacing-md) !important; }
+.p-4 { padding: var(--spacing-lg) !important; }
+.p-5 { padding: var(--spacing-xl) !important; }
+
+/* Utilidades de Display */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+
+/* Utilidades de Flexbox */
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.justify-content-start { justify-content: flex-start !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-around { justify-content: space-around !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-baseline { align-items: baseline !important; }
+.align-items-stretch { align-items: stretch !important; }
+
+/* Utilidades de Borde */
+.border { border: var(--border-width) solid var(--border-color) !important; }
+.border-top { border-top: var(--border-width) solid var(--border-color) !important; }
+.border-bottom { border-bottom: var(--border-width) solid var(--border-color) !important; }
+.border-left { border-left: var(--border-width) solid var(--border-color) !important; }
+.border-right { border-right: var(--border-width) solid var(--border-color) !important; }
+.border-0 { border: 0 !important; }
+
+/* Utilidades de Radio de Borde */
+.rounded { border-radius: var(--border-radius-md) !important; }
+.rounded-sm { border-radius: var(--border-radius-sm) !important; }
+.rounded-lg { border-radius: var(--border-radius-lg) !important; }
+.rounded-circle { border-radius: 50% !important; }
+
+/* Utilidades de Sombra */
+.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.shadow { box-shadow: var(--shadow-md) !important; }
+.shadow-lg { box-shadow: var(--shadow-lg) !important; }
+.shadow-none { box-shadow: none !important; }
+
+/* Utilidades de Posición */
+.position-static { position: static !important; }
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-fixed { position: fixed !important; }
+.position-sticky { position: sticky !important; }
+
+/* Utilidades de Overflow */
+.overflow-auto { overflow: auto !important; }
+.overflow-hidden { overflow: hidden !important; }
+.overflow-visible { overflow: visible !important; }
+.overflow-scroll { overflow: scroll !important; }
+
+/* Utilidades de Cursor */
+.cursor-pointer { cursor: pointer !important; }
+.cursor-default { cursor: default !important; }
+.cursor-text { cursor: text !important; }
+
+/* Utilidades de Usuario Select */
+.user-select-none { user-select: none !important; }
+.user-select-auto { user-select: auto !important; }
+.user-select-all { user-select: all !important; }
+.user-select-text { user-select: text !important; }
+
+/* Prevención de Overflow Horizontal */
+.main-container {
+  overflow: hidden;
+}
+
+.work-area {
+  overflow-x: auto;
+  min-width: 0;
+  flex: 1;
+}
+
+.page-content-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  box-sizing: border-box;
+}
+
+.page-view {
+  max-width: 100%;
+  overflow-x: auto;
+}

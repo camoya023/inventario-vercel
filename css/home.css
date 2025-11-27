@@ -1,0 +1,465 @@
+/* =========================================================================
+   ESTILOS ESPECÍFICOS DE HOME - Usando variables globales
+   ========================================================================= */
+
+/* Body ya se define en globalCSS.html, solo sobrescribir si es necesario */
+body {
+  font-family: var(--font-family-base);
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.top-container {
+  display: flex;
+  background-color: var(--header-bg);
+  padding: var(--header-padding);
+  color: var(--header-color);
+}
+
+.top-container__column {
+  flex: 1;
+}
+
+.top-container__column.right {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: var(--font-size-xxl);
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  cursor: pointer;
+}
+
+.logout-button {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--text-white);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.logout-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.logout-button:active {
+  transform: scale(0.95);
+}
+
+.quick-menu {
+  display: flex;
+  gap: var(--spacing-xl);
+  align-items: center;
+}
+
+.quick-menu__item {
+  display: inline-block;
+  font-family: Ionicons;
+  font-style: normal;
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-normal);
+  font-variant: normal;
+  text-transform: none;
+  text-rendering: auto;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  color: var(--text-white);
+  transition: color var(--transition-base);
+  cursor: pointer;
+}
+
+.quick-menu__item:hover::after {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  padding: 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  display: block;
+  z-index: 1;
+}
+
+.main-container {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--sidebar-bg);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sidebar);
+}
+
+.sidebar__submenu {
+    display: none;
+    flex-direction: column;
+    padding-left: 15px;
+}
+
+.sidebar__submenu.active {
+  display: flex;
+}
+
+.sidebar__item.active {
+  font-weight: var(--font-weight-bold);
+  background-color: var(--color-primary);
+  color: var(--text-white);
+}
+
+.sidebar__item {
+  font-size: var(--font-size-base);
+  padding: var(--spacing-sm);
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.sidebar__item:hover {
+  background-color: var(--color-success);
+  color: var(--text-white);
+}
+
+.sidebar__submenu-item {
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-xs) 0;
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.sidebar__submenu-item:hover {
+  color: var(--color-success);
+}
+
+.work-area {
+  flex: 1;
+  background-color: var(--bg-light);
+  padding: var(--spacing-lg);
+}
+
+.show {
+    display: block;
+}
+
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* ==========================================================================
+   Estilos para Notificaciones Toast Personalizadas
+   ========================================================================== */
+
+:root {
+    --toast-success-bg: #e6fffa;
+    --toast-success-border: #00bfa5;
+    --toast-success-icon: #00bfa5;
+    --toast-success-text: #004d40;
+
+    --toast-error-bg: #ffebee;
+    --toast-error-border: #f44336;
+    --toast-error-icon: #f44336;
+    --toast-error-text: #b71c1c;
+
+    --toast-info-bg: #e3f2fd;
+    --toast-info-border: #2196f3;
+    --toast-info-icon: #2196f3;
+    --toast-info-text: #0d47a1;
+
+    --toast-warning-bg: #fff8e1;
+    --toast-warning-border: #ffc107;
+    --toast-warning-icon: #ffab00;
+    --toast-warning-text: #bc5100;
+
+    --toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --toast-border-radius: .375rem;
+    --toast-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+#notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    width: auto;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.custom-toast {
+    background-color: #fff;
+    color: var(--toast-info-text);
+    border-left: 5px solid var(--toast-info-border);
+    border-radius: var(--toast-border-radius);
+    box-shadow: var(--toast-shadow);
+    padding: 12px 18px;
+    display: flex;
+    align-items: flex-start;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+    font-family: var(--toast-font-family);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    position: relative;
+    min-width: 300px;
+}
+
+.custom-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.custom-toast.fade-out {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.toast-icon {
+    margin-right: 12px;
+    font-size: 1.3em;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex-grow: 1;
+    padding-right: 25px;
+}
+.toast-message p {
+    margin: 0;
+    padding: 0;
+}
+.toast-message strong {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.toast-close-button {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 0 0 10px;
+    line-height: 1;
+    margin-left: auto;
+    align-self: flex-start;
+    flex-shrink: 0;
+}
+.toast-close-button:hover {
+    opacity: 1;
+}
+
+.custom-toast.toast-success {
+    background-color: var(--toast-success-bg);
+    border-left-color: var(--toast-success-border);
+    color: var(--toast-success-text);
+}
+.custom-toast.toast-success .toast-icon {
+    color: var(--toast-success-icon);
+}
+
+.custom-toast.toast-error {
+    background-color: var(--toast-error-bg);
+    border-left-color: var(--toast-error-border);
+    color: var(--toast-error-text);
+}
+.custom-toast.toast-error .toast-icon {
+    color: var(--toast-error-icon);
+}
+
+.custom-toast.toast-info {
+    background-color: var(--toast-info-bg);
+    border-left-color: var(--toast-info-border);
+    color: var(--toast-info-text);
+}
+.custom-toast.toast-info .toast-icon {
+    color: var(--toast-info-icon);
+}
+
+.custom-toast.toast-warning {
+    background-color: var(--toast-warning-bg);
+    border-left-color: var(--toast-warning-border);
+    color: var(--toast-warning-text);
+}
+.custom-toast.toast-warning .toast-icon {
+    color: var(--toast-warning-icon);
+}
+
+@media (max-width: 480px) {
+    #notification-container {
+        right: 10px;
+        left: 10px;
+        top: 10px;
+        max-width: none;
+        width: auto;
+    }
+    .custom-toast {
+        min-width: 0;
+    }
+}
+
+  /* ==========================================================================
+   Estilos para los Controles de Paginación
+   ========================================================================== */
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.pagination-controls .button {
+    padding: .45rem .9rem;
+    font-size: 0.9rem;
+}
+
+.pagination-controls .button i.fas {
+    font-size: 0.8em;
+}
+.pagination-controls .button .fa-chevron-left {
+    margin-right: 6px;
+}
+.pagination-controls .button .fa-chevron-right {
+    margin-left: 6px;
+}
+
+.pagination-controls .page-info {
+    font-size: 0.9rem;
+    color: var(--color-text-medium, #555);
+    padding: 0 10px;
+    white-space: nowrap;
+}
+
+.pagination-controls .items-per-page-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--color-text-medium, #555);
+    margin-left: 20px;
+}
+
+.pagination-controls .form-input-select-sm {
+    padding: .3rem .6rem;
+    font-size: 0.85rem;
+    height: calc(1.5em + .6rem + 2px);
+    min-width: 60px;
+}
+
+.modal-content.modal-sm {
+    max-width: 400px;
+}
+
+#modal-confirmacion-generica-mensaje {
+    margin-bottom: 0;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.modal-content.modal-sm .modal-footer {
+    justify-content: flex-end;
+}
+
+.modal-overlay {
+    display: none;
+    visibility: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.is-visible {
+    display: flex;
+    visibility: visible;
+    opacity: 1;
+}
+
+/**
+ * =========================================================================
+ * ESTILOS PERSONALIZADOS PARA SELECT2 - EFECTO HOVER
+ * =========================================================================
+ */
+
+.select2-results__option {
+    padding: 8px 12px;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.select2-results__option--highlighted[aria-selected] {
+    background-color: #3182ce;
+    color: white;
+}
+
+.select2-container--default .select2-results__options {
+    font-size: 0.95rem;
+}
+
+.select2-dropdown {
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el sistema de navegación de vistas */
+.page-view {
+    display: none;
+}
+
+.page-view.is-active {
+    display: block;
+    opacity: 1;
+}

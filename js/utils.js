@@ -1,0 +1,340 @@
+/* =========================================================================
+   UTILIDADES JAVASCRIPT GLOBALES
+   ========================================================================= */
+
+/**
+ * Utilidades para trabajar con variables CSS
+ */
+window.CSSUtils = {
+  /**
+   * Obtiene el valor de una variable CSS
+   * @param {string} property - Nombre de la propiedad CSS (con o sin --)
+   * @param {Element} element - Elemento del cual obtener la propiedad (por defecto document.documentElement)
+   * @returns {string} - Valor de la propiedad
+   */
+  getCSSVariable: function(property, element = document.documentElement) {
+    const prop = property.startsWith('--') ? property : `--${property}`;
+    return getComputedStyle(element).getPropertyValue(prop).trim();
+  },
+
+  /**
+   * Establece el valor de una variable CSS
+   * @param {string} property - Nombre de la propiedad CSS (con o sin --)
+   * @param {string} value - Nuevo valor
+   * @param {Element} element - Elemento en el cual establecer la propiedad
+   */
+  setCSSVariable: function(property, value, element = document.documentElement) {
+    const prop = property.startsWith('--') ? property : `--${property}`;
+    element.style.setProperty(prop, value);
+  },
+
+  /**
+   * Cambia el tema de colores dinámicamente
+   * @param {Object} colorMap - Objeto con mappeo de variables y valores
+   */
+  setTheme: function(colorMap) {
+    Object.entries(colorMap).forEach(([property, value]) => {
+      this.setCSSVariable(property, value);
+    });
+  },
+
+  /**
+   * Obtiene todos los colores del tema actual
+   * @returns {Object} - Objeto con todas las variables de color
+   */
+  getCurrentTheme: function() {
+    const colors = {};
+    const properties = [
+      'color-primary', 'color-primary-dark', 'color-primary-light',
+      'color-secondary', 'color-success', 'color-danger', 'color-warning', 'color-info',
+      'bg-body', 'bg-light', 'bg-dark', 'text-primary', 'text-secondary'
+    ];
+
+    properties.forEach(prop => {
+      colors[prop] = this.getCSSVariable(prop);
+    });
+
+    return colors;
+  }
+};
+
+/**
+ * Utilidades para manejo de temas predefinidos
+ */
+window.ThemeManager = {
+  themes: {
+    default: {
+      'color-primary': '#1572E8',
+      'color-primary-dark': '#0d5aa7',
+      'color-primary-light': '#4d8ced',
+      'color-success': '#198754',
+      'color-danger': '#dc3545',
+      'color-warning': '#ffc107',
+      'color-info': '#0dcaf0'
+    },
+    dark: {
+      'color-primary': '#4d8ced',
+      'color-primary-dark': '#1572E8',
+      'color-primary-light': '#7dabf0',
+      'bg-body': '#212529',
+      'bg-light': '#343a40',
+      'bg-dark': '#495057',
+      'text-primary': '#ffffff',
+      'text-secondary': '#adb5bd',
+      'border-color': '#495057'
+    },
+    green: {
+      'color-primary': '#198754',
+      'color-primary-dark': '#146c43',
+      'color-primary-light': '#25a85a',
+      'color-success': '#20c997',
+      'color-info': '#13795b'
+    },
+    purple: {
+      'color-primary': '#6f42c1',
+      'color-primary-dark': '#59359a',
+      'color-primary-light': '#8563c1',
+      'color-success': '#20c997',
+      'color-info': '#6610f2'
+    }
+  },
+
+  /**
+   * Aplica un tema predefinido
+   * @param {string} themeName - Nombre del tema
+   */
+  applyTheme: function(themeName) {
+    if (this.themes[themeName]) {
+      window.CSSUtils.setTheme(this.themes[themeName]);
+      localStorage.setItem('selectedTheme', themeName);
+      console.log(`🎨 Tema '${themeName}' aplicado`);
+    } else {
+      console.warn(`⚠️ Tema '${themeName}' no encontrado`);
+    }
+  },
+
+  /**
+   * Obtiene el tema actual guardado
+   * @returns {string} - Nombre del tema actual
+   */
+  getCurrentTheme: function() {
+    return localStorage.getItem('selectedTheme') || 'default';
+  },
+
+  /**
+   * Restaura el tema guardado al cargar la página
+   */
+  restoreTheme: function() {
+    const savedTheme = this.getCurrentTheme();
+    if (savedTheme !== 'default') {
+      this.applyTheme(savedTheme);
+    }
+  },
+
+  /**
+   * Registra un nuevo tema personalizado
+   * @param {string} name - Nombre del tema
+   * @param {Object} colors - Objeto con variables de color
+   */
+  registerTheme: function(name, colors) {
+    this.themes[name] = colors;
+    console.log(`🎨 Tema personalizado '${name}' registrado`);
+  }
+};
+
+/**
+ * Utilidades para responsive design
+ */
+window.ResponsiveUtils = {
+  breakpoints: {
+    xs: 0,
+    sm: 576,
+    md: 768,
+    lg: 992,
+    xl: 1200,
+    xxl: 1400
+  },
+
+  /**
+   * Obtiene el breakpoint actual
+   * @returns {string} - Nombre del breakpoint actual
+   */
+  getCurrentBreakpoint: function() {
+    const width = window.innerWidth;
+    const breakpoints = Object.entries(this.breakpoints)
+      .sort(([,a], [,b]) => b - a);
+
+    for (const [name, size] of breakpoints) {
+      if (width >= size) {
+        return name;
+      }
+    }
+    return 'xs';
+  },
+
+  /**
+   * Verifica si está en un breakpoint específico o superior
+   * @param {string} breakpoint - Nombre del breakpoint
+   * @returns {boolean}
+   */
+  isBreakpointUp: function(breakpoint) {
+    return window.innerWidth >= this.breakpoints[breakpoint];
+  },
+
+  /**
+   * Verifica si está en un breakpoint específico o inferior
+   * @param {string} breakpoint - Nombre del breakpoint
+   * @returns {boolean}
+   */
+  isBreakpointDown: function(breakpoint) {
+    return window.innerWidth < this.breakpoints[breakpoint];
+  }
+};
+
+/**
+ * Sistema de notificaciones Toast
+ */
+window.NotificationSystem = {
+  container: null,
+
+  /**
+   * Inicializa el contenedor de notificaciones
+   */
+  init: function() {
+    if (!this.container) {
+      this.container = document.getElementById('notification-container');
+      if (!this.container) {
+        this.container = document.createElement('div');
+        this.container.id = 'notification-container';
+        document.body.appendChild(this.container);
+      }
+    }
+  },
+
+  /**
+   * Muestra una notificación toast
+   * @param {string} message - Mensaje a mostrar
+   * @param {string} type - Tipo de notificación (success, error, warning, info)
+   * @param {number} duration - Duración en milisegundos (0 = no auto-cerrar)
+   */
+  show: function(message, type = 'info', duration = 4000) {
+    this.init();
+
+    const toast = document.createElement('div');
+    toast.className = `custom-toast toast-${type}`;
+
+    const iconMap = {
+      success: 'fa-check-circle',
+      error: 'fa-exclamation-circle',
+      warning: 'fa-exclamation-triangle',
+      info: 'fa-info-circle'
+    };
+
+    toast.innerHTML = `
+      <i class="fas ${iconMap[type]} toast-icon"></i>
+      <div class="toast-message">
+        <p>${message}</p>
+      </div>
+      <button class="toast-close-button" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    this.container.appendChild(toast);
+
+    // Trigger reflow para la animación
+    toast.offsetHeight;
+
+    // Mostrar con animación
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+    });
+
+    // Cerrar al hacer clic en el botón
+    const closeBtn = toast.querySelector('.toast-close-button');
+    closeBtn.addEventListener('click', () => {
+      this.close(toast);
+    });
+
+    // Auto-cerrar después de la duración especificada
+    if (duration > 0) {
+      setTimeout(() => {
+        this.close(toast);
+      }, duration);
+    }
+
+    return toast;
+  },
+
+  /**
+   * Cierra una notificación
+   * @param {HTMLElement} toast - Elemento toast a cerrar
+   */
+  close: function(toast) {
+    toast.classList.remove('show');
+    toast.classList.add('fade-out');
+
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 400);
+  },
+
+  /**
+   * Cierra todas las notificaciones
+   */
+  closeAll: function() {
+    if (this.container) {
+      const toasts = this.container.querySelectorAll('.custom-toast');
+      toasts.forEach(toast => this.close(toast));
+    }
+  }
+};
+
+/**
+ * Función global para mostrar notificaciones (compatibilidad)
+ * @param {string} message - Mensaje a mostrar
+ * @param {string} type - Tipo de notificación
+ * @param {number} duration - Duración en milisegundos
+ */
+function showNotification(message, type = 'info', duration = 4000) {
+  return window.NotificationSystem.show(message, type, duration);
+}
+
+/**
+ * Toggle de submenús en el sidebar
+ * @param {HTMLElement} element - Elemento clickeado
+ */
+function toggleSubMenu(element) {
+  const submenu = element.nextElementSibling;
+  if (submenu && submenu.classList.contains('sidebar__submenu')) {
+    submenu.classList.toggle('active');
+    submenu.classList.toggle('show');
+  }
+}
+
+/**
+ * Inicialización automática al cargar el DOM
+ */
+document.addEventListener('DOMContentLoaded', function() {
+  // Restaurar tema guardado
+  window.ThemeManager.restoreTheme();
+
+  // Inicializar sistema de notificaciones
+  window.NotificationSystem.init();
+
+  console.log('🚀 Sistema de utilidades inicializado');
+});
+
+/**
+ * Función auxiliar para debugging
+ */
+window.debugApp = function() {
+  console.group('🎨 Debug Aplicación');
+  console.log('Tema actual:', window.ThemeManager.getCurrentTheme());
+  console.log('Variables de color actuales:', window.CSSUtils.getCurrentTheme());
+  console.log('Breakpoint actual:', window.ResponsiveUtils.getCurrentBreakpoint());
+  console.log('Cliente Supabase:', supabaseClient ? 'Inicializado' : 'No inicializado');
+  console.groupEnd();
+};
