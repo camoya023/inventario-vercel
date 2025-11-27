@@ -133,11 +133,24 @@ async function verificarSesion() {
 function mostrarInformacionUsuario(user) {
   console.log('[HOME] Mostrando informacion del usuario:', user.email);
 
+  // Mostrar nombre de usuario
   const loggedUserElement = document.getElementById('loggedUser');
   if (loggedUserElement) {
     loggedUserElement.textContent = user.nombre_completo || user.email;
   }
 
+  // Mostrar nombre de empresa
+  const empresaNombreElement = document.getElementById('empresa-nombre');
+  if (empresaNombreElement) {
+    // Intentar obtener el nombre de la empresa del usuario
+    const empresaNombre = user.empresa_nombre || user.user_metadata?.empresa_nombre || '';
+    if (empresaNombre) {
+      empresaNombreElement.textContent = empresaNombre;
+      console.log('[HOME] Nombre de empresa mostrado:', empresaNombre);
+    }
+  }
+
+  // Mostrar fecha actual
   const currentDateElement = document.getElementById('currentDate');
   if (currentDateElement) {
     const fecha = new Date();
