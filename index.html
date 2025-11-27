@@ -265,12 +265,12 @@
     // ========================================
 
     // Callback global cuando el login es exitoso
-    window.onLoginSuccess = function(user) {
+    window.onLoginSuccess = async function(user) {
       console.log('[APP] Login exitoso, mostrando home para:', user.email);
-      mostrarVista('home');
+      await mostrarVista('home');
     };
 
-    function mostrarVista(vistaId) {
+    async function mostrarVista(vistaId) {
       // Ocultar todos los contenedores
       document.querySelectorAll('.app-container').forEach(container => {
         container.classList.remove('active');
@@ -281,6 +281,13 @@
       if (container) {
         container.classList.add('active');
         console.log('[APP] Vista activada:', vistaId);
+
+        // Inicializar la vista según corresponda
+        if (vistaId === 'login') {
+          await inicializarLogin();
+        } else if (vistaId === 'home') {
+          await inicializarHome();
+        }
       } else {
         console.error('[APP] No se encontró el contenedor:', vistaId + '-container');
       }
@@ -290,37 +297,43 @@
     document.addEventListener('DOMContentLoaded', async function() {
       console.log('[APP] ========== APLICACIÓN INICIADA ==========');
 
-      // Inicializar cliente de Supabase
-      await inicializarSupabaseClient();
+      try {
+        // Inicializar cliente de Supabase UNA SOLA VEZ
+        await inicializarSupabaseClient();
+        console.log('[APP] Cliente de Supabase inicializado');
 
-      // Verificar si hay sesión guardada
-      const sessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
+        // Verificar si hay sesión guardada
+        const sessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
 
-      if (sessionData) {
-        try {
-          const session = JSON.parse(sessionData);
-          const ahora = new Date().getTime();
-          const tiempoTranscurrido = ahora - session.timestamp;
+        if (sessionData) {
+          try {
+            const session = JSON.parse(sessionData);
+            const ahora = new Date().getTime();
+            const tiempoTranscurrido = ahora - session.timestamp;
 
-          // Si hay sesión válida (menos de 24 horas)
-          if (tiempoTranscurrido < 86400000 && session.user) {
-            console.log('[APP] Sesión válida encontrada, mostrando home');
-            mostrarVista('home');
-          } else {
-            console.log('[APP] Sesión expirada, mostrando login');
-            mostrarVista('login');
+            // Si hay sesión válida (menos de 24 horas)
+            if (tiempoTranscurrido < 86400000 && session.user) {
+              console.log('[APP] Sesión válida encontrada, mostrando home');
+              await mostrarVista('home');
+            } else {
+              console.log('[APP] Sesión expirada, mostrando login');
+              await mostrarVista('login');
+            }
+          } catch (e) {
+            console.error('[APP] Error parseando sesión:', e);
+            await mostrarVista('login');
           }
-        } catch (e) {
-          console.error('[APP] Error parseando sesión:', e);
-          mostrarVista('login');
+        } else {
+          console.log('[APP] No hay sesión, mostrando login');
+          await mostrarVista('login');
         }
-      } else {
-        console.log('[APP] No hay sesión, mostrando login');
-        mostrarVista('login');
-      }
 
-      // Marcar como inicializado
-      document.body.classList.add('initialized');
+        // Marcar como inicializado
+        document.body.classList.add('initialized');
+      } catch (error) {
+        console.error('[APP] Error fatal inicializando aplicación:', error);
+        alert('Error al inicializar la aplicación. Por favor, recarga la página.');
+      }
     });
   </script>
 </body>
