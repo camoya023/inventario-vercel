@@ -9,6 +9,7 @@
 async function inicializarHome() {
   console.log('========== HOME PAGE LOADED ==========');
   configurarLogout();
+  configurarEventListenersMenu();
   await inicializarYVerificar();
 }
 
@@ -194,6 +195,25 @@ function configurarLogout() {
   }
 }
 
+function configurarEventListenersMenu() {
+  console.log('[HOME] Configurando event listeners del menú...');
+
+  // Enlace de Clientes
+  const clientesLink = document.getElementById('clientes-link');
+  if (clientesLink) {
+    clientesLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de clientes...');
+      cargarVistaClientes();
+    });
+    console.log('[HOME] Event listener de Clientes configurado');
+  } else {
+    console.warn('[HOME] Enlace #clientes-link no encontrado');
+  }
+
+  // TODO: Agregar más enlaces del menú aquí
+}
+
 async function cerrarSesion() {
   console.log('[HOME] Cerrando sesion...');
   await limpiarSesion();
@@ -284,5 +304,50 @@ function navegarA(idVistaAMostrar) {
                 console.error('[HOME] No se pudo activar la vista:', idVistaAMostrar);
             }
         }, 100);
+    }
+}
+
+// ========================================
+// CARGA DINÁMICA DE VISTAS
+// ========================================
+
+/**
+ * Carga dinámicamente la vista de lista de clientes
+ */
+async function cargarVistaClientes() {
+    console.log('[HOME] Cargando vista de clientes...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando módulo de clientes...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/clientes-lista.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Inicializar la vista de clientes
+        if (typeof inicializarVistaClientes === 'function') {
+            inicializarVistaClientes();
+            console.log('[HOME] Vista de clientes cargada e inicializada');
+        } else {
+            console.error('[HOME] Función inicializarVistaClientes no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de clientes:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de clientes: ${error.message}</div>`;
     }
 }
