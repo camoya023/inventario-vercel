@@ -2,27 +2,32 @@
 // VALIDACION DE SESION
 // ========================================
 
-// Verificar sesion al cargar la pagina
-document.addEventListener('DOMContentLoaded', function() {
+/**
+ * Función principal para inicializar el Home
+ * Debe ser llamada manualmente cuando se muestre la vista home
+ */
+async function inicializarHome() {
   console.log('========== HOME PAGE LOADED ==========');
   configurarLogout();
-  inicializarYVerificar();
-});
+  await inicializarYVerificar();
+}
 
 async function inicializarYVerificar() {
-  try {
-    console.log('[HOME] Iniciando proceso de autenticacion...');
-    await inicializarSupabaseClient();
-    await verificarSesion();
-  } catch (error) {
-    console.error('[HOME] Error en inicializacion:', error);
-    mostrarErrorAutenticacion(error);
+  console.log('[HOME] Iniciando proceso de autenticacion...');
+
+  // El cliente ya debe estar inicializado por la app principal
+  const client = getSupabaseClient();
+  if (!client) {
+    console.error('[HOME] Cliente de Supabase no inicializado');
+    return;
   }
+
+  await verificarSesion();
 }
 
 function mostrarErrorAutenticacion(error) {
   console.error('[HOME] Error de autenticacion:', error);
-  alert('Error de autenticacion. Por favor, inicia sesion nuevamente.');
+  // No mostrar alert, solo redirigir silenciosamente
   redirigirALogin();
 }
 
@@ -173,10 +178,14 @@ async function limpiarSesion() {
 }
 
 function redirigirALogin() {
-  const currentUrl = window.location.href;
-  const baseUrl = currentUrl.split('?')[0];
-  console.log('[HOME] Redirigiendo a login:', baseUrl);
-  window.location.replace(baseUrl);
+  console.log('[HOME] Redirigiendo a login...');
+  // En SPA, no recargar la página, solo cambiar la vista
+  if (typeof mostrarVista === 'function') {
+    mostrarVista('login');
+  } else {
+    // Fallback: recargar página
+    window.location.replace(window.location.href.split('?')[0]);
+  }
 }
 
 // ========================================

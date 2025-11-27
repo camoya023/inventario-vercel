@@ -2,35 +2,26 @@
 // CONFIGURACIÓN INICIAL
 // ========================================
 
-// Solo ejecutar DOMContentLoaded si NO estamos en modo SPA
-// En modo SPA, se llamará manualmente a inicializarLogin() cuando sea necesario
-if (typeof window.onLoginSuccess === 'undefined') {
-  // Modo standalone - inicializar automáticamente
-  document.addEventListener('DOMContentLoaded', function() {
-    inicializarLogin();
-  });
-}
-
+/**
+ * Función principal para inicializar el Login
+ * Debe ser llamada manualmente cuando se muestre la vista login
+ */
 async function inicializarLogin() {
   console.log('[LOGIN] Inicializando página de login...');
 
-  // Inicializar cliente de Supabase
-  await inicializarSupabaseClient();
+  // Verificar que el cliente de Supabase esté inicializado
+  const client = getSupabaseClient();
+  if (!client) {
+    console.warn('[LOGIN] Cliente de Supabase no inicializado aún');
+  }
 
   // Configurar event listeners
   configurarEventListeners();
 
-  // Solo verificar sesión si estamos en modo standalone
-  // En modo SPA, la app principal ya verificó la sesión
-  if (typeof window.onLoginSuccess === 'undefined') {
-    console.log('[LOGIN] Modo standalone - verificando sesión local');
-    verificarSesionLocalSolamente();
-  } else {
-    console.log('[LOGIN] Modo SPA - omitiendo verificación de sesión (ya verificada por app principal)');
-  }
-
   // Cargar email guardado si existe
   cargarEmailGuardado();
+
+  console.log('[LOGIN] Login inicializado correctamente');
 }
 
 function verificarSesionLocalSolamente() {

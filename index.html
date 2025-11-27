@@ -270,7 +270,8 @@
       await mostrarVista('home');
     };
 
-    async function mostrarVista(vistaId) {
+    // Función global para mostrar vistas
+    window.mostrarVista = async function mostrarVista(vistaId) {
       // Ocultar todos los contenedores
       document.querySelectorAll('.app-container').forEach(container => {
         container.classList.remove('active');
