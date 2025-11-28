@@ -3,6 +3,16 @@
  * Expone la configuración de Supabase desde variables de entorno
  */
 export default function handler(req, res) {
+  // Configurar CORS para desarrollo local
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Manejar preflight request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Solo permitir GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });

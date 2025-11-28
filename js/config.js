@@ -3,6 +3,28 @@
  * Obtiene las credenciales desde el serverless function de Vercel
  */
 
+// ========================================
+// CONFIGURACIÓN DE ENTORNO
+// ========================================
+
+/**
+ * Detecta si estamos en desarrollo local o producción
+ * @returns {boolean} true si es desarrollo local
+ */
+function esDesarrolloLocal() {
+  return window.location.hostname === 'localhost' ||
+         window.location.hostname === '127.0.0.1' ||
+         window.location.port === '5500';
+}
+
+/**
+ * URL base de la API según el entorno
+ * IMPORTANTE: Cambia esta URL por la de tu deploy en Vercel
+ */
+const API_BASE_URL = esDesarrolloLocal()
+  ? 'https://inventario-vercel-4t7wgzfpd-cesar-moyas-projects.vercel.app' // ← CAMBIA ESTO por tu URL de Vercel
+  : '';
+
 // Cliente de Supabase (se inicializa de forma asíncrona)
 let supabaseClient = null;
 
@@ -17,10 +39,15 @@ async function inicializarSupabaseClient() {
   }
 
   try {
+    const esLocal = esDesarrolloLocal();
+    console.log('[CONFIG] Modo:', esLocal ? 'DESARROLLO LOCAL' : 'PRODUCCIÓN');
     console.log('[CONFIG] Obteniendo configuración de Supabase...');
 
     // Obtener configuración del endpoint serverless
-    const response = await fetch('/api/config');
+    const apiUrl = API_BASE_URL + '/api/config';
+    console.log('[CONFIG] URL de API:', apiUrl);
+
+    const response = await fetch(apiUrl);
 
     if (!response.ok) {
       throw new Error(`Error al obtener configuración: ${response.status}`);
