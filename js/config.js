@@ -12,9 +12,11 @@
  * @returns {boolean} true si es desarrollo local
  */
 function esDesarrolloLocal() {
-  return window.location.hostname === 'localhost' ||
-         window.location.hostname === '127.0.0.1' ||
-         window.location.port === '5500';
+  return (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.port === "5500"
+  );
 }
 
 /**
@@ -22,8 +24,8 @@ function esDesarrolloLocal() {
  * IMPORTANTE: Cambia esta URL por la de tu deploy en Vercel
  */
 const API_BASE_URL = esDesarrolloLocal()
-  ? 'https://inventario-vercel-4t7wgzfpd-cesar-moyas-projects.vercel.app' // ← CAMBIA ESTO por tu URL de Vercel
-  : '';
+  ? "https://inventario-vercel-five.vercel.app/" // ← CAMBIA ESTO por tu URL de Vercel
+  : "";
 
 // Cliente de Supabase (se inicializa de forma asíncrona)
 let supabaseClient = null;
@@ -34,18 +36,18 @@ let supabaseClient = null;
  */
 async function inicializarSupabaseClient() {
   if (supabaseClient) {
-    console.log('[CONFIG] Cliente de Supabase ya inicializado');
+    console.log("[CONFIG] Cliente de Supabase ya inicializado");
     return supabaseClient;
   }
 
   try {
     const esLocal = esDesarrolloLocal();
-    console.log('[CONFIG] Modo:', esLocal ? 'DESARROLLO LOCAL' : 'PRODUCCIÓN');
-    console.log('[CONFIG] Obteniendo configuración de Supabase...');
+    console.log("[CONFIG] Modo:", esLocal ? "DESARROLLO LOCAL" : "PRODUCCIÓN");
+    console.log("[CONFIG] Obteniendo configuración de Supabase...");
 
     // Obtener configuración del endpoint serverless
-    const apiUrl = API_BASE_URL + '/api/config';
-    console.log('[CONFIG] URL de API:', apiUrl);
+    const apiUrl = API_BASE_URL + "/api/config";
+    console.log("[CONFIG] URL de API:", apiUrl);
 
     const response = await fetch(apiUrl);
 
@@ -55,26 +57,25 @@ async function inicializarSupabaseClient() {
 
     const config = await response.json();
 
-    console.log('[CONFIG] Configuración obtenida:', {
-      url: config.url ? '✓' : '✗',
-      anonKey: config.anonKey ? '✓' : '✗'
+    console.log("[CONFIG] Configuración obtenida:", {
+      url: config.url ? "✓" : "✗",
+      anonKey: config.anonKey ? "✓" : "✗",
     });
 
     // Validar que existan las credenciales
     if (!config.url || !config.anonKey) {
-      throw new Error('Configuración incompleta de Supabase');
+      throw new Error("Configuración incompleta de Supabase");
     }
 
     // Crear cliente de Supabase
     const { createClient } = supabase;
     supabaseClient = createClient(config.url, config.anonKey);
 
-    console.log('[CONFIG] ✅ Cliente de Supabase inicializado correctamente');
+    console.log("[CONFIG] ✅ Cliente de Supabase inicializado correctamente");
 
     return supabaseClient;
-
   } catch (error) {
-    console.error('[CONFIG] ❌ Error inicializando Supabase:', error);
+    console.error("[CONFIG] ❌ Error inicializando Supabase:", error);
     throw error;
   }
 }
@@ -85,7 +86,9 @@ async function inicializarSupabaseClient() {
  */
 function getSupabaseClient() {
   if (!supabaseClient) {
-    console.warn('[CONFIG] Cliente de Supabase no inicializado. Llama a inicializarSupabaseClient() primero.');
+    console.warn(
+      "[CONFIG] Cliente de Supabase no inicializado. Llama a inicializarSupabaseClient() primero."
+    );
   }
   return supabaseClient;
 }
