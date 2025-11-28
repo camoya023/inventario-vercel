@@ -1,0 +1,65 @@
+<div class="form-container-cliente" style="padding: 20px;">
+
+    <form id="form-cliente" novalidate>
+        <input type="hidden" id="input-id-cliente" name="id_cliente">
+
+        <div class="page-header-controls" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="titulo-form-cliente" class="page-section-title">Nuevo Cliente</h2>
+            <div class="form-action-buttons">
+                <button type="button" id="btn-cancelar-cliente" class="button button-secondary">Cancelar</button>
+                <button type="submit" id="btn-guardar-cliente" class="button button-primary">Guardar Cliente</button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Información Esencial</h3>
+
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label for="input-codigo-cliente">Código Cliente <span id="codigo-cliente-ayuda" style="font-size:0.8em; color:#666;">(Dejar vacío para autogenerar)</span></label>
+                    <input type="text" id="input-codigo-cliente" name="codigo_cliente" class="form-input" placeholder="Ej: CLI-0001 o CO123">
+                    <div class="validation-message" id="error-codigo-cliente"></div>
+                </div>
+                <div class="form-group form-group-half">
+                    <label for="select-estado-cliente">Estado <span class="required-field">*</span></label>
+                    <select id="select-estado-cliente" name="estado" class="form-input-select" required>
+                        <option value="Activo" selected>Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                    <div class="validation-message" id="error-estado-cliente"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group form-group-half">
+                    <label for="input-nombres-cliente">Nombres <span class="required-field">*</span></label>
+                    <input type="text" id="input-nombres-cliente" name="nombres" class="form-input" placeholder="Nombres del cliente" required>
+                    <div class="validation-message" id="error-nombres-cliente"></div>
+                </div>
+                <div class="form-group form-group-half">
+                    <label for="input-apellidos-cliente">Apellidos</label>
+                    <input type="text" id="input-apellidos-cliente" name="apellidos" class="form-input" placeholder="Apellidos del cliente">
+                    <div class="validation-message" id="error-apellidos-cliente"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="input-razon-social-cliente">Razón Social (Si es empresa/fundación)</label>
+                <input type="text" id="input-razon-social-cliente" name="razon_social" class="form-input" placeholder="Nombre de la empresa o fundación">
+                <div class="validation-message" id="error-razon-social-cliente"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="input-telefono-principal-cliente">Teléfono Principal <span class="required-field">*</span></label>
+                <input type="tel" id="input-telefono-principal-cliente" name="telefono_principal" class="form-input" placeholder="Número de teléfono principal" required>
+                <div class="validation-message" id="error-telefono-principal-cliente"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="textarea-notas-internas-cliente">Notas Internas</label>
+                <textarea id="textarea-notas-internas-cliente" name="notas_internas" class="form-input" rows="4" placeholder="Observaciones o notas internas sobre el cliente..."></textarea>
+            </div>
+        </div>
+
+    </form>
+</div>

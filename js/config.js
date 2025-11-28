@@ -24,7 +24,7 @@ function esDesarrolloLocal() {
  * IMPORTANTE: Cambia esta URL por la de tu deploy en Vercel
  */
 const API_BASE_URL = esDesarrolloLocal()
-  ? "https://inventario-vercel-avswq7vvj-cesar-moyas-projects.vercel.app" // ← CAMBIA ESTO por tu URL de Vercel
+  ? "https://inventario-vercel-five.vercel.app" // ← CAMBIA ESTO por tu URL de Vercel
   : "";
 
 // Cliente de Supabase (se inicializa de forma asíncrona)

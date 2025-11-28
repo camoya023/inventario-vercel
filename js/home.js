@@ -351,3 +351,79 @@ async function cargarVistaClientes() {
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de clientes: ${error.message}</div>`;
     }
 }
+
+// ========================================
+// CARGA DINÁMICA DE FORMULARIOS
+// ========================================
+
+/**
+ * Carga dinámicamente el formulario de nuevo cliente
+ */
+async function cargarFormularioNuevoCliente() {
+    console.log('[HOME] Cargando formulario de nuevo cliente...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando formulario...</div>';
+
+    try {
+        const response = await fetch('/views/clientes-formulario.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+        workArea.innerHTML = html;
+
+        if (typeof inicializarFormularioNuevoCliente === 'function') {
+            inicializarFormularioNuevoCliente();
+            console.log('[HOME] Formulario nuevo cliente inicializado');
+        } else {
+            console.error('[HOME] Función inicializarFormularioNuevoCliente no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar formulario:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Carga dinámicamente el formulario para editar cliente
+ */
+async function cargarFormularioEditarCliente(clienteId, clienteNombre) {
+    console.log('[HOME] Cargando formulario para editar cliente:', clienteId);
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando formulario...</div>';
+
+    try {
+        const response = await fetch('/views/clientes-formulario.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+        workArea.innerHTML = html;
+
+        if (typeof inicializarFormularioEditarCliente === 'function') {
+            await inicializarFormularioEditarCliente(clienteId, clienteNombre);
+            console.log('[HOME] Formulario editar cliente inicializado');
+        } else {
+            console.error('[HOME] Función inicializarFormularioEditarCliente no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar formulario:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error: ${error.message}</div>`;
+    }
+}

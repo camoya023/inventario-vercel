@@ -207,8 +207,7 @@ function inicializarVistaClientes() {
   if (btnNuevoCliente) {
     btnNuevoCliente.addEventListener("click", function () {
       console.log('[Clientes] Botón "+ Nuevo Cliente" clickeado.');
-      // TODO: Implementar formulario de cliente
-      alert('Funcionalidad de nuevo cliente en desarrollo');
+      cargarFormularioNuevoCliente();
     });
   }
 
@@ -286,8 +285,7 @@ function inicializarVistaClientes() {
         alert('Vista de detalles en desarrollo');
       } else if (actionButton.classList.contains("btn-editar-cliente")) {
         console.log('[Clientes] Editar ID:', clienteId);
-        // TODO: Implementar formulario de edición
-        alert('Formulario de edición en desarrollo');
+        cargarFormularioEditarCliente(clienteId, clienteNombre);
       } else if (actionButton.classList.contains("btn-eliminar-cliente")) {
         if (actionButton.disabled || actionButton.hasAttribute('disabled')) {
           console.log('[Clientes] Cliente ya está inactivo');
