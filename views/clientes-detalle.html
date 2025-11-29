@@ -1,0 +1,84 @@
+<div class="page-content-wrapper">
+
+    <div class="page-header-controls">
+        <div class="header-left-items">
+            <button id="btn-volver-a-lista-clientes" class="button button-secondary button-sm">
+                <i class="fas fa-arrow-left"></i> Volver al Listado
+            </button>
+            <h2 id="detalle-cliente-nombre" class="page-section-title" style="margin-left: 15px;">
+                Cargando...
+            </h2>
+            <span id="detalle-cliente-estado-badge" class="badge" style="margin-left: 10px;"></span>
+        </div>
+        <div class="header-right-items">
+            <button id="btn-editar-cliente-desde-detalle" class="button button-primary">
+                <i class="fas fa-pencil-alt"></i> Editar Cliente
+            </button>
+        </div>
+    </div>
+
+    <div class="kpi-card-container">
+        <div class="kpi-card">
+            <span class="kpi-title">Última Compra</span>
+            <span id="detalle-cliente-ultima-compra" class="kpi-value">-</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-title">Último Costo de Envío</span>
+            <span id="detalle-cliente-ultimo-envio" class="kpi-value">-</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-title">Total Comprado (Histórico)</span>
+            <span id="detalle-cliente-total-comprado" class="kpi-value">-</span>
+        </div>
+        <div class="kpi-card">
+            <span class="kpi-title">Código Cliente</span>
+            <span id="detalle-cliente-codigo" class="kpi-value">-</span>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <ul class="tabs-nav">
+            <li class="tab-item is-active"><a data-tab="tab-info-general">📝 Información General</a></li>
+            <li class="tab-item"><a data-tab="tab-direcciones">🗺️ Direcciones</a></li>
+            <li class="tab-item"><a data-tab="tab-contactos">📞 Contactos Adicionales</a></li>
+            <li class="tab-item"><a data-tab="tab-historial">📜 Historial de Actividad</a></li>
+        </ul>
+
+        <div id="tab-info-general" class="tab-content is-active">
+            <h4>Datos Principales</h4>
+            <dl class="definition-list">
+                <dt>Nombre Completo</dt>
+                <dd id="detalle-info-nombre-completo">-</dd>
+                <dt>Teléfono Principal</dt>
+                <dd id="detalle-info-telefono">-</dd>
+                <dt>Razón Social</dt>
+                <dd id="detalle-info-razon-social">-</dd>
+                <dt>Fecha de Creación</dt>
+                <dd id="detalle-info-fecha-creacion">-</dd>
+                <dt>Notas Internas</dt>
+                <dd id="detalle-info-notas">-</dd>
+            </dl>
+        </div>
+
+        <div id="tab-direcciones" class="tab-content">
+            <h4>Direcciones Registradas</h4>
+            <div id="detalle-lista-direcciones" class="sub-items-list-readonly">
+                <p class="empty-list-message">No hay direcciones registradas.</p>
+            </div>
+        </div>
+
+        <div id="tab-contactos" class="tab-content">
+            <h4>Contactos Adicionales</h4>
+            <div id="detalle-lista-contactos" class="sub-items-list-readonly">
+                <p class="empty-list-message">No hay contactos adicionales registrados.</p>
+            </div>
+        </div>
+
+        <div id="tab-historial" class="tab-content">
+            <h4>Historial de Actividad del Cliente</h4>
+            <div id="detalle-historial-actividad" class="table-wrapper">
+                <p class="empty-list-message">Cargando historial de actividad...</p>
+            </div>
+        </div>
+    </div>
+</div>

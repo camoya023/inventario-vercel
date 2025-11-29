@@ -54,12 +54,172 @@
                 <input type="tel" id="input-telefono-principal-cliente" name="telefono_principal" class="form-input" placeholder="Número de teléfono principal" required>
                 <div class="validation-message" id="error-telefono-principal-cliente"></div>
             </div>
-
-            <div class="form-group">
-                <label for="textarea-notas-internas-cliente">Notas Internas</label>
-                <textarea id="textarea-notas-internas-cliente" name="notas_internas" class="form-input" rows="4" placeholder="Observaciones o notas internas sobre el cliente..."></textarea>
-            </div>
         </div>
 
+        <!-- Sección colapsable de detalles adicionales -->
+        <div style="margin-top: 15px; margin-bottom: 15px;">
+            <button type="button" id="btn-toggle-detalles-cliente" class="button button-secondary button-sm" aria-expanded="false">
+                <i class="fas fa-plus-circle"></i> Más Detalles <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+
+        <div id="seccion-detalles-expandibles-cliente" class="collapsible-section collapsed">
+
+            <!-- Sub-formulario de Direcciones -->
+            <div class="form-section" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="form-section-title">Direcciones</h3>
+                    <button type="button" id="btn-abrir-modal-nueva-direccion" class="button button-primary button-sm">
+                        <i class="fas fa-plus"></i> Añadir Dirección
+                    </button>
+                </div>
+                <div id="lista-direcciones-cliente" class="sub-items-list">
+                    <p class="empty-list-message">No hay direcciones añadidas.</p>
+                </div>
+            </div>
+
+            <!-- Sub-formulario de Contactos Adicionales -->
+            <div class="form-section" style="margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 class="form-section-title">Contactos Adicionales</h3>
+                    <button type="button" id="btn-abrir-modal-nuevo-contacto" class="button button-primary button-sm">
+                        <i class="fas fa-plus"></i> Añadir Contacto
+                    </button>
+                </div>
+                <div id="lista-contactos-adicionales-cliente" class="sub-items-list">
+                    <p class="empty-list-message">No hay contactos adicionales añadidos.</p>
+                </div>
+            </div>
+
+            <!-- Notas Internas -->
+            <div class="form-section">
+                <h3 class="form-section-title">Notas Internas</h3>
+                <div class="form-group">
+                    <label for="textarea-notas-internas-cliente">Notas Internas</label>
+                    <textarea id="textarea-notas-internas-cliente" name="notas_internas" class="form-input" rows="4" placeholder="Observaciones o notas internas sobre el cliente..."></textarea>
+                </div>
+            </div>
+
+        </div>
     </form>
+</div>
+
+<!-- Modal de Dirección -->
+<div id="modal-direccion-cliente" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3 id="modal-direccion-titulo" class="modal-title">Añadir Nueva Dirección</h3>
+            <button id="btn-cerrar-modal-direccion" class="modal-close-button" aria-label="Cerrar modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="form-direccion-cliente" novalidate>
+                <input type="hidden" id="input-index-direccion" name="index_direccion">
+
+                <div class="form-group">
+                    <label for="input-nombre-referencia-direccion">Nombre de Referencia (Ej: Casa, Oficina)</label>
+                    <input type="text" id="input-nombre-referencia-direccion" name="nombre_referencia" class="form-input" placeholder="Ej: Casa principal">
+                    <div class="validation-message" id="error-nombre-referencia-direccion"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-direccion-completa">Dirección Completa <span class="required-field">*</span></label>
+                    <input type="text" id="input-direccion-completa" name="direccion_completa" class="form-input" required placeholder="Ej: Calle 5 # 40-30">
+                    <div class="validation-message" id="error-direccion-completa"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="input-barrio-direccion">Barrio <span class="required-field">*</span></label>
+                        <input type="text" id="input-barrio-direccion" name="barrio" class="form-input" required placeholder="Ej: San Fernando">
+                        <div class="validation-message" id="error-barrio-direccion"></div>
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="input-ciudad-direccion">Ciudad / Municipio <span class="required-field">*</span></label>
+                        <input type="text" id="input-ciudad-direccion" name="ciudad_municipio" class="form-input" required placeholder="Ej: Cali">
+                        <div class="validation-message" id="error-ciudad-direccion"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="textarea-indicaciones-direccion">Indicaciones Adicionales (Opcional)</label>
+                    <textarea id="textarea-indicaciones-direccion" name="indicaciones_adicionales" class="form-input" rows="3" placeholder="Ej: Apartamento 301, Torre Cerezo, al lado de..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-check-label" style="display: block; margin-bottom: 5px;">
+                        <input type="checkbox" id="checkbox-predeterminada-envio" name="es_direccion_envio_predeterminada" class="form-check-input">
+                        Marcar como dirección de envío predeterminada
+                    </label>
+                    <label class="form-check-label" style="display: block;">
+                        <input type="checkbox" id="checkbox-predeterminada-facturacion" name="es_direccion_facturacion_predeterminada" class="form-check-input">
+                        Marcar como dirección de facturación predeterminada
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btn-cancelar-modal-direccion" class="button button-secondary">Cancelar</button>
+            <button type="button" id="btn-guardar-modal-direccion" class="button button-primary">Guardar Dirección</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Contacto -->
+<div id="modal-contacto-cliente" class="modal-overlay" style="display: none;">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3 id="modal-contacto-titulo" class="modal-title">Añadir Nuevo Contacto</h3>
+            <button id="btn-cerrar-modal-contacto" class="modal-close-button" aria-label="Cerrar modal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="form-contacto-cliente" novalidate>
+                <input type="hidden" id="input-index-contacto" name="index_contacto">
+
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="input-nombre-contacto">Nombre del Contacto <span class="required-field">*</span></label>
+                        <input type="text" id="input-nombre-contacto" name="nombre_contacto" class="form-input" required placeholder="Ej: Ana Pérez">
+                        <div class="validation-message" id="error-nombre-contacto"></div>
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="input-rol-contacto">Rol o Parentesco</label>
+                        <input type="text" id="input-rol-contacto" name="rol_o_parentesco" class="form-input" placeholder="Ej: Esposa, Gerente Compras">
+                        <div class="validation-message" id="error-rol-contacto"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group form-group-half">
+                        <label for="input-telefono-contacto">Número de Teléfono</label>
+                        <input type="tel" id="input-telefono-contacto" name="numero_telefono" class="form-input" placeholder="Ej: 3001239988">
+                        <div class="validation-message" id="error-telefono-contacto"></div>
+                    </div>
+                    <div class="form-group form-group-half">
+                        <label for="input-email-contacto">Email</label>
+                        <input type="email" id="input-email-contacto" name="email" class="form-input" placeholder="Ej: contacto@email.com">
+                        <div class="validation-message" id="error-email-contacto"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="input-tipo-contacto">Tipo de Contacto</label>
+                    <input type="text" id="input-tipo-contacto" name="tipo_contacto" class="form-input" placeholder="Ej: Celular Personal, Teléfono Oficina">
+                    <div class="validation-message" id="error-tipo-contacto"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="textarea-notas-contacto">Notas (Opcional)</label>
+                    <textarea id="textarea-notas-contacto" name="notas" class="form-input" rows="3" placeholder="Observaciones sobre este contacto..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btn-cancelar-modal-contacto" class="button button-secondary">Cancelar</button>
+            <button type="button" id="btn-guardar-modal-contacto" class="button button-primary">Guardar Contacto</button>
+        </div>
+    </div>
 </div>

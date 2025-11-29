@@ -197,3 +197,311 @@
     color: #dc3545;
     font-weight: bold;
 }
+
+/* =========================================================================
+   ESTILOS DE LA VISTA DE DETALLE DEL CLIENTE
+   ========================================================================= */
+
+/* Ajustes al encabezado */
+.page-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-left-items, .header-right-items {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Tarjetas de Métricas (KPIs) */
+.kpi-card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.kpi-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.kpi-title {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.kpi-value {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Sistema de Pestañas (Tabs) */
+.tabs-container {
+    width: 100%;
+}
+
+.tabs-nav {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.tab-item a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #555;
+    background-color: #f0f0f0;
+    border: 1px solid #e0e0e0;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.tab-item.is-active a {
+    background-color: #ffffff;
+    color: #007bff;
+    border-bottom: 2px solid #ffffff;
+    position: relative;
+    top: 2px;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    background-color: #ffffff;
+}
+
+.tab-content.is-active {
+    display: block;
+}
+
+/* Listas de solo lectura (para direcciones/contactos en vista detalle) */
+.sub-items-list-readonly .sub-item-display {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.sub-items-list-readonly .sub-item-display:last-child {
+    border-bottom: none;
+}
+
+.sub-items-list-readonly .sub-item-display.direccion-inactiva {
+    color: #999;
+    background-color: #f8f8f8;
+    opacity: 0.7;
+}
+
+/* Lista de Definiciones (para Información General) */
+.definition-list {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 10px 20px;
+}
+
+.definition-list dt {
+    font-weight: bold;
+    color: #555;
+}
+
+.definition-list dd {
+    margin: 0;
+}
+
+/* Estilo para números de teléfono en contactos adicionales */
+.telefono-contacto {
+    display: inline-block;
+    font-size: 1.1em;
+    color: #2563eb;
+    margin: 8px 0;
+    padding: 4px 0;
+    letter-spacing: 0.5px;
+}
+
+.telefono-contacto strong {
+    font-weight: 600;
+}
+
+/* Estilo para mensajes vacíos */
+.empty-list-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+    margin: 0;
+}
+
+/* Estilos para la tabla de historial */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+/* =========================================================================
+   ESTILOS PARA SUB-FORMULARIOS Y MODALES
+   ========================================================================= */
+
+/* Sección colapsable */
+.collapsible-section {
+    max-height: 2000px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+}
+
+.collapsible-section.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Lista de sub-items (direcciones y contactos) */
+.sub-items-list {
+    min-height: 50px;
+}
+
+.sub-item-card {
+    background-color: #f9f9f9;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.sub-item-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.sub-item-card-title {
+    font-weight: bold;
+    color: #333;
+    flex: 1;
+}
+
+.sub-item-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sub-item-card-body {
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+/* Badges para direcciones predeterminadas */
+.badge-direccion {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.badge-envio {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-facturacion {
+    background-color: #17a2b8;
+    color: white;
+}
+
+/* Modales */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content.modal-lg {
+    max-width: 800px;
+}
+
+.modal-content.modal-sm {
+    max-width: 400px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.25em;
+    color: #333;
+}
+
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-button:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

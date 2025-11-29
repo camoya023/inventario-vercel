@@ -427,3 +427,39 @@ async function cargarFormularioEditarCliente(clienteId, clienteNombre) {
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error: ${error.message}</div>`;
     }
 }
+
+/**
+ * Carga dinámicamente la vista de detalle del cliente
+ */
+async function cargarVistaDetalleCliente(clienteId) {
+    console.log('[HOME] Cargando vista de detalle de cliente:', clienteId);
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando detalles...</div>';
+
+    try {
+        const response = await fetch('/views/clientes-detalle.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+        workArea.innerHTML = html;
+
+        if (typeof inicializarVistaDetalleCliente === 'function') {
+            await inicializarVistaDetalleCliente(clienteId);
+            console.log('[HOME] Vista de detalle inicializada');
+        } else {
+            console.error('[HOME] Función inicializarVistaDetalleCliente no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de detalle:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error: ${error.message}</div>`;
+    }
+}

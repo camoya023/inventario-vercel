@@ -281,8 +281,7 @@ function inicializarVistaClientes() {
 
       if (actionButton.classList.contains("btn-ver-cliente")) {
         console.log('[Clientes] Ver detalle ID:', clienteId);
-        // TODO: Implementar vista de detalles
-        alert('Vista de detalles en desarrollo');
+        cargarVistaDetalleCliente(clienteId);
       } else if (actionButton.classList.contains("btn-editar-cliente")) {
         console.log('[Clientes] Editar ID:', clienteId);
         cargarFormularioEditarCliente(clienteId, clienteNombre);
@@ -490,6 +489,8 @@ function escapeHtml(text) {
 }
 
 function mostrarModalConfirmacion(mensaje, callbackConfirmar, titulo = "Confirmar Acción") {
+  console.log('[mostrarModalConfirmacion] Iniciando con:', { mensaje, titulo });
+
   // Usar el modal genérico del home
   const modal = document.getElementById('modal-confirmacion-generica');
   const tituloElement = document.getElementById('modal-confirmacion-generica-titulo');
@@ -498,7 +499,17 @@ function mostrarModalConfirmacion(mensaje, callbackConfirmar, titulo = "Confirma
   const btnCancelar = document.getElementById('btn-cancelar-modal-confirmacion-generica');
   const btnCerrar = document.getElementById('btn-cerrar-modal-confirmacion-generica-x');
 
+  console.log('[mostrarModalConfirmacion] Modal encontrado:', !!modal);
+  console.log('[mostrarModalConfirmacion] Elementos:', {
+    titulo: !!tituloElement,
+    mensaje: !!mensajeElement,
+    btnAceptar: !!btnAceptar,
+    btnCancelar: !!btnCancelar,
+    btnCerrar: !!btnCerrar
+  });
+
   if (!modal) {
+    console.warn('[mostrarModalConfirmacion] Modal no encontrado, usando confirm() nativo');
     // Fallback si no existe el modal
     if (confirm(mensaje)) {
       callbackConfirmar();
@@ -510,19 +521,44 @@ function mostrarModalConfirmacion(mensaje, callbackConfirmar, titulo = "Confirma
   if (tituloElement) tituloElement.textContent = titulo;
   if (mensajeElement) mensajeElement.textContent = mensaje;
 
-  // Mostrar modal
+  // Mostrar modal - REPLICANDO EXACTAMENTE LA LÓGICA DE APPS SCRIPT
+  console.log('[mostrarModalConfirmacion] Mostrando modal...');
+
+  // Forzar TODOS los estilos necesarios (como en Apps Script)
   modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1';
+  modal.style.zIndex = '9999';
+  modal.classList.add('is-visible');
+
+  console.log('[mostrarModalConfirmacion] Estilos aplicados:', {
+    display: modal.style.display,
+    visibility: modal.style.visibility,
+    opacity: modal.style.opacity,
+    zIndex: modal.style.zIndex,
+    hasClass: modal.classList.contains('is-visible')
+  });
 
   // Handler para confirmar
   const handlerConfirmar = function() {
+    // Ocultar modal con todos los estilos (como en Apps Script)
     modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    modal.classList.remove('is-visible');
+
     callbackConfirmar();
     limpiarHandlers();
   };
 
   // Handler para cancelar
   const handlerCancelar = function() {
+    // Ocultar modal con todos los estilos (como en Apps Script)
     modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    modal.classList.remove('is-visible');
+
     limpiarHandlers();
   };
 
