@@ -192,9 +192,9 @@ function manejarEleccionConfirmacion(eleccion) {
  */
 function cerrarModalConfirmacion() {
     if (!confirmModalElement) return;
-    confirmModalElement.classList.remove('active');
+    confirmModalElement.classList.remove('is-visible');
     setTimeout(() => {
-        if (!confirmModalElement.classList.contains('active')) {
+        if (!confirmModalElement.classList.contains('is-visible')) {
             confirmModalElement.style.display = 'none';
         }
     }, 250);
@@ -241,8 +241,8 @@ function mostrarModalConfirmacion(message, title = 'Confirmar', confirmBtnTxt = 
     console.log('[Productos] Mostrando modal...');
     confirmModalElement.style.display = 'flex';
     setTimeout(() => {
-        console.log('[Productos] Activando modal (agregando clase active)...');
-        confirmModalElement.classList.add('active');
+        console.log('[Productos] Activando modal (agregando clase is-visible)...');
+        confirmModalElement.classList.add('is-visible');
     }, 10);
 
     console.log('[Productos] Retornando Promise...');
@@ -715,6 +715,494 @@ async function confirmarYEliminarProducto(productoId) {
         console.error('[Productos] ❌ Error al desactivar producto:', error);
         showNotification('Error al desactivar producto: ' + error.message, 'error');
     }
+}
+
+// =========================================================================
+// FUNCIONES DEL MODAL DE PRODUCTO (AÑADIR/EDITAR)
+// =========================================================================
+
+/**
+ * Inicializa el modal de producto y sus event listeners.
+ */
+function inicializarModalProducto() {
+    console.log('[Productos] Inicializando modal de producto...');
+
+    modalProducto = document.getElementById('modal-producto');
+    formProducto = document.getElementById('form-producto');
+    modalProductoTitulo = document.getElementById('modal-producto-titulo');
+    const btnCerrar = document.getElementById('btn-cerrar-modal-producto');
+    const btnCancelar = document.getElementById('btn-cancelar-operacion-producto');
+
+    if (!modalProducto || !formProducto || !btnCerrar || !btnCancelar) {
+        console.error('[Productos] Elementos clave del modal no encontrados');
+        return;
+    }
+
+    // Event listeners del modal
+    btnCerrar.addEventListener('click', cerrarModalProducto);
+    btnCancelar.addEventListener('click', cerrarModalProducto);
+    formProducto.addEventListener('submit', manejarGuardarProducto);
+    modalProducto.addEventListener('click', (event) => {
+        if (event.target === modalProducto) cerrarModalProducto();
+    });
+
+    // Listeners para formularios inline de categoría y marca
+    const btnToggleCategoria = document.getElementById('btn-toggle-nueva-categoria');
+    const btnCancelarCategoria = document.getElementById('btn-cancelar-inline-nueva-categoria');
+    const btnGuardarCategoria = document.getElementById('btn-guardar-inline-nueva-categoria');
+
+    if (btnToggleCategoria) btnToggleCategoria.addEventListener('click', () => toggleInlineAddForm('categoria'));
+    if (btnCancelarCategoria) btnCancelarCategoria.addEventListener('click', () => toggleInlineAddForm('categoria', false));
+    if (btnGuardarCategoria) btnGuardarCategoria.addEventListener('click', guardarNuevaEntidadInline('categoria'));
+
+    const btnToggleMarca = document.getElementById('btn-toggle-nueva-marca');
+    const btnCancelarMarca = document.getElementById('btn-cancelar-inline-nueva-marca');
+    const btnGuardarMarca = document.getElementById('btn-guardar-inline-nueva-marca');
+
+    if (btnToggleMarca) btnToggleMarca.addEventListener('click', () => toggleInlineAddForm('marca'));
+    if (btnCancelarMarca) btnCancelarMarca.addEventListener('click', () => toggleInlineAddForm('marca', false));
+    if (btnGuardarMarca) btnGuardarMarca.addEventListener('click', guardarNuevaEntidadInline('marca'));
+
+    console.log('[Productos] ✓ Modal de producto inicializado');
+}
+
+/**
+ * Abre el modal de producto en modo añadir o editar.
+ * @param {string} modo - 'add' o 'edit'
+ * @param {Object} productoParaEditar - Datos del producto (solo en modo edit)
+ */
+function abrirModalProducto(modo = 'add', productoParaEditar = null) {
+    console.log('[Productos] Abriendo modal en modo:', modo);
+
+    if (!modalProducto || !formProducto) {
+        console.error('[Productos] Modal de producto no inicializado');
+        return;
+    }
+
+    formProducto.reset();
+    limpiarMensajesValidacionProducto();
+
+    // Resetear y ocultar formularios inline
+    toggleInlineAddForm('categoria', false, true);
+    toggleInlineAddForm('marca', false, true);
+
+    const inputIdProd = document.getElementById('input-id-producto');
+    const inputSKU = document.getElementById('input-sku-producto');
+    const btnGuardar = document.getElementById('btn-guardar-cambios-producto');
+    const checkboxActivo = document.getElementById('input-activo-producto');
+    const grupoCheckboxActivo = checkboxActivo.closest('.form-group');
+    const stockInicialGroup = document.getElementById('input-stock-inicial-producto')?.closest('.form-group');
+
+    if (modo === 'edit' && productoParaEditar) {
+        // Modo EDITAR
+        modalProductoTitulo.textContent = 'Editar Producto';
+        inputIdProd.value = productoParaEditar.id_producto;
+        inputSKU.value = productoParaEditar.sku || '';
+        inputSKU.readOnly = true;
+        document.getElementById('input-nombre-producto').value = productoParaEditar.nombre_producto || '';
+        document.getElementById('input-descripcion-producto').value = productoParaEditar.descripcion_producto || '';
+        document.getElementById('select-categoria-producto').value = productoParaEditar.id_categoria || '';
+        document.getElementById('select-marca-producto').value = productoParaEditar.id_marca || '';
+        document.getElementById('select-unidad-medida-producto').value = productoParaEditar.id_unidad_medida || '';
+        document.getElementById('input-precio-compra-producto').value = productoParaEditar.precio_compra_referencia || '';
+        document.getElementById('input-precio-venta-producto').value = productoParaEditar.precio_venta_actual || '';
+        document.getElementById('input-stock-minimo-producto').value = productoParaEditar.stock_minimo_alerta || '0';
+
+        // Lógica del checkbox "Producto Activo" al editar
+        if (productoParaEditar.activo === false) {
+            // Producto INACTIVO: mostrar checkbox para permitir reactivación
+            grupoCheckboxActivo.style.display = 'block';
+            checkboxActivo.checked = productoParaEditar.activo;
+        } else {
+            // Producto ACTIVO: ocultar checkbox
+            grupoCheckboxActivo.style.display = 'none';
+            checkboxActivo.checked = true;
+        }
+
+        // Ocultar stock inicial en modo edición
+        if (stockInicialGroup) stockInicialGroup.style.display = 'none';
+
+        btnGuardar.textContent = 'Actualizar Producto';
+    } else {
+        // Modo AÑADIR
+        modalProductoTitulo.textContent = 'Añadir Nuevo Producto';
+        inputIdProd.value = '';
+        inputSKU.value = '';
+        inputSKU.readOnly = true;
+        inputSKU.closest('.form-group').style.display = 'none';
+
+        // Mostrar stock inicial
+        if (stockInicialGroup) stockInicialGroup.style.display = 'block';
+
+        // Ocultar checkbox activo (siempre activo por defecto)
+        grupoCheckboxActivo.style.display = 'none';
+        checkboxActivo.checked = true;
+
+        btnGuardar.textContent = 'Guardar Producto';
+    }
+
+    // Mostrar modal
+    modalProducto.style.display = 'flex';
+
+    // Resetear scroll del modal
+    const modalBody = modalProducto.querySelector('.modal-body');
+    if (modalBody) {
+        modalBody.scrollTop = 0;
+    }
+
+    setTimeout(() => {
+        modalProducto.classList.add('is-visible');
+        document.getElementById('input-nombre-producto').focus();
+    }, 10);
+}
+
+/**
+ * Cierra el modal de producto.
+ */
+function cerrarModalProducto() {
+    if (!modalProducto) return;
+    modalProducto.classList.remove('is-visible');
+    setTimeout(() => {
+        if (!modalProducto.classList.contains('is-visible')) {
+            modalProducto.style.display = 'none';
+        }
+    }, 250);
+}
+
+/**
+ * Limpia los mensajes de validación del formulario.
+ */
+function limpiarMensajesValidacionProducto() {
+    document.querySelectorAll('#form-producto .validation-message').forEach(el => el.textContent = '');
+    document.querySelectorAll('#form-producto .form-input.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+}
+
+/**
+ * Valida el formulario de producto.
+ * @returns {boolean} true si es válido, false si no
+ */
+function validarFormularioProducto() {
+    limpiarMensajesValidacionProducto();
+    let esValido = true;
+
+    const nombre = document.getElementById('input-nombre-producto');
+    const categoria = document.getElementById('select-categoria-producto');
+    const marca = document.getElementById('select-marca-producto');
+    const unidadMedida = document.getElementById('select-unidad-medida-producto');
+    const precioCompra = document.getElementById('input-precio-compra-producto');
+    const precioVenta = document.getElementById('input-precio-venta-producto');
+    const stockInicial = document.getElementById('input-stock-inicial-producto');
+    const idProducto = document.getElementById('input-id-producto').value;
+
+    // Validar nombre
+    if (!nombre.value.trim()) {
+        nombre.classList.add('is-invalid');
+        document.getElementById('error-nombre-producto').textContent = 'El nombre del producto es obligatorio.';
+        esValido = false;
+    }
+
+    // Validar categoría
+    if (!categoria.value) {
+        categoria.classList.add('is-invalid');
+        document.getElementById('error-categoria-producto').textContent = 'Debe seleccionar una categoría.';
+        esValido = false;
+    }
+
+    // Validar marca
+    if (!marca.value) {
+        marca.classList.add('is-invalid');
+        document.getElementById('error-marca-producto').textContent = 'Debe seleccionar una marca.';
+        esValido = false;
+    }
+
+    // Validar unidad de medida
+    if (!unidadMedida.value) {
+        unidadMedida.classList.add('is-invalid');
+        document.getElementById('error-unidad-medida-producto').textContent = 'Debe seleccionar una unidad de medida.';
+        esValido = false;
+    }
+
+    // Validar precio de compra
+    if (!precioCompra.value || precioCompra.value.trim() === '' || parseFloat(precioCompra.value) <= 0 || isNaN(parseFloat(precioCompra.value))) {
+        precioCompra.classList.add('is-invalid');
+        document.getElementById('error-precio-compra-producto').textContent = 'El precio de compra es obligatorio y debe ser mayor a cero.';
+        esValido = false;
+    }
+
+    // Validar precio de venta
+    if (!precioVenta.value || precioVenta.value.trim() === '' || parseFloat(precioVenta.value) <= 0 || isNaN(parseFloat(precioVenta.value))) {
+        precioVenta.classList.add('is-invalid');
+        document.getElementById('error-precio-venta-producto').textContent = 'El precio de venta es obligatorio y debe ser mayor a cero.';
+        esValido = false;
+    }
+
+    // Validar stock inicial solo si el campo está visible (modo añadir)
+    if (!idProducto && (!stockInicial.value.trim() || parseFloat(stockInicial.value) < 0 || isNaN(parseFloat(stockInicial.value)))) {
+        stockInicial.classList.add('is-invalid');
+        document.getElementById('error-stock-inicial-producto').textContent = 'El stock inicial es obligatorio y no puede ser negativo.';
+        esValido = false;
+    }
+
+    return esValido;
+}
+
+/**
+ * Maneja el evento de guardar/actualizar producto.
+ * @param {Event} event - Evento del submit
+ */
+async function manejarGuardarProducto(event) {
+    event.preventDefault();
+
+    if (!validarFormularioProducto()) {
+        console.log('[Productos] Validación fallida');
+        return;
+    }
+
+    console.log('[Productos] ===== GUARDANDO PRODUCTO =====');
+
+    const id = document.getElementById('input-id-producto').value;
+    const datosProducto = {
+        nombre_producto: document.getElementById('input-nombre-producto').value.trim(),
+        descripcion_producto: document.getElementById('input-descripcion-producto').value.trim(),
+        id_categoria: document.getElementById('select-categoria-producto').value,
+        id_marca: document.getElementById('select-marca-producto').value,
+        id_unidad_medida: parseInt(document.getElementById('select-unidad-medida-producto').value),
+        precio_compra_referencia: parseFloat(document.getElementById('input-precio-compra-producto').value),
+        precio_venta_actual: parseFloat(document.getElementById('input-precio-venta-producto').value),
+        stock_minimo_alerta: parseInt(document.getElementById('input-stock-minimo-producto').value) || 0,
+        activo: document.getElementById('input-activo-producto').checked
+    };
+
+    // Agregar stock inicial solo en modo añadir
+    if (!id) {
+        datosProducto.stock_inicial = parseFloat(document.getElementById('input-stock-inicial-producto').value);
+    } else {
+        datosProducto.id_producto = id;
+    }
+
+    const btnGuardar = document.getElementById('btn-guardar-cambios-producto');
+    const originalButtonText = btnGuardar.textContent;
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+    try {
+        const client = getSupabaseClient();
+        if (!client) {
+            throw new Error('Cliente de Supabase no inicializado');
+        }
+
+        const funcionRPC = id ? 'fn_actualizar_producto' : 'crear_producto_con_stock_inicial';
+        console.log('[Productos] Llamando a RPC:', funcionRPC);
+        console.log('[Productos] Datos:', datosProducto);
+
+        // Preparar parámetros según la función RPC
+        let rpcParams;
+        if (id) {
+            // Actualizar producto
+            rpcParams = {
+                p_id_producto: datosProducto.id_producto,
+                p_nombre_producto: datosProducto.nombre_producto,
+                p_descripcion_producto: datosProducto.descripcion_producto,
+                p_id_categoria: datosProducto.id_categoria,
+                p_id_marca: datosProducto.id_marca,
+                p_id_unidad_medida: datosProducto.id_unidad_medida,
+                p_precio_compra_referencia: datosProducto.precio_compra_referencia,
+                p_precio_venta_actual: datosProducto.precio_venta_actual,
+                p_stock_minimo_alerta: datosProducto.stock_minimo_alerta,
+                p_activo: datosProducto.activo
+            };
+        } else {
+            // Crear producto nuevo
+            rpcParams = {
+                p_nombre_producto: datosProducto.nombre_producto,
+                p_descripcion_producto: datosProducto.descripcion_producto,
+                p_id_categoria: datosProducto.id_categoria,
+                p_id_marca: datosProducto.id_marca,
+                p_id_unidad_medida: datosProducto.id_unidad_medida,
+                p_precio_compra_referencia: datosProducto.precio_compra_referencia,
+                p_precio_venta_actual: datosProducto.precio_venta_actual,
+                p_stock_minimo_alerta: datosProducto.stock_minimo_alerta,
+                p_activo: datosProducto.activo,
+                p_stock_inicial: datosProducto.stock_inicial
+            };
+        }
+
+        const { data, error } = await client.rpc(funcionRPC, rpcParams);
+
+        if (error) {
+            console.error('[Productos] ✗ Error de Supabase:', error);
+            throw new Error(error.message || 'Error de comunicación con la base de datos');
+        }
+
+        console.log('[Productos] Respuesta RPC:', data);
+
+        // Validar respuesta
+        if (data && data.success === false) {
+            console.log('[Productos] ❌ La función RPC rechazó la operación:', data.mensaje);
+
+            const esErrorPermisos = data.codigo_error === 'PERMISO_DENEGADO' ||
+                                   (data.mensaje && data.mensaje.toLowerCase().includes('no tienes permisos'));
+
+            if (esErrorPermisos) {
+                console.log('[Productos] ✅ Validación de permisos funcionó');
+                showNotification(data.mensaje, 'error');
+            } else {
+                showNotification(data.mensaje || 'Error al guardar el producto.', 'error');
+            }
+        } else if (data && data.success === true) {
+            // Operación exitosa
+            console.log('[Productos] ✓ Producto guardado exitosamente');
+            showNotification(data.mensaje || 'Producto guardado con éxito.', 'success');
+            cerrarModalProducto();
+            refrescarTablaProductos();
+        } else {
+            // Respuesta inesperada
+            showNotification('Respuesta inesperada del servidor.', 'warning');
+        }
+
+    } catch (error) {
+        console.error('[Productos] ❌ Error al guardar producto:', error);
+        showNotification('Error al guardar producto: ' + error.message, 'error');
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = originalButtonText;
+    }
+}
+
+// =========================================================================
+// FUNCIONES INLINE PARA CREAR CATEGORÍAS Y MARCAS
+// =========================================================================
+
+/**
+ * Muestra/oculta el formulario inline para agregar categoría o marca.
+ * @param {string} type - 'categoria' o 'marca'
+ * @param {boolean} show - true para mostrar, false para ocultar, undefined para toggle
+ * @param {boolean} reset - true para resetear los campos del formulario
+ */
+function toggleInlineAddForm(type, show, reset = false) {
+    const formElement = document.getElementById(`form-nueva-${type}-inline`);
+    const selectElement = document.getElementById(`select-${type}-producto`);
+    const toggleButton = document.getElementById(`btn-toggle-nueva-${type}`);
+
+    if (!formElement || !selectElement || !toggleButton) return;
+
+    if (reset) {
+        document.getElementById(`input-inline-nueva-${type}-nombre`).value = '';
+        if (type === 'categoria') {
+            const descTextarea = document.getElementById('input-inline-nueva-categoria-descripcion');
+            if (descTextarea) descTextarea.value = '';
+        }
+    }
+
+    if (show === undefined) {
+        // Toggle normal
+        formElement.style.display = formElement.style.display === 'none' ? 'block' : 'none';
+    } else {
+        // Forzar mostrar u ocultar
+        formElement.style.display = show ? 'block' : 'none';
+    }
+
+    // Deshabilitar/habilitar el select y cambiar texto del botón
+    selectElement.disabled = formElement.style.display === 'block';
+    toggleButton.innerHTML = formElement.style.display === 'block'
+        ? '<i class="fas fa-times"></i>'
+        : '<i class="fas fa-plus"></i>';
+
+    if (formElement.style.display === 'block') {
+        document.getElementById(`input-inline-nueva-${type}-nombre`).focus();
+    }
+}
+
+/**
+ * Guarda una nueva categoría o marca inline.
+ * @param {string} type - 'categoria' o 'marca'
+ * @returns {Function} Función para el event listener
+ */
+function guardarNuevaEntidadInline(type) {
+    return async function() {
+        console.log(`[Productos] ===== GUARDANDO NUEVA ${type.toUpperCase()} INLINE =====`);
+
+        const nombreInput = document.getElementById(`input-inline-nueva-${type}-nombre`);
+        const nombre = nombreInput.value.trim();
+        let descripcion = '';
+
+        if (type === 'categoria') {
+            const descTextarea = document.getElementById('input-inline-nueva-categoria-descripcion');
+            if (descTextarea) descripcion = descTextarea.value.trim();
+        }
+
+        if (!nombre) {
+            showNotification(`El nombre para la nueva ${type} es obligatorio.`, 'warning');
+            nombreInput.focus();
+            return;
+        }
+
+        const selectElement = document.getElementById(`select-${type}-producto`);
+        const botonGuardarInline = document.getElementById(`btn-guardar-inline-nueva-${type}`);
+        const textoOriginalBoton = botonGuardarInline.textContent;
+
+        botonGuardarInline.disabled = true;
+        botonGuardarInline.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const client = getSupabaseClient();
+            if (!client) {
+                throw new Error('Cliente de Supabase no inicializado');
+            }
+
+            // Preparar datos según el tipo (categoría o marca)
+            const tableName = type === 'categoria' ? 'categorias' : 'marcas';
+            const nombreCampo = type === 'categoria' ? 'nombre_categoria' : 'nombre_marca';
+            const idCampo = type === 'categoria' ? 'id_categoria' : 'id_marca';
+
+            const payload = {};
+            payload[nombreCampo] = nombre;
+            // Solo agregar descripción para categorías si está disponible
+            if (type === 'categoria' && descripcion) {
+                payload['descripcion_categoria'] = descripcion;
+            }
+
+            console.log(`[Productos] Insertando en tabla ${tableName}:`, payload);
+
+            // Usar INSERT directo (no RPC) como en Apps Script
+            const { data, error } = await client
+                .from(tableName)
+                .insert(payload)
+                .select()
+                .single();
+
+            if (error) {
+                console.error(`[Productos] ✗ Error de Supabase al guardar ${type}:`, error);
+                throw new Error(error.message || `Error al guardar ${type}`);
+            }
+
+            console.log('[Productos] Respuesta INSERT:', data);
+
+            if (data) {
+                showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} "${data[nombreCampo]}" creada y seleccionada.`, 'success');
+
+                // Añadir la nueva opción al select y seleccionarla
+                const newOption = document.createElement('option');
+                newOption.value = data[idCampo];
+                newOption.textContent = data[nombreCampo];
+                newOption.selected = true;
+                selectElement.appendChild(newOption);
+
+                // Ocultar el formulario inline
+                toggleInlineAddForm(type, false, true);
+                selectElement.value = newOption.value;
+            } else {
+                showNotification(`Error al guardar nueva ${type}: No se recibieron datos.`, 'error');
+            }
+
+        } catch (error) {
+            console.error(`[Productos] ❌ Error al guardar nueva ${type}:`, error);
+            showNotification(`Error al guardar ${type}: ` + error.message, 'error');
+        } finally {
+            botonGuardarInline.disabled = false;
+            botonGuardarInline.textContent = textoOriginalBoton;
+        }
+    };
 }
 
 // Exportar función principal para ser llamada desde home.js

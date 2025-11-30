@@ -224,6 +224,32 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #link-lista-productos no encontrado');
   }
 
+  // Enlace de Agregar Producto (abre modal directamente)
+  const agregarProductoLink = document.getElementById('link-agregar-producto');
+  if (agregarProductoLink) {
+    agregarProductoLink.addEventListener('click', async function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a Agregar Producto...');
+
+      // Primero cargar la vista de productos
+      await cargarVistaProductos();
+
+      // Esperar un momento para que el DOM esté listo
+      setTimeout(() => {
+        // Verificar que la función existe antes de llamarla
+        if (typeof abrirModalProducto === 'function') {
+          console.log('[HOME] Abriendo modal de nuevo producto...');
+          abrirModalProducto('add');
+        } else {
+          console.error('[HOME] Función abrirModalProducto no encontrada');
+        }
+      }, 300);
+    });
+    console.log('[HOME] Event listener de Agregar Producto configurado');
+  } else {
+    console.warn('[HOME] Enlace #link-agregar-producto no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 
