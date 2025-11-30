@@ -1,0 +1,220 @@
+<div class="page-content-wrapper">
+
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Lista de Productos</h2>
+        <button id="btn-abrir-modal-nuevo-producto" class="button button-primary">
+            <i class="fas fa-plus"></i> Añadir Producto
+        </button>
+    </div>
+
+    <div class="page-toolbar-container">
+        <button id="btn-toggle-filtros-productos" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-productos-content">
+            <i class="fas fa-filter"></i> Opciones y Filtros <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="filtros-productos-content" class="page-toolbar-collapsible">
+            <div class="page-toolbar">
+                <!-- Primera fila: Búsqueda y filtros -->
+                <div class="toolbar-row">
+                    <div class="search-form-container">
+                        <input type="search" id="input-buscar-productos" class="form-input" placeholder="Buscar por SKU o Nombre...">
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtro-categoria-producto" class="form-label-inline">Categoría:</label>
+                        <select id="filtro-categoria-producto" class="form-input-select">
+                            <option value="">Todas las Categorías</option>
+                        </select>
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtro-marca-producto" class="form-label-inline">Marca:</label>
+                        <select id="filtro-marca-producto" class="form-input-select">
+                            <option value="">Todas las Marcas</option>
+                        </select>
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtro-estado-producto" class="form-label-inline">Estado:</label>
+                        <select id="filtro-estado-producto" class="form-input-select">
+                            <option value="">Todos los Estados</option>
+                            <option value="true">Activos</option>
+                            <option value="false">Inactivos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table-default">
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Marca</th>
+                    <th class="text-right">P. Venta</th>
+                    <th class="text-center">Stock Actual</th>
+                    <th class="text-center">Estado</th>
+                    <th class="column-actions text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-productos">
+                <tr>
+                    <td colspan="8" class="text-center" style="padding:20px; font-style:italic;">
+                        Cargando productos...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="pagination-controls-productos" class="pagination-controls">
+        <button id="btn-prev-page-productos" class="button button-secondary" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span id="page-info-productos" class="page-info">Página 1 de 1</span>
+        <button id="btn-next-page-productos" class="button button-secondary" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- MODAL DE PRODUCTO -->
+    <div id="modal-producto" class="modal-overlay">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="modal-producto-titulo" class="modal-title">Añadir Nuevo Producto</h3>
+                <button id="btn-cerrar-modal-producto" class="modal-close-button" aria-label="Cerrar modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-producto" novalidate>
+                    <input type="hidden" id="input-id-producto" name="id_producto">
+
+                    <div class="form-row">
+                        <div class="form-group form-group-half">
+                            <label for="input-sku-producto">SKU <span class="required-field">*</span></label>
+                            <input type="text" id="input-sku-producto" name="sku" class="form-input" required placeholder="Ej: PROD-00001">
+                            <div class="validation-message" id="error-sku-producto"></div>
+                        </div>
+                        <div class="form-group form-group-half">
+                            <label for="input-nombre-producto">Nombre del Producto <span class="required-field">*</span></label>
+                            <input type="text" id="input-nombre-producto" name="nombre_producto" class="form-input" required placeholder="Ej: Melocoton">
+                            <div class="validation-message" id="error-nombre-producto"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-descripcion-producto">Descripción (Opcional)</label>
+                        <textarea id="input-descripcion-producto" name="descripcion_producto" class="form-input" rows="3" placeholder="Detalles adicionales del producto"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group form-group-half">
+                            <label for="select-categoria-producto">Categoría <span class="required-field">*</span></label>
+                            <div class="select-with-add">
+                                <select id="select-categoria-producto" name="id_categoria" class="form-input" required>
+                                    <option value="">-- Seleccione --</option>
+                                </select>
+                                <button type="button" id="btn-toggle-nueva-categoria" class="button-add-inline" title="Crear nueva categoría">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="form-nueva-categoria-inline" class="inline-add-form" style="display:none;">
+                                <input type="text" id="input-inline-nueva-categoria-nombre" class="form-input form-input-sm" placeholder="Nombre nueva categoría">
+                                <textarea id="input-inline-nueva-categoria-descripcion" class="form-input form-input-sm" placeholder="Descripción (opcional)" rows="2"></textarea>
+                                <div class="inline-add-form-actions">
+                                    <button type="button" id="btn-guardar-inline-nueva-categoria" class="button button-success button-xs">Guardar</button>
+                                    <button type="button" id="btn-cancelar-inline-nueva-categoria" class="button button-secondary button-xs">Cancelar</button>
+                                </div>
+                            </div>
+                            <div class="validation-message" id="error-categoria-producto"></div>
+                        </div>
+
+                        <div class="form-group form-group-half">
+                            <label for="select-marca-producto">Marca <span class="required-field">*</span></label>
+                            <div class="select-with-add">
+                                <select id="select-marca-producto" name="id_marca" class="form-input" required>
+                                    <option value="">-- Seleccione --</option>
+                                </select>
+                                <button type="button" id="btn-toggle-nueva-marca" class="button-add-inline" title="Crear nueva marca">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="form-nueva-marca-inline" class="inline-add-form" style="display:none;">
+                                <input type="text" id="input-inline-nueva-marca-nombre" class="form-input form-input-sm" placeholder="Nombre nueva marca">
+                                <div class="inline-add-form-actions">
+                                    <button type="button" id="btn-guardar-inline-nueva-marca" class="button button-success button-xs">Guardar</button>
+                                    <button type="button" id="btn-cancelar-inline-nueva-marca" class="button button-secondary button-xs">Cancelar</button>
+                                </div>
+                            </div>
+                            <div class="validation-message" id="error-marca-producto"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group form-group-half">
+                            <label for="select-unidad-medida-producto">Unidad de Medida <span class="required-field">*</span></label>
+                            <select id="select-unidad-medida-producto" name="id_unidad_medida" class="form-input" required>
+                                <option value="">-- Seleccione --</option>
+                            </select>
+                            <div class="validation-message" id="error-unidad-medida-producto"></div>
+                        </div>
+                        <div class="form-group form-group-half">
+                            <label for="input-stock-inicial-producto">Stock Inicial <span class="required-field">*</span></label>
+                            <input type="number" id="input-stock-inicial-producto" name="stock_inicial" class="form-input" required placeholder="0" step="1" min="0">
+                            <div class="validation-message" id="error-stock-inicial-producto"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group form-group-third">
+                            <label for="input-precio-compra-producto">P. Compra Ref. <span class="required-field">*</span></label>
+                            <input type="number" id="input-precio-compra-producto" name="precio_compra_referencia" class="form-input" required placeholder="0.00" step="0.01" min="0">
+                            <div class="validation-message" id="error-precio-compra-producto"></div>
+                        </div>
+                        <div class="form-group form-group-third">
+                            <label for="input-precio-venta-producto">P. Venta <span class="required-field">*</span></label>
+                            <input type="number" id="input-precio-venta-producto" name="precio_venta_actual" class="form-input" required placeholder="0.00" step="0.01" min="0">
+                            <div class="validation-message" id="error-precio-venta-producto"></div>
+                        </div>
+                        <div class="form-group form-group-third">
+                            <label for="input-stock-minimo-producto">Stock Mínimo Alerta (Opcional)</label>
+                            <input type="number" id="input-stock-minimo-producto" name="stock_minimo_alerta" class="form-input" placeholder="0" step="1" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-check-label">
+                            <input type="checkbox" id="input-activo-producto" name="activo" class="form-check-input" checked>
+                            Producto Activo
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-cancelar-operacion-producto" class="button button-secondary">Cancelar</button>
+                <button type="submit" id="btn-guardar-cambios-producto" class="button button-primary" form="form-producto">Guardar Producto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMACIÓN -->
+    <div id="modal-confirmacion-accion" class="modal-overlay">
+        <div class="modal-content confirmation-modal-content">
+            <div class="modal-header">
+                <h3 id="modal-confirmacion-titulo" class="modal-title">Confirmar Acción</h3>
+                <button id="btn-cerrar-modal-confirmacion-accion" class="modal-close-button" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modal-confirmacion-mensaje">¿Estás seguro de que quieres continuar?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-cancelar-confirmacion-accion" class="button button-secondary">Cancelar</button>
+                <button type="button" id="btn-aceptar-confirmacion-accion" class="button button-danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+</div>

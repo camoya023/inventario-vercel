@@ -211,6 +211,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #clientes-link no encontrado');
   }
 
+  // Enlace de Productos (Lista de productos)
+  const productosLink = document.getElementById('link-lista-productos');
+  if (productosLink) {
+    productosLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de productos...');
+      cargarVistaProductos();
+    });
+    console.log('[HOME] Event listener de Productos configurado');
+  } else {
+    console.warn('[HOME] Enlace #link-lista-productos no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 
@@ -352,6 +365,50 @@ async function cargarVistaClientes() {
     }
 }
 
+/**
+ * Carga dinámicamente la vista de lista de productos
+ */
+async function cargarVistaProductos() {
+    console.log('[HOME] Cargando vista de productos...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando módulo de productos...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/productos-lista.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Cargar el script del módulo de productos
+        await cargarScriptSiNoExiste('/js/productos-lista.js', 'productos-lista-script');
+
+        // Inicializar la vista de productos
+        if (typeof cargarPaginaProductos === 'function') {
+            await cargarPaginaProductos();
+            console.log('[HOME] Vista de productos cargada e inicializada');
+        } else {
+            console.error('[HOME] Función cargarPaginaProductos no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de productos:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de productos: ${error.message}</div>`;
+    }
+}
+
 // ========================================
 // CARGA DINÁMICA DE FORMULARIOS
 // ========================================
@@ -462,4 +519,43 @@ async function cargarVistaDetalleCliente(clienteId) {
         console.error('[HOME] Error al cargar vista de detalle:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error: ${error.message}</div>`;
     }
+}
+
+// ========================================
+// FUNCIONES AUXILIARES
+// ========================================
+
+/**
+ * Carga un script dinámicamente si no existe ya en el DOM
+ * @param {string} src - URL del script a cargar
+ * @param {string} id - ID único para el elemento script
+ * @returns {Promise} - Promesa que se resuelve cuando el script se carga
+ */
+function cargarScriptSiNoExiste(src, id) {
+    return new Promise((resolve, reject) => {
+        // Verificar si el script ya existe
+        if (document.getElementById(id)) {
+            console.log('[HOME] Script ya cargado:', src);
+            resolve();
+            return;
+        }
+
+        // Crear elemento script
+        const script = document.createElement('script');
+        script.id = id;
+        script.src = src;
+        script.async = true;
+
+        script.onload = () => {
+            console.log('[HOME] Script cargado exitosamente:', src);
+            resolve();
+        };
+
+        script.onerror = () => {
+            console.error('[HOME] Error al cargar script:', src);
+            reject(new Error(`No se pudo cargar el script: ${src}`));
+        };
+
+        document.head.appendChild(script);
+    });
 }

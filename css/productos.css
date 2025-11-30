@@ -1,0 +1,292 @@
+/* =========================================================================
+   ESTILOS DEL MÓDULO DE PRODUCTOS
+   ========================================================================= */
+
+/* Contenedor de la barra de herramientas y botón de colapso */
+.page-toolbar-container {
+    margin-bottom: 15px;
+}
+
+/* Botón para colapsar/expandir filtros */
+#btn-toggle-filtros-productos {
+    margin-bottom: 10px;
+}
+
+#btn-toggle-filtros-productos .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+#btn-toggle-filtros-productos[aria-expanded="false"] .fa-chevron-down {
+    transform: rotate(-90deg);
+}
+
+/* Contenido colapsable de la barra de herramientas - específico para productos */
+#filtros-productos-content.page-toolbar-collapsible {
+    max-height: 250px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+}
+
+#filtros-productos-content.page-toolbar-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Estilos para la barra de herramientas */
+.page-toolbar-collapsible .page-toolbar {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Estilos para las filas del toolbar */
+.page-toolbar-collapsible .toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Contenedor del buscador */
+.search-form-container {
+    flex-grow: 1;
+    min-width: 250px;
+}
+
+/* Contenedores de filtros */
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 180px;
+}
+
+.filter-container .form-label-inline {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Contenedor de botones de acción */
+.action-button-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* =========================================================================
+   ESTILOS DEL MODAL DE PRODUCTO
+   ========================================================================= */
+
+/* Modal más ancho para el formulario de producto */
+#modal-producto .modal-content {
+    max-width: 700px;
+}
+
+/* Scroll en el cuerpo del modal si es muy largo */
+#modal-producto .modal-body {
+    max-height: calc(85vh - 120px);
+    overflow-y: auto;
+}
+
+/* Layout de filas del formulario */
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 20px;
+    margin-bottom: 15px;
+}
+
+/* Columnas del formulario */
+.form-group-half {
+    flex: 1 1 calc(50% - 10px);
+    min-width: 200px;
+}
+
+.form-group-third {
+    flex: 1 1 calc(33.333% - 14px);
+    min-width: 150px;
+}
+
+/* =========================================================================
+   ESTILOS PARA SELECT CON BOTÓN DE AÑADIR INLINE
+   ========================================================================= */
+
+.select-with-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.select-with-add select.form-input {
+    flex-grow: 1;
+}
+
+.button-add-inline {
+    padding: 0.45rem 0.6rem;
+    line-height: 1.2;
+    background-color: #f8f9fa;
+    border: 1px solid #ced4da;
+    color: #1572E8;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+.button-add-inline:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.button-add-inline:active {
+    transform: scale(0.95);
+}
+
+/* =========================================================================
+   ESTILOS PARA FORMULARIOS INLINE (Crear categoría/marca)
+   ========================================================================= */
+
+.inline-add-form {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #f1f3f5;
+    border: 1px solid #dee2e6;
+    border-radius: 0.3rem;
+}
+
+.inline-add-form .form-input-sm {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+    margin-bottom: 8px;
+}
+
+.inline-add-form-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+.button-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+/* =========================================================================
+   ESTILOS ESPECÍFICOS DE LA TABLA DE PRODUCTOS
+   ========================================================================= */
+
+.data-table-default .text-right {
+    text-align: right !important;
+}
+
+.data-table-default .text-center {
+    text-align: center !important;
+}
+
+/* Badges de estado */
+.badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+}
+
+.badge-success {
+    background-color: #198754;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+}
+
+/* =========================================================================
+   BOTONES DE ACCIÓN EN TABLA
+   ========================================================================= */
+
+.button-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px 8px;
+    margin: 0 2px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.button-icon:hover {
+    opacity: 0.7;
+}
+
+.button-icon-info {
+    color: #17a2b8;
+}
+
+.button-icon-info:hover {
+    color: #117a8b;
+}
+
+.button-icon-warning {
+    color: #ffc107;
+}
+
+.button-icon-warning:hover {
+    color: #e0a800;
+}
+
+.button-icon-danger {
+    color: #dc3545;
+}
+
+.button-icon-danger:hover {
+    color: #c82333;
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .form-group-half,
+    .form-group-third {
+        flex: 1 1 100%;
+    }
+
+    .page-toolbar-collapsible .toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-container {
+        width: 100%;
+    }
+
+    .action-button-container {
+        width: 100%;
+    }
+
+    #modal-producto .modal-content {
+        max-width: 95%;
+        margin: 1rem;
+    }
+}
