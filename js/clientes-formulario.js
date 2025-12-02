@@ -8,6 +8,11 @@ let clienteIdActual = null;
 let direccionesData = [];
 let contactosData = [];
 
+// Variables para detectar cambios en el formulario (dirty form)
+let estadoInicialFormularioCliente = {};
+let estadoInicialDirecciones = "[]";
+let estadoInicialContactos = "[]";
+
 // =========================================================================
 // INICIALIZACIÓN DEL FORMULARIO
 // =========================================================================
@@ -25,6 +30,9 @@ function inicializarFormularioNuevoCliente() {
 
   limpiarFormularioCliente();
   configurarEventListenersFormulario();
+
+  // Guardar estado inicial del formulario para detectar cambios
+  guardarEstadoInicialFormulario();
 
   console.log('[FormularioCliente] Formulario nuevo cliente inicializado');
 }
@@ -47,6 +55,10 @@ async function inicializarFormularioEditarCliente(clienteId, clienteNombre) {
     mostrarCargandoFormulario(true);
     await cargarDatosCliente(clienteId);
     mostrarCargandoFormulario(false);
+
+    // Guardar estado inicial del formulario DESPUÉS de cargar los datos
+    guardarEstadoInicialFormulario();
+
     console.log('[FormularioCliente] Datos del cliente cargados');
   } catch (error) {
     mostrarCargandoFormulario(false);
@@ -62,12 +74,27 @@ async function inicializarFormularioEditarCliente(clienteId, clienteNombre) {
 function configurarEventListenersFormulario() {
   console.log('[FormularioCliente] Configurando event listeners...');
 
-  // Botón Cancelar
+  // Botón Cancelar con validación de cambios
   const btnCancelar = document.getElementById('btn-cancelar-cliente');
   if (btnCancelar) {
     btnCancelar.addEventListener('click', function() {
       console.log('[FormularioCliente] Cancelar clickeado');
-      cargarVistaClientes();
+
+      // Verificar si hay cambios sin guardar
+      if (verificarCambiosEnFormulario()) {
+        // Formulario sucio - mostrar confirmación
+        const mensaje = '¿Estás seguro de que deseas cancelar?\n\nHay cambios sin guardar que se perderán.';
+        if (confirm(mensaje)) {
+          console.log('[FormularioCliente] Usuario confirmó cancelar con cambios');
+          cargarVistaClientes();
+        } else {
+          console.log('[FormularioCliente] Usuario canceló la operación de cancelar');
+        }
+      } else {
+        // Formulario limpio - salir sin confirmación
+        console.log('[FormularioCliente] No hay cambios, saliendo sin confirmación');
+        cargarVistaClientes();
+      }
     });
   }
 
@@ -228,7 +255,12 @@ function guardarDireccion() {
   const indexInput = document.getElementById('input-index-direccion');
   const index = indexInput.value !== '' ? parseInt(indexInput.value) : null;
 
+  // Obtener ID de dirección existente (si es edición)
+  const idDireccionExistente = (index !== null && direccionesData[index]) ? direccionesData[index].id : null;
+
   const direccion = {
+    id: idDireccionExistente || 'temp_direccion_' + Date.now(), // ID temporal para nuevas
+    id_cliente: clienteIdActual || null, // ID del cliente (si estamos editando)
     nombre_referencia_direccion: document.getElementById('input-nombre-referencia-direccion').value.trim() || null,
     direccion_completa: document.getElementById('input-direccion-completa').value.trim(),
     barrio: document.getElementById('input-barrio-direccion').value.trim(),
@@ -464,7 +496,12 @@ function guardarContacto() {
   const indexInput = document.getElementById('input-index-contacto');
   const index = indexInput.value !== '' ? parseInt(indexInput.value) : null;
 
+  // Obtener ID de contacto existente (si es edición)
+  const idContactoExistente = (index !== null && contactosData[index]) ? contactosData[index].id : null;
+
   const contacto = {
+    id: idContactoExistente || 'temp_contacto_' + Date.now(), // ID temporal para nuevos
+    id_cliente: clienteIdActual || null, // ID del cliente (si estamos editando)
     nombre_contacto: document.getElementById('input-nombre-contacto').value.trim(),
     rol_o_parentesco: document.getElementById('input-rol-contacto').value.trim() || null,
     numero_telefono: document.getElementById('input-telefono-contacto').value.trim() || null,
@@ -622,6 +659,187 @@ async function cargarDatosCliente(clienteId) {
 }
 
 // =========================================================================
+// DETECCIÓN DE CAMBIOS EN EL FORMULARIO (DIRTY FORM)
+// =========================================================================
+
+/**
+ * Obtiene los valores actuales del formulario principal
+ * @returns {object} Objeto con todos los valores del formulario
+ */
+function obtenerValoresActualesFormularioPrincipal() {
+  return {
+    codigo_cliente: document.getElementById('input-codigo-cliente').value.trim(),
+    estado: document.getElementById('select-estado-cliente').value,
+    nombres: document.getElementById('input-nombres-cliente').value.trim(),
+    apellidos: document.getElementById('input-apellidos-cliente').value.trim(),
+    razon_social: document.getElementById('input-razon-social-cliente').value.trim(),
+    telefono_principal: document.getElementById('input-telefono-principal-cliente').value.trim(),
+    notas_internas: document.getElementById('textarea-notas-internas-cliente').value.trim()
+  };
+}
+
+/**
+ * Verifica si ha habido cambios en el formulario de cliente
+ * @returns {boolean} True si hay cambios, false en caso contrario
+ */
+function verificarCambiosEnFormulario() {
+  console.log('[FormularioCliente] Verificando cambios en el formulario...');
+
+  // 1. Comparar campos principales del formulario
+  const estadoActualFormulario = obtenerValoresActualesFormularioPrincipal();
+  for (const key in estadoActualFormulario) {
+    if (estadoActualFormulario[key] !== estadoInicialFormularioCliente[key]) {
+      console.log(
+        `[FormularioCliente] Cambio detectado en campo principal: ${key}`,
+        `"${estadoActualFormulario[key]}" != "${estadoInicialFormularioCliente[key]}"`
+      );
+      return true;
+    }
+  }
+
+  // 2. Comparar direcciones
+  const estadoActualDirecciones = JSON.stringify(direccionesData);
+  if (estadoActualDirecciones !== estadoInicialDirecciones) {
+    console.log('[FormularioCliente] Cambio detectado en direcciones.');
+    console.log('[FormularioCliente] Inicial:', estadoInicialDirecciones);
+    console.log('[FormularioCliente] Actual:', estadoActualDirecciones);
+    return true;
+  }
+
+  // 3. Comparar contactos
+  const estadoActualContactos = JSON.stringify(contactosData);
+  if (estadoActualContactos !== estadoInicialContactos) {
+    console.log('[FormularioCliente] Cambio detectado en contactos.');
+    console.log('[FormularioCliente] Inicial:', estadoInicialContactos);
+    console.log('[FormularioCliente] Actual:', estadoActualContactos);
+    return true;
+  }
+
+  console.log('[FormularioCliente] No se detectaron cambios en el formulario.');
+  return false;
+}
+
+/**
+ * Guarda el estado inicial del formulario para detectar cambios posteriores
+ */
+function guardarEstadoInicialFormulario() {
+  estadoInicialFormularioCliente = obtenerValoresActualesFormularioPrincipal();
+  estadoInicialDirecciones = JSON.stringify(direccionesData);
+  estadoInicialContactos = JSON.stringify(contactosData);
+  console.log('[FormularioCliente] Estado inicial del formulario guardado');
+}
+
+// =========================================================================
+// GUARDADO CON SUPABASE - FUNCIÓN REFACTORIZADA
+// =========================================================================
+
+/**
+ * Guarda un cliente (nuevo o edición) usando la función RPC de Supabase.
+ * @param {object} datosCompletosCliente - Objeto con datosPrincipales, direcciones y contactos
+ * @param {boolean} esEdicion - True si es edición, false si es creación
+ * @param {string} clienteIdExistente - UUID del cliente (requerido si esEdicion=true)
+ * @returns {Promise<object>} - Promesa que resuelve con el resultado del servidor
+ */
+async function guardarClienteConSupabase(datosCompletosCliente, esEdicion, clienteIdExistente) {
+  try {
+    const operacion = esEdicion ? 'EDICIÓN' : 'CREACIÓN';
+    console.log(`[FormularioCliente] ===== INICIANDO GUARDADO DE CLIENTE (${operacion}) =====`);
+    console.log('[FormularioCliente] Datos a enviar:', datosCompletosCliente);
+    console.log('[FormularioCliente] Es edición:', esEdicion);
+    console.log('[FormularioCliente] Cliente ID existente:', clienteIdExistente);
+    console.log('[FormularioCliente] RLS validará permisos...');
+
+    const client = getSupabaseClient();
+    if (!client) {
+      throw new Error('Cliente de Supabase no inicializado');
+    }
+
+    // Preparar el payload para la función RPC
+    const payloadParaRpc = {
+      p_cliente_data: datosCompletosCliente.datosPrincipales,
+      p_direcciones_data: datosCompletosCliente.direcciones || [],
+      p_contactos_data: datosCompletosCliente.contactos || [],
+      p_es_edicion: esEdicion,
+      p_cliente_id_existente: esEdicion ? clienteIdExistente : null
+    };
+
+    console.log('[FormularioCliente] Payload para RPC fn_guardar_cliente_completo:', payloadParaRpc);
+
+    // Llamar a la función RPC de Supabase
+    console.log('[FormularioCliente] Llamando a RPC fn_guardar_cliente_completo...');
+    const { data, error } = await client.rpc('fn_guardar_cliente_completo', payloadParaRpc);
+
+    // Verificar si hubo error
+    if (error) {
+      console.error('[FormularioCliente] ✗ Error en RPC:', error);
+
+      // Detectar errores de permisos (RLS)
+      const esErrorPermisos =
+        error.code === '42501' || // Código de PostgreSQL para insufficient_privilege
+        error.code === 'PGRST301' || // Código de PostgREST para permisos
+        error.message?.toLowerCase().includes('permission') ||
+        error.message?.toLowerCase().includes('policy') ||
+        error.message?.toLowerCase().includes('rls') ||
+        error.message?.toLowerCase().includes('privilege');
+
+      if (esErrorPermisos) {
+        const accionTexto = esEdicion ? 'editar' : 'crear';
+        console.log('[FormularioCliente] ✅ RLS funcionó correctamente - bloqueó la operación');
+        throw new Error(`No tienes permisos para ${accionTexto} clientes. Contacta al administrador.`);
+      }
+
+      throw new Error(error.message || 'Error desconocido al guardar el cliente');
+    }
+
+    console.log('[FormularioCliente] Respuesta de RPC:', data);
+
+    // Verificar errores retornados por la función RPC
+    if (data && data.success === false) {
+      console.log('[FormularioCliente] ❌ La función RPC rechazó la operación:', data.mensaje);
+
+      // Detectar errores de permisos desde el RPC
+      const esErrorPermisosRPC =
+        data.codigo_error === 'PERMISO_DENEGADO' ||
+        data.mensaje?.toLowerCase().includes('no tienes permisos') ||
+        data.mensaje?.toLowerCase().includes('contacta al administrador');
+
+      if (esErrorPermisosRPC) {
+        console.log('[FormularioCliente] ✅ Validación de permisos funcionó - la función bloqueó la operación');
+        throw new Error(data.mensaje);
+      }
+
+      // Error genérico del RPC
+      throw new Error(data.mensaje || 'La operación fue rechazada por el servidor');
+    }
+
+    // Verificar el resultado exitoso
+    if (data && data.success === true && data.cliente_id) {
+      console.log('[FormularioCliente] ✓ Cliente guardado exitosamente');
+      console.log('[FormularioCliente]   Cliente ID:', data.cliente_id);
+      console.log('[FormularioCliente]   Mensaje:', data.mensaje);
+
+      const mensajePorDefecto = esEdicion ? 'Cliente actualizado con éxito.' : 'Cliente creado con éxito.';
+      return {
+        mensaje: data.mensaje || mensajePorDefecto,
+        clienteId: data.cliente_id
+      };
+    } else {
+      // Si no tiene la estructura esperada o success no es true
+      const errorMsg = (data && data.mensaje)
+        ? data.mensaje
+        : 'La operación no se completó correctamente';
+
+      console.error('[FormularioCliente] ✗ Operación no exitosa:', errorMsg);
+      throw new Error(errorMsg);
+    }
+
+  } catch (error) {
+    console.error('[FormularioCliente] ✗ Excepción al guardar cliente:', error);
+    throw error;
+  }
+}
+
+// =========================================================================
 // VALIDACIÓN Y GUARDADO
 // =========================================================================
 
@@ -674,12 +892,7 @@ async function guardarCliente() {
   try {
     mostrarCargandoBoton(true);
 
-    const client = getSupabaseClient();
-    if (!client) {
-      throw new Error('Cliente de Supabase no inicializado');
-    }
-
-    // Recopilar datos del formulario
+    // Recopilar datos del formulario principal
     const datosPrincipales = {
       codigo_cliente: document.getElementById('input-codigo-cliente').value.trim() || null,
       estado: document.getElementById('select-estado-cliente').value,
@@ -690,51 +903,35 @@ async function guardarCliente() {
       notas_internas: document.getElementById('textarea-notas-internas-cliente').value.trim() || null
     };
 
-    console.log('[FormularioCliente] Datos a guardar:', datosPrincipales);
+    // Empaquetar todos los datos
+    const datosCompletosCliente = {
+      datosPrincipales: datosPrincipales,
+      direcciones: direccionesData,
+      contactos: contactosData
+    };
+
+    console.log('[FormularioCliente] Datos completos listos para enviar:', datosCompletosCliente);
     console.log('[FormularioCliente] Direcciones:', direccionesData.length);
     console.log('[FormularioCliente] Contactos:', contactosData.length);
     console.log('[FormularioCliente] Es edición:', esEdicionCliente);
     console.log('[FormularioCliente] Cliente ID:', clienteIdActual);
 
-    // Preparar payload para RPC
-    const payload = {
-      p_cliente_data: datosPrincipales,
-      p_direcciones_data: direccionesData,
-      p_contactos_data: contactosData,
-      p_es_edicion: esEdicionCliente,
-      p_cliente_id_existente: esEdicionCliente ? clienteIdActual : null
-    };
+    // Llamar a la función unificada de Supabase (funciona para creación y edición)
+    const respuestaServidor = await guardarClienteConSupabase(
+      datosCompletosCliente,
+      esEdicionCliente,
+      clienteIdActual
+    );
 
-    console.log('[FormularioCliente] Llamando a RPC fn_guardar_cliente_completo...');
+    console.log('[FormularioCliente] ✓ Respuesta de Supabase (éxito):', respuestaServidor);
 
-    // Llamar a RPC
-    const { data, error } = await client.rpc('fn_guardar_cliente_completo', payload);
+    // Mostrar mensaje de éxito
+    showNotification(respuestaServidor.mensaje, 'success');
 
-    if (error) {
-      console.error('[FormularioCliente] Error en RPC:', error);
-      throw new Error(error.message || 'Error al guardar el cliente');
-    }
-
-    console.log('[FormularioCliente] Respuesta de RPC:', data);
-
-    // Verificar respuesta
-    if (data && data.success === false) {
-      console.error('[FormularioCliente] RPC rechazó la operación:', data.mensaje);
-      throw new Error(data.mensaje || 'Error al guardar el cliente');
-    }
-
-    if (data && data.success === true) {
-      console.log('[FormularioCliente] ✓ Cliente guardado exitosamente');
-      const mensajeExito = data.mensaje || (esEdicionCliente ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente');
-      showNotification(mensajeExito, 'success');
-
-      // Volver a la lista
-      setTimeout(() => {
-        cargarVistaClientes();
-      }, 1500);
-    } else {
-      throw new Error('Respuesta inesperada del servidor');
-    }
+    // Volver a la lista después de un breve delay
+    setTimeout(() => {
+      cargarVistaClientes();
+    }, 1500);
 
   } catch (error) {
     console.error('[FormularioCliente] Error al guardar:', error);
