@@ -412,3 +412,109 @@ function mostrarModalConfirmacion(mensaje, callbackConfirmar, titulo = "Confirma
   if (btnCancelar) btnCancelar.addEventListener('click', handlerCancelar);
   if (btnCerrar) btnCerrar.addEventListener('click', handlerCancelar);
 }
+
+/* =========================================================================
+   BADGE DE ENTORNO (DESARROLLO/PRODUCCIÓN)
+   ========================================================================= */
+
+/**
+ * Muestra un badge visual indicando el entorno actual
+ * Solo se muestra en desarrollo local
+ */
+function mostrarBadgeEntorno() {
+  // Solo mostrar en desarrollo local
+  const esLocal = window.location.hostname === 'localhost' ||
+                  window.location.hostname === '127.0.0.1' ||
+                  window.location.port === '5500';
+
+  if (!esLocal) {
+    return; // No mostrar badge en producción
+  }
+
+  // Obtener el entorno desde el query parameter
+  const params = new URLSearchParams(window.location.search);
+  const env = params.get('env');
+  const entorno = env === 'prod' ? 'prod' : 'dev'; // Por defecto 'dev'
+
+  // Crear el badge si no existe
+  let badge = document.getElementById('badge-entorno');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'badge-entorno';
+    document.body.appendChild(badge);
+  }
+
+  // Configurar estilos y contenido según entorno
+  if (entorno === 'dev') {
+    badge.innerHTML = '🟢 DESARROLLO';
+    badge.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 999999;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      letter-spacing: 0.5px;
+      cursor: help;
+      transition: transform 0.2s;
+    `;
+    badge.title = 'Conectado a BD de DESARROLLO\nURL: ' + window.location.href;
+  } else {
+    badge.innerHTML = '🔴 PRODUCCIÓN';
+    badge.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #dc3545, #c82333);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 999999;
+      box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      letter-spacing: 0.5px;
+      cursor: help;
+      transition: transform 0.2s;
+      animation: pulse 2s infinite;
+    `;
+    badge.title = '⚠️ CONECTADO A BD DE PRODUCCIÓN\nURL: ' + window.location.href;
+
+    // Agregar animación de pulso para producción
+    if (!document.getElementById('badge-entorno-style')) {
+      const style = document.createElement('style');
+      style.id = 'badge-entorno-style';
+      style.textContent = `
+        @keyframes pulse {
+          0%, 100% { box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4); }
+          50% { box-shadow: 0 2px 16px rgba(220, 53, 69, 0.8); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // Efecto hover
+  badge.addEventListener('mouseenter', () => {
+    badge.style.transform = 'scale(1.05)';
+  });
+  badge.addEventListener('mouseleave', () => {
+    badge.style.transform = 'scale(1)';
+  });
+
+  console.log('[BADGE] Mostrando badge de entorno:', entorno.toUpperCase());
+}
+
+// Ejecutar automáticamente cuando se carga el script
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', mostrarBadgeEntorno);
+} else {
+  mostrarBadgeEntorno();
+}
