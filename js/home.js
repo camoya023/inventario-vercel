@@ -254,11 +254,74 @@ function configurarEventListenersMenu() {
 }
 
 async function cerrarSesion() {
-  console.log('[HOME] Cerrando sesion...');
-  await limpiarSesion();
-  redirigirALogin();
+  console.log('[HOME] ===== CERRANDO SESIÓN =====');
+
+  // Verificar si debe recordar el email antes de limpiar
+  const debeRecordar = localStorage.getItem('remembered_email') !== null;
+  console.log('[HOME] ¿Debe recordar email?', debeRecordar);
+
+  // Cerrar sesión en Supabase
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      await client.auth.signOut();
+      console.log('[HOME] ✓ Sesión de Supabase cerrada');
+    } catch (error) {
+      console.error('[HOME] Error al cerrar sesión en Supabase:', error);
+    }
+  }
+
+  // Limpiar sesión local
+  localStorage.removeItem('user_session');
+  sessionStorage.removeItem('user_session');
+  console.log('[HOME] ✓ Sesión local limpiada');
+
+  // Solo limpiar email si NO debe recordar
+  if (!debeRecordar) {
+    localStorage.removeItem('remembered_email');
+    console.log('[HOME] Email NO recordado - datos limpiados');
+  } else {
+    console.log('[HOME] Email recordado - se mantiene para próximo login');
+  }
+
+  // Reiniciar estado global
+  currentUser = null;
+
+  // Limpiar el contenido de la work-area para evitar que persista entre sesiones
+  const workArea = document.querySelector('.work-area');
+  if (workArea) {
+    workArea.innerHTML = '';
+    console.log('[HOME] ✓ Work-area limpiada');
+  }
+
+  // Limpiar campos de login si NO debe recordar
+  if (!debeRecordar) {
+    setTimeout(() => {
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const rememberCheckbox = document.getElementById('remember-me');
+
+      if (emailInput) emailInput.value = '';
+      if (passwordInput) passwordInput.value = '';
+      if (rememberCheckbox) rememberCheckbox.checked = false;
+
+      console.log('[HOME] ✓ Campos de login limpiados');
+    }, 100);
+  }
+
+  // Mostrar vista de login
+  console.log('[HOME] Redirigiendo a login...');
+  if (typeof mostrarVista === 'function') {
+    mostrarVista('login');
+  } else {
+    // Fallback: recargar página
+    window.location.replace(window.location.href.split('?')[0]);
+  }
+
+  console.log('[HOME] ===== SESIÓN CERRADA CORRECTAMENTE =====');
 }
 
+// Mantener funciones heredadas por compatibilidad (ya no se usan internamente)
 async function limpiarSesion() {
   localStorage.removeItem('user_session');
   sessionStorage.removeItem('user_session');

@@ -9,6 +9,19 @@ let clientes_currentSearchTerm = "";
 let clientes_currentFilterEstado = "Activo";
 let clientes_isLoading = false;
 
+/**
+ * Resetea todas las variables globales del módulo de clientes
+ * IMPORTANTE: Debe llamarse al inicializar la vista para evitar datos de sesiones anteriores
+ */
+function resetearVariablesGlobalesClientes() {
+  console.log('[Clientes] Reseteando variables globales...');
+  clientes_currentPage = 1;
+  clientes_currentSearchTerm = "";
+  clientes_currentFilterEstado = "Activo";
+  clientes_isLoading = false;
+  console.log('[Clientes] Variables globales reseteadas');
+}
+
 // =========================================================================
 // FUNCIONES PARA OBTENER LISTA DE CLIENTES USANDO SUPABASE RPC
 // =========================================================================
@@ -183,6 +196,9 @@ async function eliminarClienteConSupabase(clienteId) {
  */
 function inicializarVistaClientes() {
   console.log('[Clientes] Inicializando vista de lista de clientes...');
+
+  // IMPORTANTE: Resetear variables globales para evitar datos de sesiones anteriores
+  resetearVariablesGlobalesClientes();
 
   // 1. Botón para colapsar/expandir filtros
   const toggleButton = document.getElementById("btn-toggle-filtros-clientes");

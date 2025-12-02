@@ -31,12 +31,14 @@ function inicializarFormularioNuevoCliente() {
   limpiarFormularioCliente();
   configurarEventListenersFormulario();
 
-  // Configurar campo código para modo creación
+  // Configurar campo código para modo creación (readonly - autogenerado)
   const inputCodigo = document.getElementById('input-codigo-cliente');
   if (inputCodigo) {
-    inputCodigo.readOnly = false; // Editable en modo creación
-    inputCodigo.value = 'CLI-'; // Prefijo por defecto
-    inputCodigo.placeholder = 'CLI-0001 (Dejar como CLI- para generar automáticamente)';
+    inputCodigo.readOnly = true; // NO editable - autogenerado
+    inputCodigo.value = ''; // Vacío
+    inputCodigo.placeholder = 'Se generará automáticamente (Ej: CLI-0001)';
+    inputCodigo.style.backgroundColor = '#f5f5f5'; // Indicador visual
+    inputCodigo.style.cursor = 'not-allowed';
   }
 
   // Guardar estado inicial del formulario para detectar cambios
@@ -869,6 +871,8 @@ function validarFormularioCliente() {
   document.querySelectorAll('.validation-message').forEach(el => el.textContent = '');
   document.querySelectorAll('.form-input, .form-input-select').forEach(el => el.classList.remove('form-input-error'));
 
+  // El código se genera automáticamente - no necesita validación
+
   // Validar Nombres (requerido)
   const nombres = document.getElementById('input-nombres-cliente').value.trim();
   if (!nombres) {
@@ -911,7 +915,8 @@ async function guardarCliente() {
 
     // Recopilar datos del formulario principal
     const datosPrincipales = {
-      codigo_cliente: document.getElementById('input-codigo-cliente').value.trim() || null,
+      // Código siempre null en creación (autogenerado por backend)
+      codigo_cliente: esEdicionCliente ? document.getElementById('input-codigo-cliente').value.trim() : null,
       estado: document.getElementById('select-estado-cliente').value,
       nombres: document.getElementById('input-nombres-cliente').value.trim(),
       apellidos: document.getElementById('input-apellidos-cliente').value.trim() || null,

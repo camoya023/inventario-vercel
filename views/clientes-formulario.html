@@ -16,8 +16,11 @@
 
             <div class="form-row">
                 <div class="form-group form-group-half">
-                    <label for="input-codigo-cliente">Código Cliente <span id="codigo-cliente-ayuda" style="font-size:0.8em; color:#666;">(Dejar vacío para autogenerar)</span></label>
-                    <input type="text" id="input-codigo-cliente" name="codigo_cliente" class="form-input" placeholder="Ej: CLI-0001 o CO123">
+                    <label for="input-codigo-cliente">Código Cliente</label>
+                    <input type="text" id="input-codigo-cliente" name="codigo_cliente" class="form-input" placeholder="Deja 'CLI-' para generar automáticamente">
+                    <small style="display: block; margin-top: 4px; color: #666; font-size: 0.85em;">
+                        💡 Se generará automáticamente (Ej: CLI-0001)
+                    </small>
                     <div class="validation-message" id="error-codigo-cliente"></div>
                 </div>
                 <div class="form-group form-group-half">

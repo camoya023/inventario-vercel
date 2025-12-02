@@ -31,11 +31,29 @@ let currentConfirmResolve = null;
 // =========================================================================
 
 /**
+ * Resetea todas las variables globales del módulo de productos
+ * IMPORTANTE: Debe llamarse al inicializar la vista para evitar datos de sesiones anteriores
+ */
+function resetearVariablesGlobalesProductos() {
+    console.log('[Productos] Reseteando variables globales...');
+    productos_currentPage = 1;
+    productos_currentSearchTerm = "";
+    productos_currentFilterCategoria = "";
+    productos_currentFilterMarca = "";
+    productos_currentFilterEstado = "";
+    productos_isLoading = false;
+    console.log('[Productos] Variables globales reseteadas');
+}
+
+/**
  * Función principal para cargar el módulo de productos.
  * Se llama desde home.js cuando se navega a la página de productos.
  */
 async function cargarPaginaProductos() {
     console.log('[Productos] ===== INICIALIZANDO MÓDULO DE PRODUCTOS =====');
+
+    // IMPORTANTE: Resetear variables globales para evitar datos de sesiones anteriores
+    resetearVariablesGlobalesProductos();
 
     try {
         // Configurar event listeners
@@ -45,7 +63,6 @@ async function cargarPaginaProductos() {
         await cargarDesplegablesProducto();
 
         // Cargar lista de productos
-        productos_currentPage = 1;
         await cargarDatosTablaProductos();
 
         console.log('[Productos] ✅ Módulo de productos inicializado correctamente');
