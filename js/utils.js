@@ -338,3 +338,77 @@ window.debugApp = function() {
   console.log('Cliente Supabase:', supabaseClient ? 'Inicializado' : 'No inicializado');
   console.groupEnd();
 };
+
+/* =========================================================================
+   MODAL DE CONFIRMACIÓN GENÉRICO
+   ========================================================================= */
+
+/**
+ * Muestra un modal de confirmación moderno y elegante
+ * @param {string} mensaje - Mensaje a mostrar en el modal
+ * @param {function} callbackConfirmar - Función a ejecutar si el usuario confirma
+ * @param {string} titulo - Título del modal (opcional, por defecto "Confirmar Acción")
+ */
+function mostrarModalConfirmacion(mensaje, callbackConfirmar, titulo = "Confirmar Acción") {
+  console.log('[mostrarModalConfirmacion] Iniciando con:', { mensaje, titulo });
+
+  // Obtener elementos del modal genérico
+  const modal = document.getElementById('modal-confirmacion-generica');
+  const tituloElement = document.getElementById('modal-confirmacion-generica-titulo');
+  const mensajeElement = document.getElementById('modal-confirmacion-generica-mensaje');
+  const btnAceptar = document.getElementById('btn-aceptar-modal-confirmacion-generica');
+  const btnCancelar = document.getElementById('btn-cancelar-modal-confirmacion-generica');
+  const btnCerrar = document.getElementById('btn-cerrar-modal-confirmacion-generica-x');
+
+  console.log('[mostrarModalConfirmacion] Modal encontrado:', !!modal);
+
+  if (!modal) {
+    console.warn('[mostrarModalConfirmacion] Modal no encontrado, usando confirm() nativo');
+    // Fallback si no existe el modal
+    if (confirm(mensaje)) {
+      callbackConfirmar();
+    }
+    return;
+  }
+
+  // Configurar modal
+  if (tituloElement) tituloElement.textContent = titulo;
+  if (mensajeElement) mensajeElement.textContent = mensaje;
+
+  // Mostrar modal con todos los estilos necesarios
+  console.log('[mostrarModalConfirmacion] Mostrando modal...');
+  modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1';
+  modal.style.zIndex = '9999';
+  modal.classList.add('is-visible');
+
+  // Función para cerrar el modal
+  const cerrarModal = function() {
+    modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    modal.classList.remove('is-visible');
+
+    // Limpiar event listeners
+    if (btnAceptar) btnAceptar.removeEventListener('click', handlerConfirmar);
+    if (btnCancelar) btnCancelar.removeEventListener('click', handlerCancelar);
+    if (btnCerrar) btnCerrar.removeEventListener('click', handlerCancelar);
+  };
+
+  // Handler para confirmar
+  const handlerConfirmar = function() {
+    cerrarModal();
+    callbackConfirmar();
+  };
+
+  // Handler para cancelar
+  const handlerCancelar = function() {
+    cerrarModal();
+  };
+
+  // Asignar event listeners
+  if (btnAceptar) btnAceptar.addEventListener('click', handlerConfirmar);
+  if (btnCancelar) btnCancelar.addEventListener('click', handlerCancelar);
+  if (btnCerrar) btnCerrar.addEventListener('click', handlerCancelar);
+}

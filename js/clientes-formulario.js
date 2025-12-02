@@ -31,6 +31,14 @@ function inicializarFormularioNuevoCliente() {
   limpiarFormularioCliente();
   configurarEventListenersFormulario();
 
+  // Configurar campo código para modo creación
+  const inputCodigo = document.getElementById('input-codigo-cliente');
+  if (inputCodigo) {
+    inputCodigo.readOnly = false; // Editable en modo creación
+    inputCodigo.value = 'CLI-'; // Prefijo por defecto
+    inputCodigo.placeholder = 'CLI-0001 (Dejar como CLI- para generar automáticamente)';
+  }
+
   // Guardar estado inicial del formulario para detectar cambios
   guardarEstadoInicialFormulario();
 
@@ -82,14 +90,14 @@ function configurarEventListenersFormulario() {
 
       // Verificar si hay cambios sin guardar
       if (verificarCambiosEnFormulario()) {
-        // Formulario sucio - mostrar confirmación
-        const mensaje = '¿Estás seguro de que deseas cancelar?\n\nHay cambios sin guardar que se perderán.';
-        if (confirm(mensaje)) {
+        // Formulario sucio - mostrar confirmación con modal moderno
+        const mensaje = 'Hay cambios sin guardar que se perderán.';
+        const titulo = '¿Cancelar edición?';
+
+        mostrarModalConfirmacion(mensaje, function() {
           console.log('[FormularioCliente] Usuario confirmó cancelar con cambios');
           cargarVistaClientes();
-        } else {
-          console.log('[FormularioCliente] Usuario canceló la operación de cancelar');
-        }
+        }, titulo);
       } else {
         // Formulario limpio - salir sin confirmación
         console.log('[FormularioCliente] No hay cambios, saliendo sin confirmación');
@@ -641,7 +649,16 @@ async function cargarDatosCliente(clienteId) {
 
   // Llenar formulario
   document.getElementById('input-id-cliente').value = data.id || '';
-  document.getElementById('input-codigo-cliente').value = data.codigo_cliente || '';
+
+  // Configurar campo código en modo edición (NO editable)
+  const inputCodigo = document.getElementById('input-codigo-cliente');
+  if (inputCodigo) {
+    inputCodigo.value = data.codigo_cliente || '';
+    inputCodigo.readOnly = true; // NO editable en modo edición
+    inputCodigo.style.backgroundColor = '#f5f5f5'; // Indicador visual de que está deshabilitado
+    inputCodigo.style.cursor = 'not-allowed';
+  }
+
   document.getElementById('select-estado-cliente').value = data.estado || 'Activo';
   document.getElementById('input-nombres-cliente').value = data.nombres || '';
   document.getElementById('input-apellidos-cliente').value = data.apellidos || '';
@@ -949,7 +966,17 @@ function limpiarFormularioCliente() {
   console.log('[FormularioCliente] Limpiando formulario...');
 
   document.getElementById('input-id-cliente').value = '';
-  document.getElementById('input-codigo-cliente').value = '';
+
+  // Limpiar campo código y restaurar estilos
+  const inputCodigo = document.getElementById('input-codigo-cliente');
+  if (inputCodigo) {
+    inputCodigo.value = '';
+    inputCodigo.readOnly = false;
+    inputCodigo.style.backgroundColor = '';
+    inputCodigo.style.cursor = '';
+    inputCodigo.placeholder = 'Ej: CLI-0001 o CO123';
+  }
+
   document.getElementById('select-estado-cliente').value = 'Activo';
   document.getElementById('input-nombres-cliente').value = '';
   document.getElementById('input-apellidos-cliente').value = '';
