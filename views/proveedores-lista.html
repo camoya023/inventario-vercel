@@ -1,0 +1,369 @@
+<div class="page-content-wrapper">
+
+    <div id="vista-lista-proveedores" class="page-view is-active">
+
+        <div class="page-header-controls">
+            <h2 class="page-section-title">Lista de Proveedores</h2>
+            <button id="btn-abrir-modal-nuevo-proveedor" class="button button-primary">
+                <i class="fas fa-plus"></i> Nuevo Proveedor
+            </button>
+        </div>
+
+        <div class="page-toolbar-container">
+            <button id="btn-toggle-filtros-proveedores" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-proveedores-content">
+                <i class="fas fa-filter"></i> Opciones y Filtros <i class="fas fa-chevron-up"></i>
+            </button>
+            <div id="filtros-proveedores-content" class="page-toolbar-collapsible">
+                <div class="page-toolbar">
+                    <div class="search-form-container">
+                        <input type="search" id="input-buscar-proveedores" class="form-input" placeholder="Buscar por nombre empresa, código, NIT...">
+                    </div>
+                    <div class="filter-container">
+                        <label for="filtro-estado-proveedor" class="form-label-inline">Estado:</label>
+                        <select id="filtro-estado-proveedor" class="form-input-select">
+                            <option value="">Todos</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="action-button-container">
+                        <button id="btn-importar-proveedores" class="button button-secondary">
+                            <i class="fas fa-file-upload"></i> Importar Proveedores
+                        </button>
+                        <button id="btn-exportar-proveedores" class="button button-secondary">
+                            <i class="fas fa-file-download"></i> Exportar Proveedores
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table-default">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre Empresa</th>
+                        <th>Teléfono Principal</th>
+                        <th>Ciudad</th>
+                        <th class="text-right">Saldo Pendiente</th>
+                        <th class="text-right">Crédito Disponible</th>
+                        <th>Estado</th>
+                        <th class="column-actions text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-proveedores">
+                    <tr>
+                        <td colspan="8" class="text-center" style="padding:20px; font-style:italic;">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando proveedores...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="pagination-controls-proveedores" class="pagination-controls">
+            <button id="btn-prev-page-proveedores" class="button button-secondary" disabled>
+                <i class="fas fa-chevron-left"></i> Anterior
+            </button>
+            <span id="page-info-proveedores" class="page-info">Página 1 de 1</span>
+            <button id="btn-next-page-proveedores" class="button button-secondary" disabled>
+                Siguiente <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <div id="vista-detalle-proveedor" class="page-view">
+
+        <div class="page-header-controls">
+            <div class="header-main-content">
+                <a href="#" id="btn-volver-a-lista" class="back-link"><i class="fas fa-arrow-left"></i> Volver al Listado</a>
+                <h2 id="detalle-proveedor-nombre" class="page-section-title">Nombre del Proveedor</h2>
+            </div>
+            <div class="header-actions">
+                <button id="btn-editar-proveedor-detalle" class="button button-secondary">
+                    <i class="fas fa-pencil-alt"></i> Editar Proveedor
+                </button>
+                <div class="dropdown">
+                    <button class="button button-primary dropdown-toggle">
+                        Más Acciones <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a href="#" id="accion-anadir-contacto" class="dropdown-item">Añadir Contacto</a>
+                        <a href="#" id="accion-asociar-producto" class="dropdown-item">Asociar Producto</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-summary-grid">
+            <div class="summary-item">
+                <span class="summary-label">Código</span>
+                <strong id="detalle-proveedor-codigo" class="summary-value">PROV-0001</strong>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Saldo Pendiente</span>
+                <strong id="detalle-proveedor-saldo" class="summary-value text-danger">$ 0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Límite de Crédito</span>
+                <strong id="detalle-proveedor-limite" class="summary-value">$ 0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Días de Crédito</span>
+                <strong id="detalle-proveedor-dias" class="summary-value">0 días</strong>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Estado</span>
+                <strong id="detalle-proveedor-estado" class="summary-value"><span class="badge badge-success">Activo</span></strong>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <ul class="tab-nav">
+                <li class="tab-item"><a href="#tab-info-general" class="tab-link is-active">Información General</a></li>
+                <li class="tab-item"><a href="#tab-contactos" class="tab-link">Contactos</a></li>
+                <li class="tab-item"><a href="#tab-productos" class="tab-link">Productos Suministrados</a></li>
+                <li class="tab-item"><a href="#tab-cuentas-por-pagar" class="tab-link">Cuentas por Pagar</a></li>
+                <li class="tab-item"><a href="#tab-pagos" class="tab-link">Historial de Pagos</a></li>
+            </ul>
+
+            <div class="tab-content-wrapper">
+                <div id="tab-info-general" class="tab-pane is-active">
+                    <h4>Información General del Proveedor</h4>
+                    <p>Cargando información...</p>
+                </div>
+                <div id="tab-contactos" class="tab-pane">
+                    <h4>Contactos Asociados</h4>
+                    <p>Cargando contactos...</p>
+                </div>
+                <div id="tab-productos" class="tab-pane">
+                    <h4>Productos Suministrados</h4>
+                    <p>Cargando productos...</p>
+                </div>
+                <div id="tab-cuentas-por-pagar" class="tab-pane">
+                    <h4>Facturas de Compra</h4>
+                    <p>Cargando facturas...</p>
+                </div>
+                <div id="tab-pagos" class="tab-pane">
+                    <h4>Historial de Pagos</h4>
+                    <p>Cargando pagos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Proveedor -->
+<div id="modal-nuevo-proveedor" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Nuevo Proveedor</h3>
+            <button id="btn-cerrar-modal-nuevo-proveedor" class="modal-close-button" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="form-nuevo-proveedor" class="form-grid">
+
+                <div class="form-group form-span-2">
+                    <label for="proveedor-nombre" class="form-label">Nombre de la Empresa</label>
+                    <input type="text" id="proveedor-nombre" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedor-telefono" class="form-label">Teléfono Principal</label>
+                    <input type="tel" id="proveedor-telefono" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedor-email" class="form-label">Email Principal</label>
+                    <input type="email" id="proveedor-email" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedor-estado-form" class="form-label">Estado</label>
+                    <select id="proveedor-estado-form" class="form-input-select">
+                        <option value="true">Activo</option>
+                        <option value="false">Inactivo</option>
+                    </select>
+                </div>
+                <div class="form-group form-span-2">
+                    <hr class="form-separator">
+                </div>
+
+                <div class="form-group form-span-2">
+                    <label for="proveedor-direccion" class="form-label">Dirección</label>
+                    <input type="text" id="proveedor-direccion" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedor-ciudad" class="form-label">Ciudad</label>
+                    <input type="text" id="proveedor-ciudad" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedor-condiciones-pago" class="form-label">Condiciones de Pago</label>
+                    <input type="text" id="proveedor-condiciones-pago" class="form-input" placeholder="Ej: Neto 30 días">
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedor-dias-credito" class="form-label">Días de Crédito</label>
+                    <input type="number" id="proveedor-dias-credito" class="form-input" value="0">
+                </div>
+
+                <div class="form-group form-span-2">
+                    <label for="proveedor-limite-credito" class="form-label">Límite de Crédito ($)</label>
+                    <input type="number" id="proveedor-limite-credito" class="form-input" value="0.00" step="0.01">
+                </div>
+
+                <div class="form-group form-span-2">
+                    <label for="proveedor-notas" class="form-label">Notas Internas</label>
+                    <textarea id="proveedor-notas" class="form-input" rows="3"></textarea>
+                </div>
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="btn-cancelar-nuevo-proveedor" type="button" class="button button-secondary">Cancelar</button>
+            <button id="btn-guardar-nuevo-proveedor" type="submit" class="button button-primary" form="form-nuevo-proveedor">Guardar Proveedor</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nuevo Contacto -->
+<div id="modal-nuevo-contacto" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Añadir Nuevo Contacto</h3>
+            <button id="btn-cerrar-modal-nuevo-contacto" class="modal-close-button" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="form-nuevo-contacto" class="form-grid-single-column">
+                <div class="form-group">
+                    <label for="contacto-nombre" class="form-label">Nombre Completo</label>
+                    <input type="text" id="contacto-nombre" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contacto-cargo" class="form-label">Cargo</label>
+                    <input type="text" id="contacto-cargo" class="form-input" placeholder="Ej: Vendedor, Gerente de Cuenta...">
+                </div>
+
+                <div class="form-group">
+                    <label for="contacto-email" class="form-label">Email</label>
+                    <input type="email" id="contacto-email" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="contacto-telefono" class="form-label">Teléfono</label>
+                    <input type="tel" id="contacto-telefono" class="form-input">
+                </div>
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="btn-cancelar-nuevo-contacto" type="button" class="button button-secondary">Cancelar</button>
+            <button id="btn-guardar-nuevo-contacto" type="submit" class="button button-primary" form="form-nuevo-contacto">Guardar Contacto</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Asociar Producto -->
+<div id="modal-asociar-producto" class="modal-overlay">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Asociar Producto a Proveedor</h3>
+            <button id="btn-cerrar-modal-asociar-producto" class="modal-close-button" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="form-asociar-producto" class="form-grid-single-column">
+
+                <div class="form-group">
+                    <label for="asociar-producto-busqueda" class="form-label">Buscar Producto</label>
+                    <div style="position: relative;">
+                        <input
+                            type="text"
+                            id="asociar-producto-busqueda"
+                            class="form-input"
+                            placeholder="Escribe el nombre o SKU del producto..."
+                            autocomplete="off"
+                            style="padding-right: 35px;"
+                            required>
+                        <input type="hidden" id="asociar-producto-id-seleccionado" required>
+
+                        <button
+                            type="button"
+                            id="asociar-producto-clear-btn"
+                            style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #999; cursor: pointer; padding: 4px 8px; font-size: 16px; line-height: 1; transition: color 0.2s;"
+                            title="Limpiar selección"
+                            onmouseover="this.style.color='#dc3545'"
+                            onmouseout="this.style.color='#999'">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+
+                        <div id="asociar-producto-dropdown" class="autocomplete-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 300px; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 1000; margin-top: 4px;">
+                        </div>
+
+                        <div id="asociar-producto-loading" style="display: none; padding: 8px; text-align: center; color: #666;">
+                            <i class="fas fa-spinner fa-spin"></i> Buscando...
+                        </div>
+                    </div>
+                    <small class="form-help-text" id="asociar-producto-selected-info" style="display: none; color: #28a745; margin-top: 4px;">
+                        <i class="fas fa-check-circle"></i> <span id="asociar-producto-selected-text"></span>
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="asociar-producto-precio" class="form-label">Precio de Costo ($)</label>
+                    <input type="number" id="asociar-producto-precio" class="form-input" required step="0.01" placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label for="asociar-producto-sku" class="form-label">SKU del Proveedor (Opcional)</label>
+                    <input type="text" id="asociar-producto-sku" class="form-input" placeholder="Código que usa el proveedor para este producto">
+                </div>
+
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="btn-cancelar-asociar-producto" type="button" class="button button-secondary">Cancelar</button>
+            <button id="btn-guardar-asociacion" type="submit" class="button button-primary" form="form-asociar-producto">Guardar Asociación</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Asociación -->
+<div id="modal-editar-asociacion" class="modal-overlay">
+    <div class="modal-content" style="max-width: 550px;">
+        <div class="modal-header">
+            <h3 class="modal-title">Editar Asociación de Producto</h3>
+            <button id="btn-cerrar-modal-editar-asociacion" class="modal-close-button" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="form-editar-asociacion">
+                <p><strong>Producto:</strong> <span id="asociacion-nombre-producto"></span></p>
+                <hr>
+                <div class="form-group">
+                    <label for="asociacion-editar-precio" class="form-label">Nuevo Precio de Costo ($)</label>
+                    <input type="number" id="asociacion-editar-precio" class="form-input" required step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="asociacion-editar-sku" class="form-label">Nuevo SKU del Proveedor (Opcional)</label>
+                    <input type="text" id="asociacion-editar-sku" class="form-input">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="btn-cancelar-editar-asociacion" type="button" class="button button-secondary">Cancelar</button>
+            <button id="btn-guardar-cambios-asociacion" type="submit" class="button button-primary" form="form-editar-asociacion">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
