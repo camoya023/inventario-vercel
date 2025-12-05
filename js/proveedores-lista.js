@@ -10,6 +10,12 @@ const proveedores_rowsPerPage = 10;
 let proveedores_currentSearchTerm = "";
 let proveedores_currentFilterEstado = "";
 
+// Variables para detectar cambios en formularios (dirty form)
+let estadoInicialFormularioContacto = {};
+let estadoInicialFormularioProveedor = {};
+let estadoInicialFormularioAsociarProducto = {};
+let estadoInicialFormularioEditarAsociacion = {};
+
 // =========================================================================
 // FUNCIONES PARA OBTENER LISTA DE PROVEEDORES
 // =========================================================================
@@ -428,6 +434,182 @@ async function eliminarContactoConSupabase(contactoId) {
     console.error('[Contactos] ✗ Error:', error);
     return { exito: false, mensaje: error.message };
   }
+}
+
+// =========================================================================
+// FUNCIONES PARA DETECTAR CAMBIOS EN FORMULARIO DE CONTACTO (DIRTY FORM)
+// =========================================================================
+
+/**
+ * Obtiene los valores actuales del formulario de contacto
+ */
+function obtenerValoresActualesFormularioContacto() {
+  return {
+    nombre_completo: document.getElementById('contacto-nombre')?.value || '',
+    cargo: document.getElementById('contacto-cargo')?.value || '',
+    email: document.getElementById('contacto-email')?.value || '',
+    telefono: document.getElementById('contacto-telefono')?.value || ''
+  };
+}
+
+/**
+ * Guarda el estado inicial del formulario de contacto para detectar cambios posteriores
+ */
+function guardarEstadoInicialFormularioContacto() {
+  estadoInicialFormularioContacto = obtenerValoresActualesFormularioContacto();
+  console.log('[Contactos] Estado inicial del formulario guardado:', estadoInicialFormularioContacto);
+}
+
+/**
+ * Verifica si hay cambios sin guardar en el formulario de contacto
+ * @returns {boolean} true si hay cambios, false si el formulario está limpio
+ */
+function verificarCambiosEnFormularioContacto() {
+  const estadoActual = obtenerValoresActualesFormularioContacto();
+
+  // Comparar cada campo
+  const hayCambios =
+    estadoActual.nombre_completo !== estadoInicialFormularioContacto.nombre_completo ||
+    estadoActual.cargo !== estadoInicialFormularioContacto.cargo ||
+    estadoActual.email !== estadoInicialFormularioContacto.email ||
+    estadoActual.telefono !== estadoInicialFormularioContacto.telefono;
+
+  if (hayCambios) {
+    console.log('[Contactos] Cambios detectados en el formulario.');
+    console.log('[Contactos] Inicial:', estadoInicialFormularioContacto);
+    console.log('[Contactos] Actual:', estadoActual);
+  } else {
+    console.log('[Contactos] No hay cambios en el formulario.');
+  }
+
+  return hayCambios;
+}
+
+/**
+ * Obtiene los valores actuales del formulario de proveedor
+ */
+function obtenerValoresActualesFormularioProveedor() {
+  return {
+    nombre: document.getElementById('proveedor-nombre')?.value || '',
+    telefono: document.getElementById('proveedor-telefono')?.value || '',
+    email: document.getElementById('proveedor-email')?.value || '',
+    estado: document.getElementById('proveedor-estado-form')?.value || 'true',
+    direccion: document.getElementById('proveedor-direccion')?.value || '',
+    ciudad: document.getElementById('proveedor-ciudad')?.value || '',
+    condiciones_pago: document.getElementById('proveedor-condiciones-pago')?.value || '',
+    dias_credito: document.getElementById('proveedor-dias-credito')?.value || '0',
+    limite_credito: document.getElementById('proveedor-limite-credito')?.value || '0.00',
+    notas: document.getElementById('proveedor-notas')?.value || ''
+  };
+}
+
+/**
+ * Guarda el estado inicial del formulario de proveedor
+ */
+function guardarEstadoInicialFormularioProveedor() {
+  estadoInicialFormularioProveedor = obtenerValoresActualesFormularioProveedor();
+  console.log('[Proveedor] Estado inicial del formulario guardado:', estadoInicialFormularioProveedor);
+}
+
+/**
+ * Verifica si hay cambios sin guardar en el formulario de proveedor
+ */
+function verificarCambiosEnFormularioProveedor() {
+  const estadoActual = obtenerValoresActualesFormularioProveedor();
+
+  const hayCambios =
+    estadoActual.nombre !== estadoInicialFormularioProveedor.nombre ||
+    estadoActual.telefono !== estadoInicialFormularioProveedor.telefono ||
+    estadoActual.email !== estadoInicialFormularioProveedor.email ||
+    estadoActual.estado !== estadoInicialFormularioProveedor.estado ||
+    estadoActual.direccion !== estadoInicialFormularioProveedor.direccion ||
+    estadoActual.ciudad !== estadoInicialFormularioProveedor.ciudad ||
+    estadoActual.condiciones_pago !== estadoInicialFormularioProveedor.condiciones_pago ||
+    estadoActual.dias_credito !== estadoInicialFormularioProveedor.dias_credito ||
+    estadoActual.limite_credito !== estadoInicialFormularioProveedor.limite_credito ||
+    estadoActual.notas !== estadoInicialFormularioProveedor.notas;
+
+  if (hayCambios) {
+    console.log('[Proveedor] Cambios detectados en el formulario.');
+    console.log('[Proveedor] Inicial:', estadoInicialFormularioProveedor);
+    console.log('[Proveedor] Actual:', estadoActual);
+  }
+
+  return hayCambios;
+}
+
+/**
+ * Obtiene los valores actuales del formulario de asociar producto
+ */
+function obtenerValoresActualesFormularioAsociarProducto() {
+  return {
+    producto_id: document.getElementById('asociar-producto-id-seleccionado')?.value || '',
+    busqueda: document.getElementById('asociar-producto-busqueda')?.value || '',
+    precio: document.getElementById('asociar-producto-precio')?.value || '',
+    sku: document.getElementById('asociar-producto-sku')?.value || ''
+  };
+}
+
+/**
+ * Guarda el estado inicial del formulario de asociar producto
+ */
+function guardarEstadoInicialFormularioAsociarProducto() {
+  estadoInicialFormularioAsociarProducto = obtenerValoresActualesFormularioAsociarProducto();
+  console.log('[AsociarProducto] Estado inicial del formulario guardado:', estadoInicialFormularioAsociarProducto);
+}
+
+/**
+ * Verifica si hay cambios sin guardar en el formulario de asociar producto
+ */
+function verificarCambiosEnFormularioAsociarProducto() {
+  const estadoActual = obtenerValoresActualesFormularioAsociarProducto();
+
+  const hayCambios =
+    estadoActual.producto_id !== estadoInicialFormularioAsociarProducto.producto_id ||
+    estadoActual.busqueda !== estadoInicialFormularioAsociarProducto.busqueda ||
+    estadoActual.precio !== estadoInicialFormularioAsociarProducto.precio ||
+    estadoActual.sku !== estadoInicialFormularioAsociarProducto.sku;
+
+  if (hayCambios) {
+    console.log('[AsociarProducto] Cambios detectados en el formulario.');
+  }
+
+  return hayCambios;
+}
+
+/**
+ * Obtiene los valores actuales del formulario de editar asociación
+ */
+function obtenerValoresActualesFormularioEditarAsociacion() {
+  return {
+    precio: document.getElementById('asociacion-editar-precio')?.value || '',
+    sku: document.getElementById('asociacion-editar-sku')?.value || ''
+  };
+}
+
+/**
+ * Guarda el estado inicial del formulario de editar asociación
+ */
+function guardarEstadoInicialFormularioEditarAsociacion() {
+  estadoInicialFormularioEditarAsociacion = obtenerValoresActualesFormularioEditarAsociacion();
+  console.log('[EditarAsociacion] Estado inicial del formulario guardado:', estadoInicialFormularioEditarAsociacion);
+}
+
+/**
+ * Verifica si hay cambios sin guardar en el formulario de editar asociación
+ */
+function verificarCambiosEnFormularioEditarAsociacion() {
+  const estadoActual = obtenerValoresActualesFormularioEditarAsociacion();
+
+  const hayCambios =
+    estadoActual.precio !== estadoInicialFormularioEditarAsociacion.precio ||
+    estadoActual.sku !== estadoInicialFormularioEditarAsociacion.sku;
+
+  if (hayCambios) {
+    console.log('[EditarAsociacion] Cambios detectados en el formulario.');
+  }
+
+  return hayCambios;
 }
 
 // =========================================================================
@@ -870,6 +1052,9 @@ async function abrirModalParaEditar(proveedorId) {
 
     form.dataset.editId = proveedor.id;
     modal.classList.add("is-visible");
+
+    // Guardar estado inicial del formulario para detectar cambios
+    setTimeout(() => guardarEstadoInicialFormularioProveedor(), 100);
   } else {
     toastr.error(resultado.mensaje, 'Error');
   }
@@ -895,6 +1080,9 @@ async function abrirModalContactoParaEditar(contactoId) {
     form.dataset.editId = contacto.id;
 
     modal.classList.add("is-visible");
+
+    // Guardar estado inicial del formulario para detectar cambios
+    setTimeout(() => guardarEstadoInicialFormularioContacto(), 100);
   } else {
     toastr.error('Error al cargar los datos del contacto: ' + resultado.mensaje, 'Error');
   }
@@ -1373,6 +1561,9 @@ function configurarPaginaProveedoresYListeners() {
         form.dataset.idProducto = id_producto;
 
         document.getElementById("modal-editar-asociacion").classList.add("is-visible");
+
+        // Guardar estado inicial del formulario para detectar cambios
+        setTimeout(() => guardarEstadoInicialFormularioEditarAsociacion(), 100);
       }
     });
 
@@ -1486,10 +1677,28 @@ function configurarPaginaProveedoresYListeners() {
       });
     }
 
-    // Listeners para cerrar el modal de edición
+    // Listeners para cerrar el modal de edición con validación de cambios
     const modalEditarAsociacion = document.getElementById("modal-editar-asociacion");
-    const cerrarModalEditar = () =>
-      modalEditarAsociacion.classList.remove("is-visible");
+    const cerrarModalEditar = () => {
+      console.log('[EditarAsociacion] Intentando cerrar modal...');
+
+      // Verificar si hay cambios sin guardar
+      if (verificarCambiosEnFormularioEditarAsociacion()) {
+        // Formulario sucio - mostrar confirmación
+        const mensaje = 'Hay cambios sin guardar que se perderán.';
+        const titulo = '¿Cancelar sin guardar?';
+
+        mostrarModalConfirmacion(mensaje, function() {
+          console.log('[EditarAsociacion] Usuario confirmó cerrar sin guardar');
+          modalEditarAsociacion.classList.remove("is-visible");
+        }, titulo);
+      } else {
+        // Formulario limpio - cerrar sin confirmación
+        console.log('[EditarAsociacion] No hay cambios, cerrando sin confirmación');
+        modalEditarAsociacion.classList.remove("is-visible");
+      }
+    };
+
     document
       .getElementById("btn-cerrar-modal-editar-asociacion")
       .addEventListener("click", cerrarModalEditar);
@@ -1529,6 +1738,9 @@ function configurarPaginaProveedoresYListeners() {
       modalProveedor.querySelector("#btn-guardar-nuevo-proveedor").textContent = "Guardar Proveedor";
       document.getElementById("proveedor-estado-form").value = "true";
       modalProveedor.classList.add("is-visible");
+
+      // Guardar estado inicial del formulario para detectar cambios
+      setTimeout(() => guardarEstadoInicialFormularioProveedor(), 100);
     });
 
     formProveedor.addEventListener("submit", async (event) => {
@@ -1594,13 +1806,34 @@ function configurarPaginaProveedoresYListeners() {
       }
     });
 
-    const cerrarModal = () => modalProveedor.classList.remove("is-visible");
+    // Función para cerrar modal con validación de cambios
+    const cerrarModalProveedor = () => {
+      console.log('[Proveedor] Intentando cerrar modal...');
+
+      // Verificar si hay cambios sin guardar
+      if (verificarCambiosEnFormularioProveedor()) {
+        // Formulario sucio - mostrar confirmación
+        const mensaje = 'Hay cambios sin guardar que se perderán.';
+        const titulo = '¿Cancelar sin guardar?';
+
+        mostrarModalConfirmacion(mensaje, function() {
+          console.log('[Proveedor] Usuario confirmó cerrar sin guardar');
+          modalProveedor.classList.remove("is-visible");
+        }, titulo);
+      } else {
+        // Formulario limpio - cerrar sin confirmación
+        console.log('[Proveedor] No hay cambios, cerrando sin confirmación');
+        modalProveedor.classList.remove("is-visible");
+      }
+    };
+
+    // Aplicar a ambos botones de cerrar
     modalProveedor
       .querySelector(".modal-close-button")
-      .addEventListener("click", cerrarModal);
+      .addEventListener("click", cerrarModalProveedor);
     modalProveedor
       .querySelector(".button-secondary")
-      .addEventListener("click", cerrarModal);
+      .addEventListener("click", cerrarModalProveedor);
   }
 
   // ===== MODAL DE CONTACTO =====
@@ -1618,6 +1851,9 @@ function configurarPaginaProveedoresYListeners() {
       delete formContacto.dataset.editId;
 
       modalContacto.classList.add("is-visible");
+
+      // Guardar estado inicial del formulario para detectar cambios
+      setTimeout(() => guardarEstadoInicialFormularioContacto(), 100);
     });
 
     if (formContacto) {
@@ -1681,13 +1917,34 @@ function configurarPaginaProveedoresYListeners() {
       });
     }
 
-    const cerrarModal = () => modalContacto.classList.remove("is-visible");
+    // Función para cerrar modal con validación de cambios
+    const cerrarModalContacto = () => {
+      console.log('[Contactos] Intentando cerrar modal...');
+
+      // Verificar si hay cambios sin guardar
+      if (verificarCambiosEnFormularioContacto()) {
+        // Formulario sucio - mostrar confirmación
+        const mensaje = 'Hay cambios sin guardar que se perderán.';
+        const titulo = '¿Cancelar sin guardar?';
+
+        mostrarModalConfirmacion(mensaje, function() {
+          console.log('[Contactos] Usuario confirmó cerrar sin guardar');
+          modalContacto.classList.remove("is-visible");
+        }, titulo);
+      } else {
+        // Formulario limpio - cerrar sin confirmación
+        console.log('[Contactos] No hay cambios, cerrando sin confirmación');
+        modalContacto.classList.remove("is-visible");
+      }
+    };
+
+    // Aplicar a ambos botones de cerrar
     modalContacto
       .querySelector(".modal-close-button")
-      .addEventListener("click", cerrarModal);
+      .addEventListener("click", cerrarModalContacto);
     modalContacto
       .querySelector(".button-secondary")
-      .addEventListener("click", cerrarModal);
+      .addEventListener("click", cerrarModalContacto);
   }
 
   // ===== MODAL DE ASOCIAR PRODUCTO =====
@@ -1703,10 +1960,32 @@ function configurarPaginaProveedoresYListeners() {
       modalAsociar.classList.add("is-visible");
 
       configurarAutocompletadoProductos();
+
+      // Guardar estado inicial del formulario para detectar cambios
+      setTimeout(() => guardarEstadoInicialFormularioAsociarProducto(), 100);
     });
 
-    const cerrarModalAsociar = () =>
-      modalAsociar.classList.remove("is-visible");
+    // Función para cerrar modal con validación de cambios
+    const cerrarModalAsociar = () => {
+      console.log('[AsociarProducto] Intentando cerrar modal...');
+
+      // Verificar si hay cambios sin guardar
+      if (verificarCambiosEnFormularioAsociarProducto()) {
+        // Formulario sucio - mostrar confirmación
+        const mensaje = 'Hay cambios sin guardar que se perderán.';
+        const titulo = '¿Cancelar sin guardar?';
+
+        mostrarModalConfirmacion(mensaje, function() {
+          console.log('[AsociarProducto] Usuario confirmó cerrar sin guardar');
+          modalAsociar.classList.remove("is-visible");
+        }, titulo);
+      } else {
+        // Formulario limpio - cerrar sin confirmación
+        console.log('[AsociarProducto] No hay cambios, cerrando sin confirmación');
+        modalAsociar.classList.remove("is-visible");
+      }
+    };
+
     document
       .getElementById("btn-cerrar-modal-asociar-producto")
       .addEventListener("click", cerrarModalAsociar);
