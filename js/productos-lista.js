@@ -11,20 +11,14 @@ let productos_currentFilterMarca = "";
 let productos_currentFilterEstado = "";
 let productos_isLoading = false;
 
+// Variable para detectar cambios en el formulario de producto (dirty form)
+let estadoInicialFormularioProducto = {};
+
 // Referencias a elementos del modal
 let modalProducto;
 let formProducto;
 let modalProductoTitulo;
 let modalConfirmacion;
-
-// Variables para modal de confirmación genérica
-let confirmModalElement;
-let confirmModalTitle;
-let confirmModalMessage;
-let btnCerrarConfirm;
-let btnCancelarConfirm;
-let btnAceptarConfirm;
-let currentConfirmResolve = null;
 
 // =========================================================================
 // FUNCIÓN DE INICIALIZACIÓN DEL MÓDULO
@@ -89,9 +83,6 @@ function configurarPaginaProductosYListeners() {
         inicializarModalProducto();
     }
 
-    // Inicializar modal de confirmación (actualmente no se usa, se usa confirm() nativo)
-    // inicializarModalConfirmacion();
-
     // Botón para añadir producto
     const btnNuevoProducto = document.getElementById('btn-abrir-modal-nuevo-producto');
     if (btnNuevoProducto) {
@@ -152,120 +143,6 @@ function configurarPaginaProductosYListeners() {
     }
 
     console.log('[Productos] ✓ Event listeners configurados');
-}
-
-// =========================================================================
-// MODAL DE CONFIRMACIÓN GENÉRICA
-// =========================================================================
-
-/**
- * Inicializa el modal de confirmación genérica.
- */
-function inicializarModalConfirmacion() {
-    console.log('[Productos] Buscando elementos del modal de confirmación...');
-
-    confirmModalElement = document.getElementById('modal-confirmacion-generica');
-    confirmModalTitle = document.getElementById('modal-confirmacion-generica-titulo');
-    confirmModalMessage = document.getElementById('modal-confirmacion-generica-mensaje');
-    btnCerrarConfirm = document.getElementById('btn-cerrar-modal-confirmacion-generica-x');
-    btnCancelarConfirm = document.getElementById('btn-cancelar-modal-confirmacion-generica');
-    btnAceptarConfirm = document.getElementById('btn-aceptar-modal-confirmacion-generica');
-
-    console.log('[Productos] Elementos encontrados:');
-    console.log('  - confirmModalElement:', !!confirmModalElement, confirmModalElement);
-    console.log('  - confirmModalTitle:', !!confirmModalTitle, confirmModalTitle);
-    console.log('  - confirmModalMessage:', !!confirmModalMessage, confirmModalMessage);
-    console.log('  - btnCerrarConfirm:', !!btnCerrarConfirm, btnCerrarConfirm);
-    console.log('  - btnCancelarConfirm:', !!btnCancelarConfirm, btnCancelarConfirm);
-    console.log('  - btnAceptarConfirm:', !!btnAceptarConfirm, btnAceptarConfirm);
-
-    if (!confirmModalElement || !btnCerrarConfirm || !btnCancelarConfirm || !btnAceptarConfirm) {
-        console.error('[Productos] ❌ Modal de confirmación no disponible - faltan elementos');
-        return;
-    }
-
-    console.log('[Productos] Configurando event listeners del modal...');
-    btnCerrarConfirm.addEventListener('click', () => manejarEleccionConfirmacion(false));
-    btnCancelarConfirm.addEventListener('click', () => manejarEleccionConfirmacion(false));
-    btnAceptarConfirm.addEventListener('click', () => manejarEleccionConfirmacion(true));
-    confirmModalElement.addEventListener('click', (e) => {
-        if (e.target === confirmModalElement) manejarEleccionConfirmacion(false);
-    });
-
-    console.log('[Productos] ✓ Modal de confirmación inicializado correctamente');
-}
-
-/**
- * Maneja la elección del usuario en el modal de confirmación.
- */
-function manejarEleccionConfirmacion(eleccion) {
-    if (currentConfirmResolve) currentConfirmResolve(eleccion);
-    currentConfirmResolve = null;
-    cerrarModalConfirmacion();
-}
-
-/**
- * Cierra el modal de confirmación.
- */
-function cerrarModalConfirmacion() {
-    if (!confirmModalElement) return;
-    confirmModalElement.classList.remove('is-visible');
-    setTimeout(() => {
-        if (!confirmModalElement.classList.contains('is-visible')) {
-            confirmModalElement.style.display = 'none';
-        }
-    }, 250);
-}
-
-/**
- * Muestra el modal de confirmación y retorna una Promise.
- * @param {string} message - Mensaje a mostrar
- * @param {string} title - Título del modal
- * @param {string} confirmBtnTxt - Texto del botón de confirmar
- * @param {string} cancelBtnTxt - Texto del botón de cancelar
- * @param {boolean} isDestructive - Si es una acción destructiva (botón rojo)
- * @returns {Promise<boolean>}
- */
-function mostrarModalConfirmacion(message, title = 'Confirmar', confirmBtnTxt = 'Confirmar', cancelBtnTxt = 'Cancelar', isDestructive = false) {
-    console.log('[Productos] mostrarModalConfirmacion llamada');
-    console.log('[Productos] Verificando elementos del modal...');
-    console.log('[Productos] confirmModalElement:', !!confirmModalElement);
-    console.log('[Productos] confirmModalTitle:', !!confirmModalTitle);
-    console.log('[Productos] confirmModalMessage:', !!confirmModalMessage);
-    console.log('[Productos] btnAceptarConfirm:', !!btnAceptarConfirm);
-    console.log('[Productos] btnCancelarConfirm:', !!btnCancelarConfirm);
-
-    if (!confirmModalElement || !confirmModalTitle || !confirmModalMessage || !btnAceptarConfirm || !btnCancelarConfirm) {
-        console.error('[Productos] Modal de confirmación no disponible. Usando confirm() estándar.');
-        return Promise.resolve(confirm(message));
-    }
-
-    console.log('[Productos] Configurando textos del modal...');
-    confirmModalTitle.textContent = title;
-    confirmModalMessage.textContent = message;
-    btnAceptarConfirm.textContent = confirmBtnTxt;
-    btnCancelarConfirm.textContent = cancelBtnTxt;
-
-    console.log('[Productos] Aplicando estilos...');
-    // Reset classes y aplicar estilo según tipo de acción
-    btnAceptarConfirm.className = 'button';
-    if (isDestructive) {
-        btnAceptarConfirm.classList.add('button-danger');
-    } else {
-        btnAceptarConfirm.classList.add('button-primary');
-    }
-
-    console.log('[Productos] Mostrando modal...');
-    confirmModalElement.style.display = 'flex';
-    setTimeout(() => {
-        console.log('[Productos] Activando modal (agregando clase is-visible)...');
-        confirmModalElement.classList.add('is-visible');
-    }, 10);
-
-    console.log('[Productos] Retornando Promise...');
-    return new Promise((resolve) => {
-        currentConfirmResolve = resolve;
-    });
 }
 
 // =========================================================================
@@ -871,19 +748,109 @@ function abrirModalProducto(modo = 'add', productoParaEditar = null) {
         modalProducto.classList.add('is-visible');
         document.getElementById('input-nombre-producto').focus();
     }, 10);
+
+    // Guardar estado inicial después de que el modal esté completamente visible
+    setTimeout(() => guardarEstadoInicialFormularioProducto(), 100);
 }
 
 /**
- * Cierra el modal de producto.
+ * Cierra el modal de producto con validación de cambios.
  */
 function cerrarModalProducto() {
     if (!modalProducto) return;
-    modalProducto.classList.remove('is-visible');
-    setTimeout(() => {
-        if (!modalProducto.classList.contains('is-visible')) {
-            modalProducto.style.display = 'none';
-        }
-    }, 250);
+
+    console.log('[Productos] Intentando cerrar modal...');
+
+    // Verificar si hay cambios sin guardar
+    if (verificarCambiosEnFormularioProducto()) {
+        // Formulario sucio - mostrar confirmación
+        const mensaje = 'Hay cambios sin guardar que se perderán.';
+        const titulo = '¿Cancelar sin guardar?';
+
+        mostrarModalConfirmacion(mensaje, function() {
+            console.log('[Productos] Usuario confirmó cerrar sin guardar');
+            modalProducto.classList.remove('is-visible');
+            setTimeout(() => {
+                if (!modalProducto.classList.contains('is-visible')) {
+                    modalProducto.style.display = 'none';
+                }
+            }, 250);
+        }, titulo);
+    } else {
+        // Formulario limpio - cerrar sin confirmación
+        console.log('[Productos] No hay cambios, cerrando sin confirmación');
+        modalProducto.classList.remove('is-visible');
+        setTimeout(() => {
+            if (!modalProducto.classList.contains('is-visible')) {
+                modalProducto.style.display = 'none';
+            }
+        }, 250);
+    }
+}
+
+// =========================================================================
+// FUNCIONES PARA DETECTAR CAMBIOS EN FORMULARIO DE PRODUCTO (DIRTY FORM)
+// =========================================================================
+
+/**
+ * Obtiene los valores actuales del formulario de producto
+ */
+function obtenerValoresActualesFormularioProducto() {
+    return {
+        id_producto: document.getElementById('input-id-producto')?.value || '',
+        sku: document.getElementById('input-sku-producto')?.value || '',
+        nombre: document.getElementById('input-nombre-producto')?.value || '',
+        descripcion: document.getElementById('input-descripcion-producto')?.value || '',
+        categoria: document.getElementById('select-categoria-producto')?.value || '',
+        marca: document.getElementById('select-marca-producto')?.value || '',
+        unidad_medida: document.getElementById('select-unidad-medida-producto')?.value || '',
+        stock_inicial: document.getElementById('input-stock-inicial-producto')?.value || '',
+        precio_compra: document.getElementById('input-precio-compra-producto')?.value || '',
+        precio_venta: document.getElementById('input-precio-venta-producto')?.value || '',
+        stock_minimo: document.getElementById('input-stock-minimo-producto')?.value || '',
+        activo: document.getElementById('input-activo-producto')?.checked || false
+    };
+}
+
+/**
+ * Guarda el estado inicial del formulario de producto para detectar cambios posteriores
+ */
+function guardarEstadoInicialFormularioProducto() {
+    estadoInicialFormularioProducto = obtenerValoresActualesFormularioProducto();
+    console.log('[Productos] Estado inicial del formulario guardado:', estadoInicialFormularioProducto);
+}
+
+/**
+ * Verifica si hay cambios sin guardar en el formulario de producto
+ * @returns {boolean} true si hay cambios, false si el formulario está limpio
+ */
+function verificarCambiosEnFormularioProducto() {
+    const estadoActual = obtenerValoresActualesFormularioProducto();
+
+    // Comparar cada campo
+    const hayCambios =
+        estadoActual.id_producto !== estadoInicialFormularioProducto.id_producto ||
+        estadoActual.sku !== estadoInicialFormularioProducto.sku ||
+        estadoActual.nombre !== estadoInicialFormularioProducto.nombre ||
+        estadoActual.descripcion !== estadoInicialFormularioProducto.descripcion ||
+        estadoActual.categoria !== estadoInicialFormularioProducto.categoria ||
+        estadoActual.marca !== estadoInicialFormularioProducto.marca ||
+        estadoActual.unidad_medida !== estadoInicialFormularioProducto.unidad_medida ||
+        estadoActual.stock_inicial !== estadoInicialFormularioProducto.stock_inicial ||
+        estadoActual.precio_compra !== estadoInicialFormularioProducto.precio_compra ||
+        estadoActual.precio_venta !== estadoInicialFormularioProducto.precio_venta ||
+        estadoActual.stock_minimo !== estadoInicialFormularioProducto.stock_minimo ||
+        estadoActual.activo !== estadoInicialFormularioProducto.activo;
+
+    if (hayCambios) {
+        console.log('[Productos] Cambios detectados en el formulario.');
+        console.log('[Productos] Inicial:', estadoInicialFormularioProducto);
+        console.log('[Productos] Actual:', estadoActual);
+    } else {
+        console.log('[Productos] No hay cambios en el formulario.');
+    }
+
+    return hayCambios;
 }
 
 /**
