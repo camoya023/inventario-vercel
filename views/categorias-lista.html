@@ -1,0 +1,69 @@
+<div class="page-content-wrapper">
+
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Categorías</h2>
+        <button id="btn-abrir-modal-nueva-categoria" class="button button-primary">
+            <i class="fas fa-plus"></i> Añadir Categoría
+        </button>
+    </div>
+
+    <div class="page-toolbar">
+        <div class="search-form-container">
+            <input type="search" id="input-buscar-categorias" class="form-input" placeholder="Buscar categorías...">
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table-default">
+            <thead>
+                <tr>
+                    <th>Nombre Categoría</th>
+                    <th>Descripción</th>
+                    <th class="text-center">Nº Productos</th>
+                    <th class="column-actions text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-categorias">
+                <tr>
+                    <td colspan="4" class="text-center" style="padding:20px; font-style:italic;">
+                        Cargando categorías...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MODAL DE CATEGORÍA -->
+    <div id="modal-categoria" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-categoria-titulo" class="modal-title">Añadir Nueva Categoría</h3>
+                <button id="btn-cerrar-modal-categoria-x" class="modal-close-button" aria-label="Cerrar modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-categoria" novalidate>
+                    <input type="hidden" id="input-id-categoria" name="id_categoria">
+
+                    <div class="form-group">
+                        <label for="input-nombre-categoria">Nombre de la Categoría <span class="required-field">*</span></label>
+                        <input type="text" id="input-nombre-categoria" name="nombre_categoria" class="form-input" required placeholder="Ej: Electrónicos" maxlength="100">
+                        <div class="validation-message" id="error-nombre-categoria"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="input-descripcion-categoria">Descripción (Opcional)</label>
+                        <textarea id="input-descripcion-categoria" name="descripcion_categoria" class="form-input" rows="3" placeholder="Ej: Dispositivos y gadgets tecnológicos" maxlength="500"></textarea>
+                        <div class="validation-message" id="error-descripcion-categoria"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-cancelar-operacion-categoria" class="button button-secondary">Cancelar</button>
+                <button type="submit" id="btn-guardar-cambios-categoria" class="button button-primary" form="form-categoria">Guardar Categoría</button>
+            </div>
+        </div>
+    </div>
+
+</div>

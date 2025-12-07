@@ -706,3 +706,67 @@
   border-radius: 50%;
   animation: spinner-border 1s linear infinite;
 }
+
+/* =========================================================================
+   BOTONES DE ACCIÓN EN TABLAS
+   ========================================================================= */
+
+/* Celda que contiene los botones de acción */
+.cell-actions {
+  text-align: center;
+  white-space: nowrap;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+/* Columna de acciones en el header */
+.column-actions {
+  width: 1%;
+  white-space: nowrap;
+  text-align: center !important;
+}
+
+/* Botones de acción individuales */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 8px;
+  margin: 0 3px;
+  border-radius: var(--border-radius-sm);
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.action-button i.fas {
+  font-size: 1rem;
+}
+
+/* Efectos hover para los botones de acción */
+.action-button:hover {
+  background-color: rgba(0, 0, 0, 0.075);
+}
+
+.action-button.action-button-view:hover {
+  color: var(--color-primary);
+}
+
+.action-button.action-button-edit:hover {
+  color: var(--color-warning);
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.action-button.action-button-delete:hover {
+  color: var(--color-danger);
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* Asegurar alineación vertical en celdas */
+.data-table-default td {
+  vertical-align: middle;
+}

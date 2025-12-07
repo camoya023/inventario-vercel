@@ -1134,33 +1134,72 @@ function guardarNuevaEntidadInline(type) {
                 throw new Error('Cliente de Supabase no inicializado');
             }
 
-            // Preparar datos según el tipo (categoría o marca)
-            const tableName = type === 'categoria' ? 'categorias' : 'marcas';
-            const nombreCampo = type === 'categoria' ? 'nombre_categoria' : 'nombre_marca';
-            const idCampo = type === 'categoria' ? 'id_categoria' : 'id_marca';
+            let data, error, nombreCampo, idCampo;
 
-            const payload = {};
-            payload[nombreCampo] = nombre;
-            // Solo agregar descripción para categorías si está disponible
-            if (type === 'categoria' && descripcion) {
-                payload['descripcion_categoria'] = descripcion;
+            if (type === 'categoria') {
+                // CATEGORÍA: Usar RPC
+                console.log('[Productos] Creando categoría con RPC...');
+
+                const payload = {
+                    nombre_categoria: nombre,
+                    descripcion_categoria: descripcion
+                };
+
+                const result = await client.rpc('fn_crear_categoria', {
+                    p_categoria_data: payload
+                });
+
+                error = result.error;
+
+                if (error) {
+                    console.error('[Productos] ✗ Error de RPC al crear categoría:', error);
+                    throw new Error(error.message || 'Error al crear categoría');
+                }
+
+                const rpcData = result.data;
+
+                if (!rpcData.exito) {
+                    throw new Error(rpcData.mensaje || 'Error al crear categoría');
+                }
+
+                console.log('[Productos] Categoría creada con RPC:', rpcData);
+
+                // Extraer el ID de la respuesta RPC
+                data = {
+                    id_categoria: rpcData.datos.id_categoria,
+                    nombre_categoria: nombre
+                };
+
+                nombreCampo = 'nombre_categoria';
+                idCampo = 'id_categoria';
+
+            } else {
+                // MARCA: Usar INSERT directo (mantener como está)
+                console.log('[Productos] Creando marca con INSERT directo...');
+
+                const tableName = 'marcas';
+                nombreCampo = 'nombre_marca';
+                idCampo = 'id_marca';
+
+                const payload = {};
+                payload[nombreCampo] = nombre;
+
+                const result = await client
+                    .from(tableName)
+                    .insert(payload)
+                    .select()
+                    .single();
+
+                error = result.error;
+                data = result.data;
+
+                if (error) {
+                    console.error(`[Productos] ✗ Error de Supabase al guardar marca:`, error);
+                    throw new Error(error.message || 'Error al guardar marca');
+                }
+
+                console.log('[Productos] Respuesta INSERT marca:', data);
             }
-
-            console.log(`[Productos] Insertando en tabla ${tableName}:`, payload);
-
-            // Usar INSERT directo (no RPC) como en Apps Script
-            const { data, error } = await client
-                .from(tableName)
-                .insert(payload)
-                .select()
-                .single();
-
-            if (error) {
-                console.error(`[Productos] ✗ Error de Supabase al guardar ${type}:`, error);
-                throw new Error(error.message || `Error al guardar ${type}`);
-            }
-
-            console.log('[Productos] Respuesta INSERT:', data);
 
             if (data) {
                 showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} "${data[nombreCampo]}" creada y seleccionada.`, 'success');

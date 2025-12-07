@@ -263,6 +263,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #link-agregar-producto no encontrado');
   }
 
+  // Enlace de Categorías
+  const categoriasLink = document.getElementById('link-categorias');
+  if (categoriasLink) {
+    categoriasLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de categorías...');
+      cargarVistaCategorias();
+    });
+    console.log('[HOME] Event listener de Categorías configurado');
+  } else {
+    console.warn('[HOME] Enlace #link-categorias no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 
@@ -549,6 +562,47 @@ async function cargarVistaProductos() {
     } catch (error) {
         console.error('[HOME] Error al cargar vista de productos:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de productos: ${error.message}</div>`;
+    }
+}
+
+async function cargarVistaCategorias() {
+    console.log('[HOME] Cargando vista de categorías...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando módulo de categorías...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/categorias-lista.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Cargar el script del módulo de categorías
+        await cargarScriptSiNoExiste('/js/categorias-lista.js', 'categorias-lista-script');
+
+        // Inicializar la vista de categorías
+        if (typeof cargarPaginaCategorias === 'function') {
+            await cargarPaginaCategorias();
+            console.log('[HOME] Vista de categorías cargada e inicializada');
+        } else {
+            console.error('[HOME] Función cargarPaginaCategorias no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de categorías:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de categorías: ${error.message}</div>`;
     }
 }
 
