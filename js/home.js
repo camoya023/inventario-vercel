@@ -328,6 +328,41 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #agregarCompra-link no encontrado');
   }
 
+  // Lista de Ventas
+  const listaVentasLink = document.getElementById('listarventas-link');
+  if (listaVentasLink) {
+    listaVentasLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de ventas...');
+      cargarPaginaVentas();
+    });
+    console.log('[HOME] Event listener de Lista de Ventas configurado');
+  } else {
+    console.warn('[HOME] Enlace #listarventas-link no encontrado');
+  }
+
+  // Nueva Venta (Agregar Venta)
+  const agregarVentaLink = document.getElementById('agregarVenta-link');
+  if (agregarVentaLink) {
+    agregarVentaLink.addEventListener('click', async function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a formulario de nueva venta...');
+
+      // Primero cargar la vista de ventas
+      await cargarPaginaVentas();
+
+      // Después de un pequeño delay, abrir el formulario
+      setTimeout(() => {
+        if (typeof cargarVistaFormularioVenta === 'function') {
+          cargarVistaFormularioVenta('create');
+        }
+      }, 500);
+    });
+    console.log('[HOME] Event listener de Nueva Venta configurado');
+  } else {
+    console.warn('[HOME] Enlace #agregarVenta-link no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 

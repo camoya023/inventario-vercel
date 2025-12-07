@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="/css/productos.css">
   <link rel="stylesheet" href="/css/proveedores.css">
   <link rel="stylesheet" href="/css/compras.css">
+  <link rel="stylesheet" href="/css/ventas.css">
 
   <style>
     /* Contenedores de vistas */
@@ -183,9 +184,7 @@
           <div id="ventasMenu" class="sidebar__item" onclick="toggleSubMenu(this)">Ventas</div>
           <div class="sidebar__submenu" style="display: none;">
             <div id="listarventas-link" class="sidebar__submenu-item">Lista de Ventas</div>
-            <div id="agregarVenta-link" class="sidebar__submenu-item">Agregar Venta</div>
-            <div class="sidebar__submenu-item">Agregar Borrador</div>
-            <div id="listarBorradores-link" class="sidebar__submenu-item">Lista de borradores</div>
+            <div id="agregarVenta-link" class="sidebar__submenu-item">Nueva Venta</div>
           </div>
 
           <div class="sidebar__item" onclick="toggleSubMenu(this)">Gastos</div>
@@ -275,6 +274,8 @@
   <script src="/js/compras-lista.js"></script>
   <script src="/js/compras-formulario.js"></script>
   <script src="/js/compras-detalle.js"></script>
+  <script src="/js/ventas-lista.js"></script>
+  <script src="/js/ventas-formulario.js"></script>
 
   <!-- Application Logic -->
   <script>

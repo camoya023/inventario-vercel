@@ -1,0 +1,137 @@
+<div class="page-content-wrapper">
+  <div id="vista-lista-ventas" class="page-view is-active">
+
+    <div class="page-header-controls">
+      <h2 class="page-section-title">Lista de Ventas</h2>
+      <button id="btn-agregar-venta" class="button button-primary">
+                <i class="fas fa-plus"></i> Nueva Venta
+            </button>
+    </div>
+
+    <div class="page-toolbar">
+      <div class="filter-group">
+        <div class="filter-container">
+          <label for="filtro-rango-fechas-ventas" class="form-label-inline">Fecha:</label>
+          <input type="text" id="filtro-rango-fechas-ventas" class="form-input" placeholder="Seleccionar rango de fechas" style="width: 220px;">
+        </div>
+        <div class="btn-group" style="margin-left: 10px;">
+          <button id="btn-rango-hoy" class="button button-secondary button-sm">Hoy</button>
+          <button id="btn-rango-7dias" class="button button-secondary button-sm">Últimos 7 días</button>
+          <button id="btn-rango-mes" class="button button-secondary button-sm">Este Mes</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-toolbar-container">
+      <div class="page-toolbar-controls">
+        <button id="btn-toggle-filtros-ventas" class="button button-secondary button-sm" aria-expanded="true">
+                    <i class="fas fa-filter"></i> Filtros
+                </button>
+
+        <button id="btn-toggle-analisis" class="button button-secondary button-sm" aria-expanded="false">
+                    <i class="fas fa-chart-bar"></i> Analizar Periodo
+                </button>
+
+        <button id="btn-limpiar-filtros-ventas" class="button button-secondary button-sm">
+                    <i class="fas fa-eraser"></i> Limpiar Filtros
+                </button>
+      </div>
+
+      <div id="analysis-panel" class="analysis-panel">
+        <div class="kpi-container">
+          <div class="kpi-card">
+            <span class="kpi-label">Ingresos Totales</span>
+            <span class="kpi-value" id="kpi-ingresos">$0</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Ganancia Bruta</span>
+            <span class="kpi-value text-success" id="kpi-ganancia">$0</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label"># de Ventas</span>
+            <span class="kpi-value" id="kpi-num-ventas">0</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Ticket Promedio</span>
+            <span class="kpi-value" id="kpi-ticket-promedio">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="filtros-ventas-content" class="page-toolbar-collapsible is-visible">
+        <div class="filter-group">
+          <div class="search-form-container">
+            <input type="search" id="input-buscar-ventas" class="form-input" placeholder="Buscar por Código, Cliente...">
+          </div>
+          <div class="filter-container">
+            <label for="filtro-cliente-ventas" class="form-label-inline">Cliente:</label>
+            <select id="filtro-cliente-ventas" class="form-input-select" style="width: 200px;">
+            </select>
+          </div>
+          <div class="filter-container">
+            <label for="filtro-estado-venta" class="form-label-inline">Estado Venta:</label>
+            <select id="filtro-estado-venta" class="form-input-select">
+                            <option value="">Todos</option>
+                            <option value="Borrador">Borrador</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Completado">Completado</option>
+                            <option value="Anulada">Anulada</option>
+                        </select>
+          </div>
+          <div class="filter-container">
+            <label for="filtro-tipo-entrega" class="form-label-inline">Tipo Entrega:</label>
+            <select id="filtro-tipo-entrega" class="form-input-select">
+                            <option value="">Todos</option>
+                            <option value="Domicilio">Domicilio</option>
+                            <option value="Recogen">Recogen</option>
+                        </select>
+          </div>
+          <div class="filter-container">
+            <label for="filtro-estado-pago-ventas" class="form-label-inline">Estado Pago:</label>
+            <select id="filtro-estado-pago-ventas" class="form-input-select">
+                            <option value="">Todos</option>
+                            <option value="Pendiente de Pago">Pendiente de Pago</option>
+                            <option value="Abonada">Abonada</option>
+                            <option value="Pagada">Pagada</option>
+                        </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="data-table-default">
+        <thead>
+          <tr>
+            <th class="column-actions text-center">Acciones</th>
+
+            <th data-column="codigo_venta">Código</th>
+            <th data-column="cliente">Cliente</th>
+            <th data-column="fecha">Fecha</th>
+            <th data-column="estado">Estado</th>
+            <th data-column="estado_pago">Pago</th>
+            <th data-column="entrega">Entrega</th>
+            <th data-column="total" class="text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-ventas">
+          <tr class="empty-list-row">
+            <td colspan="8" class="text-center">Cargando ventas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination-controls">
+      <button id="btn-anterior" class="button button-secondary" disabled>
+        <i class="fas fa-arrow-left"></i> Anterior
+    </button>
+
+      <span id="info-pagina" class="page-info"></span>
+
+      <button id="btn-siguiente" class="button button-secondary" disabled>
+        Siguiente <i class="fas fa-arrow-right"></i>
+    </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,141 @@
+<div class="page-content-wrapper">
+  <div class="page-header-controls">
+    <h2 id="titulo-formulario-venta" class="page-section-title">Crear Nueva Venta</h2>
+    <a href="#" id="btn-volver-a-lista" class="button button-secondary"> <i class="fas fa-arrow-left"></i> Volver a la
+      Lista
+    </a>
+  </div>
+
+  <div id="form-nueva-venta" class="form-container-grid">
+    <div class="main-content-col">
+
+      <div class="form-section-card">
+        <h3 class="form-section-title">1. Cliente y Detalles de la Venta</h3>
+        <div class="form-group">
+          <label for="select-cliente">Buscar Cliente</label>
+          <div class="input-with-button">
+            <select id="select-cliente" class="form-input-select"></select>
+            <button class="button button-secondary button-sm" title="Crear Cliente Rápido (v2)">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+          </div>
+        </div>
+        <div id="cliente-info-card" class="client-info-card" style="display: none;">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="venta-fecha">Fecha de Venta</label>
+            <input type="text" id="venta-fecha" class="form-input">
+          </div>
+          <div class="form-group">
+            <label for="venta-estado">Estado de la Venta</label>
+            <select id="venta-estado" class="form-input-select">
+                          <option value="" disabled selected>Seleccione un estado...</option>
+                          <option value="Borrador">Borrador</option>
+                          <option value="En Proceso">En Proceso</option>
+                          <option value="Completado">Completado</option>
+                        </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="venta-tipo-envio">Tipo de Entrega</label>
+            <select id="venta-tipo-envio" class="form-input-select">
+                          <option value="" disabled selected>Seleccione una opción...</option>
+                          <option value="Recogen">Recogen</option>
+                          <option value="Domicilio">Domicilio</option>
+                        </select>
+          </div>
+          <div class="form-group" id="costo-envio-container" style="display: none;">
+            <label for="venta-costo-envio">Costo de Envío ($)</label>
+            <input type="number" id="venta-costo-envio" class="form-input text-right" value="0" placeholder="0">
+          </div>
+        </div>
+        <div class="form-row" id="direccion-container" style="display: none;">
+          <div class="form-group" style="width: 100%;">
+            <label for="venta-direccion">Dirección de Envío</label>
+            <div class="input-with-button">
+              <select id="venta-direccion" class="form-input-select">
+                                <option>Seleccione una dirección...</option>
+                            </select>
+              <button class="button button-secondary button-sm" title="Agregar Nueva Dirección (v2)">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="venta-observaciones">Observaciones (Opcional)</label>
+        <textarea id="venta-observaciones" class="form-input" rows="2" placeholder="Ej: Entregar en la tarde, dejar en portería..."></textarea>
+      </div>
+
+      <div class="form-section-card">
+        <h3 class="form-section-title">2. Productos</h3>
+        <div class="form-group">
+          <label for="buscar-producto">Buscar Producto por Nombre o SKU</label>
+          <div class="product-search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="buscar-producto" class="form-input" placeholder="Ej: Melocoton...">
+
+            <div id="product-search-results" class="product-search-results"></div>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table-default">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th style="width: 100px;">Cantidad</th>
+                <th style="width: 120px;">Precio Unit.</th>
+                <th style="width: 100px;">Desc. (%)</th>
+                <th style="width: 100px;">Imp. (%)</th>
+                <th style="width: 120px;" class="text-right">Total Línea</th>
+                <th style="width: 50px;"></th>
+              </tr>
+            </thead>
+            <tbody id="carrito-tbody">
+              <tr class="empty-cart-row">
+                <td colspan="7">Aún no has agregado productos.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-col">
+      <div class="form-section-card sticky-panel">
+        <h3 class="form-section-title">Resumen</h3>
+        <div class="totals-summary">
+          <div class="summary-row"><span>Cantidad Total:</span><span id="summary-cantidad">0</span></div>
+          <div class="summary-row"><span>Subtotal:</span><span id="summary-subtotal">$0</span></div>
+          <div class="summary-row"><span>Descuento:</span><span id="summary-descuento" class="text-success">-$0</span>
+          </div>
+          <div class="summary-row"><span>Envío:</span><span id="summary-envio">$0</span></div>
+          <div class="summary-row"><span>Impuestos:</span><span id="summary-impuestos">$0</span></div>
+          <div class="summary-row total-row"><span>TOTAL:</span><span id="summary-total">$0</span></div>
+        </div>
+
+        <div id="seccion-pagos" class="hidden-section">
+          <hr>
+          <h3 class="form-section-title">Pagos</h3>
+          <div id="payments-container">
+          </div>
+          <button id="btn-agregar-pago" class="button button-link button-sm full-width mt-2"><i class="fas fa-plus-circle"></i> Agregar pago</button>
+          <div class="summary-row"><span>Total Pagado:</span><span id="summary-pagado">$0</span></div>
+          <div class="summary-row"><span>Saldo Pendiente:</span><span id="summary-saldo" class="saldo-cero">$0</span>
+          </div>
+        </div>
+        <hr>
+
+        <div class="form-actions">
+          <button id="btn-guardar-venta" class="button button-primary button-full-width">Guardar Borrador</button>
+          <button id="btn-cancelar-venta" class="button button-secondary button-full-width mt-2">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
