@@ -289,6 +289,45 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #link-marcas no encontrado');
   }
 
+  // ========================================
+  // COMPRAS
+  // ========================================
+
+  // Lista de Compras
+  const listaComprasLink = document.getElementById('listaCompras-link');
+  if (listaComprasLink) {
+    listaComprasLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de compras...');
+      cargarPaginaCompras();
+    });
+    console.log('[HOME] Event listener de Lista de Compras configurado');
+  } else {
+    console.warn('[HOME] Enlace #listaCompras-link no encontrado');
+  }
+
+  // Agregar Compra
+  const agregarCompraLink = document.getElementById('agregarCompra-link');
+  if (agregarCompraLink) {
+    agregarCompraLink.addEventListener('click', async function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a formulario de nueva compra...');
+
+      // Primero cargar la vista de compras
+      await cargarPaginaCompras();
+
+      // Después de un pequeño delay, abrir el formulario
+      setTimeout(() => {
+        if (typeof cargarVistaFormularioCompra === 'function') {
+          cargarVistaFormularioCompra('create');
+        }
+      }, 500);
+    });
+    console.log('[HOME] Event listener de Agregar Compra configurado');
+  } else {
+    console.warn('[HOME] Enlace #agregarCompra-link no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 

@@ -1,0 +1,119 @@
+<div class="page-content-wrapper">
+
+  <div id="vista-lista-compras" class="page-view is-active">
+
+    <!-- Header con título y botón Nueva Compra -->
+    <div class="page-header-controls">
+      <h2 class="page-section-title">Lista de Compras</h2>
+      <button id="btn-nueva-compra" class="button button-primary">
+        <i class="fas fa-plus"></i> Nueva Compra
+      </button>
+    </div>
+
+    <!-- Barra de herramientas con filtros -->
+    <div class="page-toolbar-container">
+      <div class="page-toolbar-controls">
+        <button id="btn-toggle-filtros-compras" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-compras-content">
+          <i class="fas fa-filter"></i> Opciones y Filtros <i class="fas fa-chevron-up"></i>
+        </button>
+
+        <button id="btn-limpiar-filtros-compras" class="button button-link button-sm">
+          <i class="fas fa-eraser"></i> Limpiar Filtros
+        </button>
+      </div>
+
+      <!-- Sección colapsable de filtros -->
+      <div id="filtros-compras-content" class="page-toolbar-collapsible is-open">
+        <div class="page-toolbar">
+          <div class="filter-group">
+            <!-- Búsqueda por texto -->
+            <div class="search-form-container">
+              <input type="search" id="input-buscar-compras" class="form-input" placeholder="Buscar por N° Factura, Proveedor...">
+            </div>
+
+            <!-- Filtro por Proveedor -->
+            <div class="filter-container">
+              <label for="filtro-proveedor-compras" class="form-label-inline">Proveedor:</label>
+              <select id="filtro-proveedor-compras" class="form-input-select select2-searchable" style="width: 200px;">
+                <option value="">Todos</option>
+              </select>
+            </div>
+
+            <!-- Filtro por Rango de Fechas -->
+            <div class="filter-container">
+              <label for="filtro-rango-fechas-compras" class="form-label-inline">Fecha:</label>
+              <input type="text" id="filtro-rango-fechas-compras" class="form-input" placeholder="Seleccionar rango de fechas" style="width: 220px;">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <!-- Filtro por Estado Compra -->
+            <div class="filter-container">
+              <label for="filtro-estado-compra" class="form-label-inline">Estado Compra:</label>
+              <select id="filtro-estado-compra" class="form-input-select">
+                <option value="">Todos</option>
+                <option value="Borrador">Borrador</option>
+                <option value="Ordenada">Ordenada</option>
+                <option value="Recibida Parcialmente">Recibida Parcialmente</option>
+                <option value="Recibida">Recibida</option>
+                <option value="Cancelada">Cancelada</option>
+                <option value="Anulada">Anulada</option>
+              </select>
+            </div>
+
+            <!-- Filtro por Estado Pago -->
+            <div class="filter-container">
+              <label for="filtro-estado-pago" class="form-label-inline">Estado Pago:</label>
+              <select id="filtro-estado-pago" class="form-input-select">
+                <option value="">Todos</option>
+                <option value="Pendiente de Pago">Pendiente de Pago</option>
+                <option value="Abonada">Abonada</option>
+                <option value="Pagada">Pagada</option>
+                <option value="Anulada">Anulada</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de compras -->
+    <div class="table-wrapper">
+      <table class="data-table-default">
+        <thead>
+          <tr>
+            <th data-column="fecha">Fecha</th>
+            <th data-column="numero_factura">N° Factura</th>
+            <th data-column="proveedor">Proveedor</th>
+            <th data-column="estado">Estado (Físico)</th>
+            <th data-column="estado_pago">Estado (Pago)</th>
+            <th data-column="condicion_pago">Condición (Pago)</th>
+            <th data-column="total" class="text-right">Total</th>
+            <th data-column="saldo_pendiente" class="text-right">Saldo Pendiente</th>
+            <th class="column-actions text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-compras">
+          <tr>
+            <td colspan="9" style="text-align:center;">
+              <i class="fas fa-spinner fa-spin"></i> Cargando compras...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Controles de paginación -->
+    <div id="pagination-controls-compras" class="pagination-controls">
+      <button id="btn-prev-page-compras" class="button button-secondary" disabled>
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+      <span id="page-info-compras" class="page-info">Página 1 de 1 (Total: 0 compras)</span>
+      <button id="btn-next-page-compras" class="button button-secondary" disabled>
+        Siguiente <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,89 @@
+<div class="page-content-wrapper">
+  <div id="vista-detalle-compra" class="page-view is-active">
+
+    <!-- Header con título y botón volver -->
+    <div class="page-header-controls">
+      <h2 class="page-section-title">Detalle de Compra <span id="detalle-numero-factura" class="text-light"></span></h2>
+      <button id="btn-volver-a-lista-compras" class="button button-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a la Lista
+      </button>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="summary-card-grid">
+      <div class="summary-card">
+        <div class="summary-card-label">Proveedor</div>
+        <div id="detalle-proveedor" class="summary-card-value">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Fecha Compra</div>
+        <div id="detalle-fecha" class="summary-card-value">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Estado</div>
+        <div id="detalle-estados" class="summary-card-value">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Total Compra</div>
+        <div id="detalle-total" class="summary-card-value text-success">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Saldo Pendiente</div>
+        <div id="detalle-saldo" class="summary-card-value text-danger">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <h3 class="page-section-subtitle">Productos Incluidos</h3>
+    <div class="table-wrapper">
+      <table class="data-table-default">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Producto</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Precio Unitario</th>
+            <th class="text-right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-detalle-productos">
+          <tr>
+            <td colspan="5" style="text-align:center;">
+              <i class="fas fa-spinner fa-spin"></i> Cargando productos...
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="table-footer-summary">
+            <td colspan="2" class="text-right"><strong>TOTAL ARTÍCULOS:</strong></td>
+            <td id="detalle-total-cantidad" class="text-right"><strong>0</strong></td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Tabla de pagos -->
+    <h3 class="page-section-subtitle">Pagos Realizados</h3>
+    <div class="table-wrapper">
+      <table class="data-table-default">
+        <thead>
+          <tr>
+            <th>Fecha Pago</th>
+            <th>Método</th>
+            <th>Notas</th>
+            <th class="text-right">Monto Pagado</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-detalle-pagos">
+          <tr>
+            <td colspan="4" style="text-align:center;">
+              <i class="fas fa-spinner fa-spin"></i> Cargando pagos...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,122 @@
+<div class="page-content-wrapper">
+  <div id="vista-formulario-compra" class="page-view is-active">
+
+    <!-- Header con título y botones -->
+    <div class="page-header-controls">
+      <h2 class="page-section-title" id="titulo-formulario-compra">Registrar Nueva Compra</h2>
+      <div>
+        <button id="btn-cancelar-compra" class="button button-secondary">Cancelar</button>
+        <button id="btn-guardar-compra" class="button button-primary">
+          <i class="fas fa-save"></i> Guardar Compra
+        </button>
+      </div>
+    </div>
+
+    <div class="form-container">
+
+      <!-- Fieldset: Datos Generales -->
+      <fieldset class="form-fieldset">
+        <legend class="fieldset-legend">Datos Generales</legend>
+        <div class="form-grid-col-3">
+          <div class="form-group">
+            <label for="compra-proveedor" class="form-label">Proveedor <span class="required-field">*</span></label>
+            <select id="compra-proveedor" class="form-input-select select2-searchable" style="width: 100%;"></select>
+            <span id="error-compra-proveedor" class="form-error-message"></span>
+          </div>
+          <div class="form-group">
+            <label for="compra-fecha" class="form-label">Fecha de Compra <span class="required-field">*</span></label>
+            <input type="text" id="compra-fecha" class="form-input" placeholder="dd/mm/aaaa">
+            <span id="error-compra-fecha" class="form-error-message"></span>
+          </div>
+          <div class="form-group">
+            <label for="compra-estado" class="form-label">Estado de la Compra <span class="required-field">*</span></label>
+            <select id="compra-estado" class="form-input-select">
+              <option value="Recibida">Recibida</option>
+              <option value="Ordenada">Ordenada</option>
+              <option value="Borrador">Borrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="compra-numero-factura" class="form-label">N° Factura / Remisión</label>
+            <input type="text" id="compra-numero-factura" class="form-input" placeholder="Ej: F-12345 (opcional)">
+          </div>
+          <div class="form-group">
+            <label for="compra-condicion-pago" class="form-label">Condición de Pago <span class="required-field">*</span></label>
+            <select id="compra-condicion-pago" class="form-input-select">
+              <option value="Contado">Contado</option>
+              <option value="Crédito">Crédito</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Fieldset: Detalles de la Compra -->
+      <fieldset class="form-fieldset">
+        <legend class="fieldset-legend">Detalles de la Compra</legend>
+        <div class="form-group">
+          <label for="compra-buscar-producto" class="form-label">Agregar Producto</label>
+          <select id="compra-buscar-producto" class="form-input-select select2-searchable" style="width: 100%;" data-placeholder="Buscar por nombre o SKU..."></select>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="data-table-default">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th style="width: 75px;">Cant.</th>
+                <th style="width: 100px;">Precio</th>
+                <th style="width: 80px;">Desc%</th>
+                <th style="width: 135px;">Impuesto</th>
+                <th style="width: 95px;" class="text-right">Base</th>
+                <th style="width: 85px;" class="text-right">IVA</th>
+                <th style="width: 105px;" class="text-right">Total</th>
+                <th style="width: 45px;" class="text-center"></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-detalles-compra">
+              <tr id="fila-sin-productos">
+                <td colspan="9" style="text-align:center;">Aún no has agregado productos a la compra.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </fieldset>
+
+      <!-- Grid con Notas y Totales -->
+      <div class="form-grid-col-2-derecha">
+        <div class="form-group">
+          <label for="compra-notas" class="form-label">Notas</label>
+          <textarea id="compra-notas" class="form-input" rows="4" placeholder="Alguna observación sobre la compra..."></textarea>
+        </div>
+        <div class="totals-summary-container">
+          <div class="totals-summary-row">
+            <span class="totals-summary-label">Total Cantidad:</span>
+            <span id="compra-total-cantidad" class="totals-summary-value">0</span>
+          </div>
+
+          <div class="totals-summary-row">
+            <span class="totals-summary-label">Subtotal Bruto:</span>
+            <span id="compra-subtotal-bruto" class="totals-summary-value">$ 0.00</span>
+          </div>
+          <div class="totals-summary-row" style="color: #d9534f;">
+            <span class="totals-summary-label">Total Descuentos:</span>
+            <span id="compra-total-descuentos" class="totals-summary-value">$ 0.00</span>
+          </div>
+          <div class="totals-summary-row">
+            <span class="totals-summary-label">Subtotal:</span>
+            <span id="compra-subtotal" class="totals-summary-value">$ 0.00</span>
+          </div>
+          <div class="totals-summary-row">
+            <span class="totals-summary-label">Total Impuestos:</span>
+            <span id="compra-total-impuestos" class="totals-summary-value">$ 0.00</span>
+          </div>
+          <div class="totals-summary-row is-total">
+            <span class="totals-summary-label">TOTAL COMPRA:</span>
+            <span id="compra-total" class="totals-summary-value">$ 0.00</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

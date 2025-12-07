@@ -1,0 +1,475 @@
+/**
+ * =========================================================================
+ * ESTILOS DEL MÓDULO DE COMPRAS
+ * Estilos específicos para las vistas de compras (lista, formulario, detalle)
+ * =========================================================================
+ */
+
+/* ========================================
+   VISTA DE LISTA - FILTROS
+   ======================================== */
+
+/* Barra de filtros colapsable */
+.page-toolbar-collapsible .page-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-top: none;
+    background-color: var(--background-secondary, #f9f9f9);
+}
+
+/* Grupos de filtros */
+.filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* Contenedor individual de filtro */
+.filter-container,
+.search-form-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Animación de colapsar/expandir */
+.page-toolbar-collapsible {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.page-toolbar-collapsible.is-open {
+    max-height: 500px;
+    transition: max-height 0.5s ease-in;
+    opacity: 1;
+}
+
+/* Animación para collapsed (alternativa) */
+.page-toolbar-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* ========================================
+   GESTOR DE COLUMNAS
+   ======================================== */
+
+.column-manager-container {
+    position: relative;
+    display: inline-block;
+}
+
+.column-manager-menu {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 10px;
+    z-index: 100;
+    width: 200px;
+    right: 0;
+    display: block;
+}
+
+.column-manager-menu label {
+    display: block;
+    padding: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.column-manager-menu label:hover {
+    background-color: #f0f0f0;
+}
+
+.column-manager-menu input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.col-hidden {
+    display: none !important;
+}
+
+/* ========================================
+   VISTA DE FORMULARIO
+   ======================================== */
+
+.form-container {
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.form-fieldset {
+    border: 1px solid #dcdcdc;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.fieldset-legend {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0 0.5rem;
+    color: #333;
+}
+
+/* Grids del formulario */
+.form-grid-col-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-grid-col-2-derecha {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-top: 1rem;
+    align-items: start;
+}
+
+/* Tabla de detalles con scroll horizontal */
+.form-fieldset .table-wrapper {
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    margin-top: 1rem;
+    display: block !important;
+}
+
+.form-fieldset .data-table-default {
+    width: auto !important;
+    min-width: 100%;
+}
+
+.form-fieldset .data-table-default th,
+.form-fieldset .data-table-default td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Primera columna (Producto) puede ser multilínea */
+.form-fieldset .data-table-default th:first-child,
+.form-fieldset .data-table-default td:first-child {
+    white-space: normal !important;
+    max-width: 250px;
+    min-width: 180px;
+    word-wrap: break-word;
+    line-height: 1.3;
+}
+
+/* Asegurar que Select2 no desborde */
+.form-fieldset .select2-container {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+.form-fieldset .form-group {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    box-sizing: border-box;
+}
+
+.form-fieldset .form-input,
+.form-fieldset .form-input-select,
+.form-fieldset .form-input-table,
+.form-fieldset textarea {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ========================================
+   RESUMEN DE TOTALES
+   ======================================== */
+
+.totals-summary-container {
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 6px;
+    padding: 1rem;
+    background-color: var(--background-secondary, #f9f9f9);
+}
+
+.totals-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+}
+
+.totals-summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.totals-summary-row.is-total {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-primary, #2c5282);
+    border-top: 2px solid var(--border-color, #e0e0e0);
+    padding-top: 0.8rem;
+    margin-top: 0.8rem;
+}
+
+.totals-summary-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.totals-summary-value {
+    font-weight: 600;
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+
+/* Animación de flash al actualizar cantidad */
+.flash-update {
+    animation: flash-animation 0.7s ease-out;
+}
+
+@keyframes flash-animation {
+    0% {
+        background-color: transparent;
+    }
+    25% {
+        background-color: #fff3cd;
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+/* ========================================
+   VISTA DE DETALLE
+   ======================================== */
+
+/* Grid de tarjetas de resumen */
+.summary-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Tarjeta individual */
+.summary-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-left: 5px solid var(--color-primary, #3182ce);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+/* Label de la tarjeta */
+.summary-card-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+/* Valor de la tarjeta */
+.summary-card-value {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #212529;
+}
+
+/* Subtítulos de sección */
+.page-section-subtitle {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 1200px) {
+    .form-fieldset {
+        padding: 0.75rem;
+    }
+
+    .form-container {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .form-grid-col-2-derecha {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .filter-container,
+    .search-form-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .summary-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========================================
+   UTILIDADES
+   ======================================== */
+
+.text-light {
+    font-weight: 400;
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+/* Botón de icono para eliminar */
+.button-icon-danger {
+    background-color: transparent;
+    border: none;
+    color: var(--color-danger, #dc3545);
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.button-icon-danger:hover {
+    color: #bd2130;
+}
+
+/* Botones de acción en tabla */
+.btn-accion {
+    background: none;
+    border: none;
+    padding: 6px 10px;
+    margin: 0 2px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    color: #6c757d;
+}
+
+.btn-accion:hover:not(:disabled) {
+    background-color: #f8f9fa;
+    transform: scale(1.1);
+}
+
+.btn-accion:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-ver-detalle {
+    color: #17a2b8;
+}
+
+.btn-ver-detalle:hover:not(:disabled) {
+    color: #138496;
+    background-color: #e8f7f9;
+}
+
+.btn-editar-compra {
+    color: #ffc107;
+}
+
+.btn-editar-compra:hover:not(:disabled) {
+    color: #e0a800;
+    background-color: #fff9e6;
+}
+
+.btn-registrar-pago {
+    color: #28a745;
+}
+
+.btn-registrar-pago:hover:not(:disabled) {
+    color: #218838;
+    background-color: #e8f5e9;
+}
+
+.btn-anular-compra {
+    color: #dc3545;
+}
+
+.btn-anular-compra:hover:not(:disabled) {
+    color: #c82333;
+    background-color: #fde8ea;
+}
+
+.btn-recibir-compra {
+    color: #007bff;
+}
+
+.btn-recibir-compra:hover:not(:disabled) {
+    color: #0056b3;
+    background-color: #e7f3ff;
+}
+
+/* Loading spinner para mensajes de carga */
+.loading-spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--color-primary, #3498db);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mensajes de error */
+.error-message {
+    padding: 40px;
+    text-align: center;
+    color: var(--color-danger, #dc3545);
+}

@@ -2049,7 +2049,8 @@ function configurarPaginaProveedoresYListeners() {
             console.log('[Asociar Producto] ✓ Asociación exitosa');
             toastr.success(data.mensaje, 'Éxito');
 
-            cerrarModalAsociar();
+            // Cerrar modal directamente sin validación (ya se guardó exitosamente)
+            modalAsociar.classList.remove("is-visible");
             recargarDetallesProveedor();
 
           } else {
