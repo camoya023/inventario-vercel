@@ -1,0 +1,62 @@
+<div class="page-content-wrapper">
+
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Marcas</h2>
+        <button id="btn-abrir-modal-nueva-marca" class="button button-primary">
+            <i class="fas fa-plus"></i> Añadir Marca
+        </button>
+    </div>
+
+    <div class="page-toolbar">
+        <div class="search-form-container">
+            <input type="search" id="input-buscar-marcas" class="form-input" placeholder="Buscar marcas...">
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="data-table-default">
+            <thead>
+                <tr>
+                    <th>Nombre Marca</th>
+                    <th class="text-center">Nº Productos</th>
+                    <th class="column-actions text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-marcas">
+                <tr>
+                    <td colspan="3" class="text-center" style="padding:20px; font-style:italic;">
+                        Cargando marcas...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MODAL DE MARCA -->
+    <div id="modal-marca" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-marca-titulo" class="modal-title">Añadir Nueva Marca</h3>
+                <button id="btn-cerrar-modal-marca-x" class="modal-close-button" aria-label="Cerrar modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="form-marca" novalidate>
+                    <input type="hidden" id="input-id-marca" name="id_marca">
+
+                    <div class="form-group">
+                        <label for="input-nombre-marca">Nombre de la Marca <span class="required-field">*</span></label>
+                        <input type="text" id="input-nombre-marca" name="nombre_marca" class="form-input" required placeholder="Ej: Samsung" maxlength="100">
+                        <div class="validation-message" id="error-nombre-marca"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-cancelar-operacion-marca" class="button button-secondary">Cancelar</button>
+                <button type="submit" id="btn-guardar-cambios-marca" class="button button-primary" form="form-marca">Guardar Marca</button>
+            </div>
+        </div>
+    </div>
+
+</div>

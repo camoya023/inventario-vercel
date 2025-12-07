@@ -276,6 +276,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #link-categorias no encontrado');
   }
 
+  // Enlace de Marcas
+  const marcasLink = document.getElementById('link-marcas');
+  if (marcasLink) {
+    marcasLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de marcas...');
+      cargarVistaMarcas();
+    });
+    console.log('[HOME] Event listener de Marcas configurado');
+  } else {
+    console.warn('[HOME] Enlace #link-marcas no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 
@@ -603,6 +616,47 @@ async function cargarVistaCategorias() {
     } catch (error) {
         console.error('[HOME] Error al cargar vista de categorías:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de categorías: ${error.message}</div>`;
+    }
+}
+
+async function cargarVistaMarcas() {
+    console.log('[HOME] Cargando vista de marcas...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando módulo de marcas...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/marcas-lista.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Cargar el script del módulo de marcas
+        await cargarScriptSiNoExiste('/js/marcas-lista.js', 'marcas-lista-script');
+
+        // Inicializar la vista de marcas
+        if (typeof cargarPaginaMarcas === 'function') {
+            await cargarPaginaMarcas();
+            console.log('[HOME] Vista de marcas cargada e inicializada');
+        } else {
+            console.error('[HOME] Función cargarPaginaMarcas no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de marcas:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de marcas: ${error.message}</div>`;
     }
 }
 

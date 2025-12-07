@@ -1174,31 +1174,40 @@ function guardarNuevaEntidadInline(type) {
                 idCampo = 'id_categoria';
 
             } else {
-                // MARCA: Usar INSERT directo (mantener como está)
-                console.log('[Productos] Creando marca con INSERT directo...');
+                // MARCA: Usar RPC
+                console.log('[Productos] Creando marca con RPC...');
 
-                const tableName = 'marcas';
-                nombreCampo = 'nombre_marca';
-                idCampo = 'id_marca';
+                const payload = {
+                    nombre_marca: nombre
+                };
 
-                const payload = {};
-                payload[nombreCampo] = nombre;
-
-                const result = await client
-                    .from(tableName)
-                    .insert(payload)
-                    .select()
-                    .single();
+                const result = await client.rpc('fn_crear_marca', {
+                    p_marca_data: payload
+                });
 
                 error = result.error;
-                data = result.data;
 
                 if (error) {
-                    console.error(`[Productos] ✗ Error de Supabase al guardar marca:`, error);
-                    throw new Error(error.message || 'Error al guardar marca');
+                    console.error('[Productos] ✗ Error de RPC al crear marca:', error);
+                    throw new Error(error.message || 'Error al crear marca');
                 }
 
-                console.log('[Productos] Respuesta INSERT marca:', data);
+                const rpcData = result.data;
+
+                if (!rpcData.exito) {
+                    throw new Error(rpcData.mensaje || 'Error al crear marca');
+                }
+
+                console.log('[Productos] Marca creada con RPC:', rpcData);
+
+                // Extraer el ID de la respuesta RPC
+                data = {
+                    id_marca: rpcData.datos.id_marca,
+                    nombre_marca: nombre
+                };
+
+                nombreCampo = 'nombre_marca';
+                idCampo = 'id_marca';
             }
 
             if (data) {
