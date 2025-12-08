@@ -151,6 +151,10 @@
     border: 1px solid #ddd;
 }
 
+.actions-menu.show {
+    display: block;
+}
+
 .actions-menu-item {
     color: #212529;
     padding: 10px 16px;
@@ -567,4 +571,199 @@
 .saldo-cero {
     color: #198754;
     font-weight: 700;
+}
+
+/* =================================================
+   ESTILOS PARA TARJETAS DE INFORMACIÓN - DETALLE VENTA
+   ================================================= */
+
+/* Contenedor principal de tarjetas */
+.info-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 20px;
+    margin: 32px 0;
+}
+
+/* Tarjeta individual */
+.info-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12), 0 3px 6px rgba(0, 0, 0, 0.08);
+    border-color: #0d6efd;
+}
+
+/* Efecto de brillo en hover */
+.info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.info-card:hover::before {
+    left: 100%;
+}
+
+/* Icono de la tarjeta */
+.info-card-icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    transition: all 0.3s ease;
+}
+
+.info-card:hover .info-card-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.4);
+}
+
+/* Iconos personalizados por tipo de tarjeta */
+.info-card-cliente .info-card-icon {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+.info-card-entrega .info-card-icon {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+.info-card-adicional .info-card-icon {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a2e9d 100%);
+    box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+}
+
+/* Contenido de la tarjeta */
+.info-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Título de la tarjeta */
+.info-card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 6px;
+}
+
+/* Detalles de la tarjeta - Grid de 2 columnas */
+.info-card-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+}
+
+/* Fila de información */
+.info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 10px;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 6px;
+}
+
+/* Etiqueta de información */
+.info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Valor de información */
+.info-value {
+    font-size: 13px;
+    color: #212529;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.info-value:empty::before {
+    content: '-';
+    color: #adb5bd;
+}
+
+/* Filas que ocupan todo el ancho (para textos largos) */
+.info-row.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .info-cards-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .info-card {
+        padding: 18px;
+    }
+
+    .info-card-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .info-cards-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .info-card {
+        flex-direction: row;
+        padding: 16px;
+    }
+
+    .info-card-content {
+        width: 100%;
+    }
+
+    .info-card-details {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .info-card-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
 }

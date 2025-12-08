@@ -280,15 +280,39 @@ function configurarEventListenersListaVentas() {
                     case 'ver_detalles':
                         await cargarVistaDetalleVenta(idVenta);
                         break;
+
+                    case 'imprimir_factura':
+                        await imprimirFacturaVenta(idVenta, codigoVenta);
+                        break;
+
                     case 'editar_venta':
                         await cargarVistaFormularioVenta('edit', idVenta);
                         break;
+
+                    case 'editar_estado':
+                        await mostrarDialogoCambiarEstado(idVenta, codigoVenta, nombreCliente, saldoPendiente);
+                        break;
+
                     case 'anular_venta':
                         await confirmarAnularVenta(idVenta, codigoVenta, nombreCliente);
                         break;
-                    case 'eliminar_venta':
-                        await confirmarEliminarVenta(idVenta, codigoVenta, nombreCliente);
+
+                    case 'agregar_pago':
+                        if (saldoPendiente <= 0) {
+                            toastr.info("Esta venta ya está completamente pagada.");
+                            return;
+                        }
+                        await mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, saldoPendiente);
                         break;
+
+                    case 'ver_pagos':
+                        await mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente);
+                        break;
+
+                    case 'borrar_venta':
+                        await confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente);
+                        break;
+
                     default:
                         console.warn('[Ventas] Acción no implementada:', accion);
                         toastr.info('Función en desarrollo');
@@ -526,12 +550,18 @@ function renderizarTablaVentas(ventas) {
             <a href="#" class="actions-menu-item" data-action="ver_detalles">
                 <i class="fas fa-eye"></i> Ver Detalles
             </a>
+            <a href="#" class="actions-menu-item" data-action="imprimir_factura">
+                <i class="fas fa-print"></i> Imprimir Factura
+            </a>
         `;
 
         if (venta.estado !== 'Completado' && venta.estado !== 'Anulada') {
             opcionesMenu += `
                 <a href="#" class="actions-menu-item" data-action="editar_venta">
-                    <i class="fas fa-edit"></i> Editar
+                    <i class="fas fa-pencil-alt"></i> Editar
+                </a>
+                <a href="#" class="actions-menu-item" data-action="editar_estado">
+                    <i class="fas fa-sync-alt"></i> Cambiar Estado
                 </a>
             `;
         }
@@ -545,11 +575,21 @@ function renderizarTablaVentas(ventas) {
             `;
         }
 
+        opcionesMenu += `
+            <div class="divider"></div>
+            <a href="#" class="actions-menu-item" data-action="agregar_pago">
+                <i class="fas fa-dollar-sign"></i> Agregar Pago
+            </a>
+            <a href="#" class="actions-menu-item" data-action="ver_pagos">
+                <i class="fas fa-list-ul"></i> Ver Pagos
+            </a>
+        `;
+
         if (venta.estado !== 'Completado' && venta.estado !== 'Anulada') {
             opcionesMenu += `
                 <div class="divider"></div>
-                <a href="#" class="actions-menu-item text-danger" data-action="eliminar_venta">
-                    <i class="fas fa-trash"></i> Eliminar
+                <a href="#" class="actions-menu-item text-danger" data-action="borrar_venta">
+                    <i class="fas fa-trash-alt"></i> Borrar
                 </a>
             `;
         }
@@ -698,17 +738,16 @@ async function confirmarAnularVenta(idVenta, codigoVenta, nombreCliente) {
 /**
  * Confirmar eliminación de venta
  */
-async function confirmarEliminarVenta(idVenta, codigoVenta, nombreCliente) {
+async function confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente) {
     const result = await Swal.fire({
-        title: '¿Eliminar Venta?',
+        title: `¿Borrar la venta ${codigoVenta}?`,
         html: `
-            <p>Se eliminará permanentemente la venta <strong>${codigoVenta}</strong>.</p>
             <p>Cliente: <strong>${nombreCliente}</strong></p>
-            <p>Esta acción no se puede deshacer.</p>
+            <p>¡Esta acción no se puede deshacer! El registro desaparecerá por completo.</p>
         `,
-        icon: 'warning',
+        icon: 'error',
         showCancelButton: true,
-        confirmButtonText: 'Sí, Eliminar',
+        confirmButtonText: 'Sí, ¡bórrala!',
         cancelButtonText: 'Cancelar',
         confirmButtonColor: '#d33'
     });
@@ -722,12 +761,20 @@ async function confirmarEliminarVenta(idVenta, codigoVenta, nombreCliente) {
             });
 
             const client = getSupabaseClient();
+
+            // Obtener el ID del usuario actual de la sesión
+            const { data: { session }, error: sessionError } = await client.auth.getSession();
+            if (sessionError || !session?.user?.id) {
+                throw new Error('No se pudo obtener la sesión del usuario');
+            }
+
             const { data, error } = await client.rpc('fn_eliminar_venta', {
-                p_id_venta: idVenta
+                id_venta_a_eliminar: idVenta,
+                id_usuario_responsable: session.user.id
             });
 
             if (error) {
-                console.error('[Ventas] Error al eliminar venta:', error);
+                console.error('[Ventas] Error al borrar venta:', error);
                 throw new Error(error.message);
             }
 
@@ -738,19 +785,19 @@ async function confirmarEliminarVenta(idVenta, codigoVenta, nombreCliente) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Permiso Denegado',
-                        text: data.mensaje || 'No tienes permisos para eliminar ventas',
+                        text: data.mensaje || 'No tienes permisos para borrar ventas',
                         confirmButtonText: 'Entendido'
                     });
                     return;
                 } else {
-                    throw new Error(data.mensaje || 'Error desconocido al eliminar la venta');
+                    throw new Error(data.mensaje || 'Error desconocido al borrar la venta');
                 }
             }
 
             Swal.fire({
                 icon: 'success',
-                title: 'Venta Eliminada',
-                text: data.mensaje || 'La venta se eliminó exitosamente.',
+                title: 'Venta Borrada',
+                text: data.mensaje || 'La venta se borró correctamente.',
                 confirmButtonText: 'OK'
             });
 
@@ -1072,6 +1119,523 @@ function formatCurrency(valor) {
         currency: 'COP',
         minimumFractionDigits: 0
     }).format(valor || 0);
+}
+
+// ========================================
+// NUEVAS FUNCIONES PARA ACCIONES DEL MENÚ
+// ========================================
+
+/**
+ * Imprimir factura de una venta
+ */
+async function imprimirFacturaVenta(idVenta, codigoVenta) {
+    console.log('[Ventas] Imprimiendo factura para venta:', codigoVenta || idVenta);
+
+    try {
+        toastr.info("Generando factura...");
+
+        // Obtener datos de la venta
+        const client = getSupabaseClient();
+        const { data, error } = await client.rpc('fn_obtener_venta_detalle', {
+            p_id_venta: idVenta
+        });
+
+        if (error) {
+            console.error('[Ventas] Error al obtener venta para factura:', error);
+            throw new Error(error.message);
+        }
+
+        if (!data || !data.exito) {
+            const mensaje = data?.mensaje || 'No se pudo obtener la venta';
+            throw new Error(mensaje);
+        }
+
+        // Generar contenido de la factura
+        const ventaData = data.datos;
+        const contenidoFactura = generarContenidoFacturaPOS(ventaData);
+
+        // Imprimir
+        imprimirFacturaPOSVer(contenidoFactura);
+
+        toastr.success("Factura generada exitosamente");
+
+    } catch (error) {
+        console.error('[Ventas] Error al imprimir factura:', error);
+        toastr.error('Error al generar la factura: ' + error.message);
+    }
+}
+
+/**
+ * Genera el contenido de texto para la factura POS
+ */
+function generarContenidoFacturaPOS(venta) {
+    const ANCHO_TICKET = 36; // Ancho para impresoras de 80mm
+    const SEPARADOR = "=".repeat(ANCHO_TICKET);
+
+    const centrar = (texto) => texto.padStart(Math.floor((ANCHO_TICKET + texto.length) / 2), ' ').padEnd(ANCHO_TICKET, ' ');
+    const alinearExtremos = (izq, der) => izq + der.padStart(ANCHO_TICKET - izq.length, ' ');
+
+    // Función auxiliar para dividir nombres largos en varias líneas
+    const envolverTexto = (texto, maxAncho) => {
+        const lineas = [];
+        const palabras = texto.split(' ');
+        let lineaActual = '';
+        palabras.forEach(palabra => {
+            if ((lineaActual + palabra).length > maxAncho) {
+                lineas.push(lineaActual.trim());
+                lineaActual = '';
+            }
+            lineaActual += palabra + ' ';
+        });
+        lineas.push(lineaActual.trim());
+        return lineas;
+    };
+
+    let contenido = '';
+
+    // Datos de la venta y cliente
+    const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString('es-CO', { timeZone: 'UTC' });
+    contenido += alinearExtremos(`Remisión: ${venta.codigo_venta}`, `Fecha: ${fechaVenta}`) + '\n';
+
+    const nombreCliente = venta.clientes
+        ? (venta.clientes.razon_social || `${venta.clientes.nombres} ${venta.clientes.apellidos}`)
+        : 'Ventas Mostrador';
+    contenido += `Cliente: ${nombreCliente}\n`;
+
+    if (venta.clientes) {
+        contenido += `ID: ${venta.clientes.codigo_cliente}\n`;
+    }
+
+    if (venta.tipo_envio === 'Domicilio' && venta.direccion_entrega) {
+        contenido += `Tel Cliente: ${venta.clientes?.telefono_principal || ''}\n`;
+
+        const direccionCompleta = venta.direccion_entrega.direccion_completa || '';
+        if (direccionCompleta) {
+            const lineasDireccion = envolverTexto(`Dirección: ${direccionCompleta}`, ANCHO_TICKET);
+            contenido += lineasDireccion[0] + '\n';
+            for (let i = 1; i < lineasDireccion.length; i++) {
+                contenido += `           ${lineasDireccion[i]}\n`;
+            }
+        }
+
+        if (venta.direccion_entrega.barrio) {
+            const barrioYCiudad = `${venta.direccion_entrega.barrio}, ${venta.direccion_entrega.ciudad_municipio}`;
+            const lineasBarrio = envolverTexto(barrioYCiudad, ANCHO_TICKET - 11);
+            contenido += `           ${lineasBarrio[0]}\n`;
+            for (let i = 1; i < lineasBarrio.length; i++) {
+                contenido += `           ${lineasBarrio[i]}\n`;
+            }
+        }
+
+        if (venta.direccion_entrega.indicaciones_adicionales) {
+            const indicaciones = venta.direccion_entrega.indicaciones_adicionales;
+            const lineasIndicaciones = envolverTexto(`Indic: ${indicaciones}`, ANCHO_TICKET - 11);
+            contenido += `           ${lineasIndicaciones[0]}\n`;
+            for (let i = 1; i < lineasIndicaciones.length; i++) {
+                contenido += `           ${lineasIndicaciones[i]}\n`;
+            }
+        }
+    }
+
+    // Sección de productos
+    contenido += SEPARADOR + '\n';
+    contenido += "Producto        Cant Precio Subtotal\n";
+    contenido += "-".repeat(ANCHO_TICKET) + '\n';
+
+    let totalArticulos = 0;
+    venta.detalles_venta.forEach(detalle => {
+        totalArticulos += detalle.cantidad;
+
+        const producto = detalle.productos || {};
+        const nombreProducto = producto.nombre_producto || 'Producto';
+        const precioUnitario = detalle.precio_unitario_venta || 0;
+        const totalLinea = detalle.total_linea || (detalle.cantidad * precioUnitario);
+
+        // Nombre del producto con longitud limitada
+        const nombreCorto = nombreProducto.substring(0, 15);
+        const cantidadStr = detalle.cantidad.toString();
+        const precioStr = Math.round(precioUnitario).toLocaleString('es-CO');
+        const totalStr = Math.round(totalLinea).toLocaleString('es-CO');
+
+        const lineaProducto = `${nombreCorto.padEnd(15)} ${cantidadStr.padStart(4)} ${precioStr.padStart(6)} ${totalStr.padStart(9)}\n`;
+        contenido += lineaProducto;
+    });
+
+    contenido += SEPARADOR + '\n';
+    contenido += alinearExtremos(`Total Artículos: ${totalArticulos}`, '') + '\n';
+    contenido += '\n';
+
+    // Resumen de totales
+    const formatearMoneda = (valor) => `$${Math.round(valor || 0).toLocaleString('es-CO')}`;
+    contenido += alinearExtremos('Subtotal:', formatearMoneda(venta.subtotal)) + '\n';
+    contenido += alinearExtremos('Descuentos:', `-${formatearMoneda(venta.total_descuentos)}`) + '\n';
+    contenido += alinearExtremos('Impuestos:', formatearMoneda(venta.total_impuestos)) + '\n';
+    contenido += alinearExtremos('Envío:', formatearMoneda(venta.costo_envio)) + '\n';
+    contenido += SEPARADOR + '\n';
+    contenido += alinearExtremos('TOTAL:', formatearMoneda(venta.monto_total)) + '\n';
+    contenido += SEPARADOR + '\n';
+
+    // Estado de pago
+    contenido += '\n';
+    contenido += `Estado de Pago: ${venta.estado_pago}\n`;
+    if (venta.saldo_pendiente > 0) {
+        contenido += alinearExtremos('Saldo Pendiente:', formatearMoneda(venta.saldo_pendiente)) + '\n';
+    }
+
+    if (venta.observaciones) {
+        contenido += '\n';
+        contenido += `Observaciones: ${venta.observaciones}\n`;
+    }
+
+    contenido += '\n';
+    contenido += centrar('Gracias por su compra') + '\n';
+
+    return contenido;
+}
+
+/**
+ * Abre una ventana nueva e imprime el contenido de la factura
+ */
+function imprimirFacturaPOSVer(factura) {
+    if (!factura) {
+        console.error("Error: No se recibió la factura para imprimir.");
+        return;
+    }
+
+    const ventanaImpresion = window.open('', '_blank');
+    if (!ventanaImpresion) {
+        toastr.error("Permita las ventanas emergentes para imprimir la factura.");
+        return;
+    }
+
+    const estilos = `
+        <style>
+            body { font-family: 'Source Sans Pro', monospace; font-size: 26px; }
+            .titulo { font-size: 30px; font-weight: bold; text-align: center; }
+            .contenido { font-size: 26px; font-weight: 700; }
+            .negrita { font-weight: bold; }
+            .centrado { text-align: center; }
+        </style>
+    `;
+
+    const contenido = `
+        <html>
+            <head>
+                <title>Factura de Venta</title>
+                ${estilos}
+            </head>
+            <body>
+                <div class="titulo">REMISION</div>
+                <pre>${factura}</pre>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() {
+                            window.close();
+                        };
+                    };
+                <\/script>
+            </body>
+        </html>
+    `;
+
+    ventanaImpresion.document.open();
+    ventanaImpresion.document.write(contenido);
+    ventanaImpresion.document.close();
+}
+
+/**
+ * Mostrar diálogo para cambiar estado de una venta
+ */
+async function mostrarDialogoCambiarEstado(idVenta, codigoVenta, nombreCliente, saldoPendiente) {
+    console.log('[Ventas] Cambiando estado de venta:', codigoVenta);
+
+    const result = await Swal.fire({
+        title: `Cambiar estado de la Venta ${codigoVenta}`,
+        html: `<p>Cliente: <strong>${nombreCliente}</strong></p>`,
+        input: 'select',
+        inputOptions: {
+            'Borrador': 'Borrador',
+            'En Proceso': 'En Proceso',
+            'Completado': 'Completado',
+            'Cancelada': 'Cancelada'
+        },
+        inputPlaceholder: 'Seleccione un nuevo estado',
+        showCancelButton: true,
+        confirmButtonText: 'Actualizar Estado',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value) {
+                return '¡Necesitas seleccionar un estado!';
+            }
+        }
+    });
+
+    if (result.isConfirmed) {
+        const nuevoEstado = result.value;
+
+        try {
+            Swal.fire({
+                title: 'Procesando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const client = getSupabaseClient();
+            const { data, error } = await client.rpc('fn_cambiar_estado_venta', {
+                p_id_venta: idVenta,
+                p_nuevo_estado: nuevoEstado
+            });
+
+            if (error) {
+                console.error('[Ventas] Error al cambiar estado:', error);
+                throw new Error(error.message);
+            }
+
+            if (data?.exito === false) {
+                throw new Error(data.mensaje || 'Error al cambiar estado');
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Estado Actualizado',
+                text: `El estado de la venta se cambió a "${nuevoEstado}" exitosamente.`,
+                confirmButtonText: 'OK'
+            });
+
+            // Si cambió a Completado y hay saldo pendiente, preguntar si quiere agregar un pago
+            if (nuevoEstado === 'Completado' && saldoPendiente > 0) {
+                const resultPago = await Swal.fire({
+                    title: `Venta ${codigoVenta} Completada`,
+                    html: `<p>Cliente: <strong>${nombreCliente}</strong></p><p>¿Deseas registrar un pago ahora?</p>`,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, registrar pago',
+                    cancelButtonText: 'No, más tarde'
+                });
+
+                if (resultPago.isConfirmed) {
+                    await mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, saldoPendiente);
+                }
+            }
+
+            await ejecutarBusquedaDeVentas();
+
+        } catch (error) {
+            console.error('[Ventas] Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                confirmButtonText: 'Cerrar'
+            });
+        }
+    }
+}
+
+/**
+ * Mostrar diálogo para agregar un pago
+ */
+async function mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, saldoPendiente) {
+    console.log('[Ventas] Agregando pago a venta:', codigoVenta);
+
+    const result = await Swal.fire({
+        title: `Registrar Pago - Venta ${codigoVenta}`,
+        html: `
+            <p>Cliente: <strong>${nombreCliente}</strong></p>
+            <p>Saldo Pendiente: <strong>${formatCurrency(saldoPendiente)}</strong></p>
+            <div class="swal2-form">
+                <label>Monto del Pago:</label>
+                <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}">
+
+                <label>Método de Pago:</label>
+                <select id="swal-metodo" class="swal2-input">
+                    <option value="">Seleccione un método</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Tarjeta Débito">Tarjeta Débito</option>
+                    <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Nequi">Nequi</option>
+                    <option value="Daviplata">Daviplata</option>
+                    <option value="Otro">Otro</option>
+                </select>
+
+                <label>Notas (opcional):</label>
+                <textarea id="swal-notas" class="swal2-textarea" placeholder="Observaciones del pago"></textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Registrar Pago',
+        cancelButtonText: 'Cancelar',
+        width: '500px',
+        preConfirm: () => {
+            const monto = parseFloat(document.getElementById('swal-monto').value);
+            const metodo = document.getElementById('swal-metodo').value;
+            const notas = document.getElementById('swal-notas').value;
+
+            if (!monto || monto <= 0) {
+                Swal.showValidationMessage('Ingrese un monto válido');
+                return false;
+            }
+
+            if (monto > saldoPendiente) {
+                Swal.showValidationMessage(`El monto no puede exceder el saldo pendiente (${formatCurrency(saldoPendiente)})`);
+                return false;
+            }
+
+            if (!metodo) {
+                Swal.showValidationMessage('Seleccione un método de pago');
+                return false;
+            }
+
+            return { monto, metodo, notas };
+        }
+    });
+
+    if (result.isConfirmed) {
+        const { monto, metodo, notas } = result.value;
+
+        try {
+            Swal.fire({
+                title: 'Procesando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const client = getSupabaseClient();
+            const { data, error } = await client.rpc('fn_registrar_pago_venta', {
+                p_id_venta: idVenta,
+                p_monto_pagado: monto,
+                p_metodo_pago: metodo,
+                p_notas: notas || null
+            });
+
+            if (error) {
+                console.error('[Ventas] Error al registrar pago:', error);
+                throw new Error(error.message);
+            }
+
+            if (data?.exito === false) {
+                throw new Error(data.mensaje || 'Error al registrar el pago');
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Pago Registrado',
+                text: `Se registró un pago de ${formatCurrency(monto)} exitosamente.`,
+                confirmButtonText: 'OK'
+            });
+
+            await ejecutarBusquedaDeVentas();
+
+        } catch (error) {
+            console.error('[Ventas] Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                confirmButtonText: 'Cerrar'
+            });
+        }
+    }
+}
+
+/**
+ * Mostrar diálogo para gestionar pagos de una venta
+ */
+async function mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente) {
+    console.log('[Ventas] Gestionando pagos de venta:', codigoVenta);
+
+    try {
+        Swal.fire({
+            title: 'Cargando pagos...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        // Obtener los pagos de la venta
+        const client = getSupabaseClient();
+        const { data, error } = await client.rpc('fn_obtener_venta_detalle', {
+            p_id_venta: idVenta
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        if (!data || !data.exito) {
+            throw new Error(data?.mensaje || 'No se pudieron obtener los pagos');
+        }
+
+        const venta = data.datos;
+        const pagos = venta.pagos || [];
+
+        // Generar HTML de la tabla de pagos
+        let htmlPagos = '';
+        if (pagos.length > 0) {
+            htmlPagos = `
+                <table class="swal2-table" style="width: 100%; text-align: left; margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Método</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let totalPagado = 0;
+            pagos.forEach(p => {
+                totalPagado += p.monto_pagado || 0;
+                const fechaPago = moment(p.fecha_pago).format('DD/MM/YYYY HH:mm');
+                htmlPagos += `
+                    <tr>
+                        <td>${fechaPago}</td>
+                        <td>${p.metodo_pago}</td>
+                        <td style="text-align: right;">${formatCurrency(p.monto_pagado)}</td>
+                    </tr>
+                `;
+            });
+
+            htmlPagos += `
+                    </tbody>
+                    <tfoot>
+                        <tr style="font-weight: bold;">
+                            <td colspan="2">TOTAL PAGADO:</td>
+                            <td style="text-align: right;">${formatCurrency(totalPagado)}</td>
+                        </tr>
+                        <tr style="font-weight: bold;">
+                            <td colspan="2">SALDO PENDIENTE:</td>
+                            <td style="text-align: right;">${formatCurrency(venta.saldo_pendiente)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+        } else {
+            htmlPagos = '<p style="margin-top: 20px; text-align: center; color: #999;">No se han registrado pagos para esta venta.</p>';
+        }
+
+        Swal.fire({
+            title: `Pagos de la Venta ${codigoVenta}`,
+            html: `
+                <p>Cliente: <strong>${nombreCliente}</strong></p>
+                <p>Total Venta: <strong>${formatCurrency(venta.monto_total)}</strong></p>
+                ${htmlPagos}
+            `,
+            width: '600px',
+            confirmButtonText: 'Cerrar'
+        });
+
+    } catch (error) {
+        console.error('[Ventas] Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error al cargar los pagos: ' + error.message,
+            confirmButtonText: 'Cerrar'
+        });
+    }
 }
 
 console.log('[Ventas Lista] ✅ Módulo cargado');

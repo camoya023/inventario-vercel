@@ -1,0 +1,181 @@
+<div class="page-content-wrapper">
+  <div id="vista-detalle-venta" class="page-view is-active">
+
+    <!-- Header con título y botones -->
+    <div class="page-header-controls">
+      <div class="header-title-container">
+        <h2 class="page-section-title">Detalle de Venta</h2>
+        <span id="detalle-codigo-venta" class="header-code"></span>
+        <span id="detalle-estado-venta" class="status-badge"></span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-imprimir-factura-detalle" class="button button-secondary">
+          <i class="fas fa-print"></i> Imprimir Factura
+        </button>
+        <button id="btn-volver-a-lista-ventas" class="button button-secondary">
+          <i class="fas fa-arrow-left"></i> Volver a la Lista
+        </button>
+      </div>
+    </div>
+
+    <!-- Tarjetas de resumen -->
+    <div class="summary-card-grid">
+      <div class="summary-card">
+        <div class="summary-card-label">Fecha Venta</div>
+        <div id="detalle-fecha" class="summary-card-value">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Estado</div>
+        <div id="detalle-estado" class="summary-card-value">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Estado Pago</div>
+        <div id="detalle-estado-pago" class="summary-card-value">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Total Venta</div>
+        <div id="detalle-total" class="summary-card-value text-success">Cargando...</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Saldo Pendiente</div>
+        <div id="detalle-saldo" class="summary-card-value text-danger">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- Información adicional en tarjetas -->
+    <div class="info-cards-container">
+      <!-- Tarjeta Cliente -->
+      <div class="info-card info-card-cliente">
+        <div class="info-card-icon">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="info-card-content">
+          <h3 class="info-card-title">Información del Cliente</h3>
+          <div class="info-card-details">
+            <div class="info-row">
+              <span class="info-label">Nombre:</span>
+              <span class="info-value" id="detalle-cliente-nombre">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Código:</span>
+              <span class="info-value" id="detalle-cliente-codigo">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Teléfono:</span>
+              <span class="info-value" id="detalle-cliente-telefono">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Entrega -->
+      <div class="info-card info-card-entrega">
+        <div class="info-card-icon">
+          <i class="fas fa-truck"></i>
+        </div>
+        <div class="info-card-content">
+          <h3 class="info-card-title">Información de Entrega</h3>
+          <div class="info-card-details">
+            <div class="info-row">
+              <span class="info-label">Tipo de Envío:</span>
+              <span class="info-value" id="detalle-tipo-envio">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Costo de Envío:</span>
+              <span class="info-value" id="detalle-costo-envio">-</span>
+            </div>
+            <div class="info-row full-width">
+              <span class="info-label">Dirección:</span>
+              <span class="info-value" id="detalle-direccion">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tarjeta Adicional -->
+      <div class="info-card info-card-adicional">
+        <div class="info-card-icon">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="info-card-content">
+          <h3 class="info-card-title">Información Adicional</h3>
+          <div class="info-card-details">
+            <div class="info-row">
+              <span class="info-label">Vendido por:</span>
+              <span class="info-value" id="detalle-vendedor">-</span>
+            </div>
+            <div class="info-row full-width">
+              <span class="info-label">Observaciones:</span>
+              <span class="info-value" id="detalle-observaciones">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <h3 class="page-section-subtitle">Productos Vendidos</h3>
+    <div class="table-wrapper">
+      <table class="data-table-default">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Producto</th>
+            <th class="text-right">Cantidad</th>
+            <th class="text-right">Precio Unit.</th>
+            <th class="text-right">Subtotal</th>
+            <th class="text-right">% Desc.</th>
+            <th class="text-right">% Imp.</th>
+            <th class="text-right">Total Línea</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-detalle-productos">
+          <tr>
+            <td colspan="8" style="text-align:center;">
+              <i class="fas fa-spinner fa-spin"></i> Cargando productos...
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="table-footer-summary">
+            <td colspan="2" class="text-right"><strong>TOTALES:</strong></td>
+            <td id="detalle-total-cantidad" class="text-right"><strong>0</strong></td>
+            <td colspan="2"></td>
+            <td id="detalle-total-descuento" class="text-right"><strong>$0</strong></td>
+            <td id="detalle-total-impuestos" class="text-right"><strong>$0</strong></td>
+            <td id="detalle-total-general" class="text-right"><strong>$0</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Tabla de pagos -->
+    <h3 class="page-section-subtitle">Pagos Realizados</h3>
+    <div class="table-wrapper">
+      <table class="data-table-default">
+        <thead>
+          <tr>
+            <th>Fecha Pago</th>
+            <th>Método</th>
+            <th>Notas</th>
+            <th class="text-right">Monto Pagado</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-detalle-pagos">
+          <tr>
+            <td colspan="4" style="text-align:center;">
+              <i class="fas fa-spinner fa-spin"></i> Cargando pagos...
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="table-footer-summary">
+            <td colspan="3" class="text-right"><strong>TOTAL PAGADO:</strong></td>
+            <td id="detalle-total-pagado" class="text-right"><strong>$0</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </div>
+</div>
