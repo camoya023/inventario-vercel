@@ -460,7 +460,7 @@ function renderizarTablaClientes(clientes) {
       <td>${escapeHtml((cliente.nombres || "") + " " + (cliente.apellidos || cliente.razon_social || ""))}</td>
       <td>${escapeHtml(cliente.telefono_principal || "-")}</td>
       <td><span class="badge ${cliente.estado === "Activo" ? "badge-success" : cliente.estado === "Inactivo" ? "badge-danger" : "badge-secondary"}">${escapeHtml(cliente.estado || "Desconocido")}</span></td>
-      <td>${escapeHtml(cliente.ultima_fecha_compra ? new Date(cliente.ultima_fecha_compra).toLocaleDateString() : "-")}</td>
+      <td>${escapeHtml(cliente.ultima_fecha_compra ? new Date(cliente.ultima_fecha_compra).toLocaleDateString('es-CO', { timeZone: 'UTC' }) : "-")}</td>
       <td class="text-right">${cliente.ultimo_costo_domicilio ? parseFloat(cliente.ultimo_costo_domicilio).toLocaleString("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0, maximumFractionDigits: 0 }) : "-"}</td>
       <td class="column-actions text-center">${botonesAccion}</td>
     `;

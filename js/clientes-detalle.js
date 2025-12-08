@@ -252,7 +252,8 @@ function renderizarDatosCliente(cliente) {
       ultimaCompraElement.textContent = fecha.toLocaleDateString('es-CO', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'UTC'
       });
     } else {
       ultimaCompraElement.textContent = 'Sin compras';

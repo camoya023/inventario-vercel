@@ -176,7 +176,7 @@ async function poblarFormularioVenta(datos) {
         // Esto disparará la carga de datos del cliente
         setTimeout(async () => {
             const response = await obtenerDetallesClienteSupabase(datos.clientes.id);
-            renderizarDatosCliente(response);
+            renderizarDatosClienteEnFormularioVenta(response);
         }, 500);
     }
 
@@ -278,7 +278,7 @@ function configurarEventListenersFormularioVenta() {
             infoCard.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando datos del cliente...';
 
             const response = await obtenerDetallesClienteSupabase(clienteId);
-            renderizarDatosCliente(response);
+            renderizarDatosClienteEnFormularioVenta(response);
         } else {
             infoCard.style.display = 'none';
             infoCard.innerHTML = '';
@@ -597,7 +597,7 @@ async function obtenerDetallesClienteSupabase(clienteId) {
 /**
  * Renderiza los datos del cliente en la tarjeta de información
  */
-function renderizarDatosCliente(response) {
+function renderizarDatosClienteEnFormularioVenta(response) {
     const infoCard = document.getElementById('cliente-info-card');
 
     if (!response.exito) {
