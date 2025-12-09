@@ -2,6 +2,8 @@
 // MÓDULO DE VISTA DE DETALLE DE CLIENTE - VERCEL
 // =========================================================================
 
+console.log('🔵 [ClienteDetalle] Módulo cargado - Versión con logs debug');
+
 // Variable global para almacenar el ID del cliente actual
 let clienteIdActualDetalle = null;
 
@@ -18,8 +20,11 @@ async function inicializarVistaDetalleCliente(clienteId) {
 
   clienteIdActualDetalle = clienteId;
 
+  // Esperar un momento para que el DOM esté completamente listo
+  await new Promise(resolve => setTimeout(resolve, 50));
+
   // Configurar event listeners
-  configurarEventListenersDetalle();
+  configurarEventListenersDetalleCliente();
 
   // Configurar tabs
   configurarTabs();
@@ -34,26 +39,36 @@ async function inicializarVistaDetalleCliente(clienteId) {
 // CONFIGURACIÓN DE EVENT LISTENERS
 // =========================================================================
 
-function configurarEventListenersDetalle() {
+function configurarEventListenersDetalleCliente() {
+  console.log('[ClienteDetalle] Configurando event listeners...');
+
   // Botón Volver
   const btnVolver = document.getElementById('btn-volver-a-lista-clientes');
+  console.log('[ClienteDetalle] Botón Volver encontrado:', !!btnVolver);
   if (btnVolver) {
     btnVolver.addEventListener('click', function() {
-      console.log('[ClienteDetalle] Volviendo a lista de clientes');
+      console.log('[ClienteDetalle] Click en Volver - Cargando lista de clientes');
       cargarVistaClientes();
     });
+  } else {
+    console.error('[ClienteDetalle] ⚠️ Botón Volver NO encontrado en el DOM');
   }
 
   // Botón Editar
   const btnEditar = document.getElementById('btn-editar-cliente-desde-detalle');
+  console.log('[ClienteDetalle] Botón Editar encontrado:', !!btnEditar);
   if (btnEditar) {
     btnEditar.addEventListener('click', function() {
-      console.log('[ClienteDetalle] Editando cliente:', clienteIdActualDetalle);
+      console.log('[ClienteDetalle] Click en Editar cliente:', clienteIdActualDetalle);
       const nombreElement = document.getElementById('detalle-cliente-nombre');
       const clienteNombre = nombreElement ? nombreElement.textContent.replace('Cliente: ', '') : '';
       cargarFormularioEditarCliente(clienteIdActualDetalle, clienteNombre);
     });
+  } else {
+    console.error('[ClienteDetalle] ⚠️ Botón Editar NO encontrado en el DOM');
   }
+
+  console.log('[ClienteDetalle] Event listeners configurados');
 }
 
 function configurarTabs() {

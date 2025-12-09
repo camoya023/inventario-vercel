@@ -428,6 +428,21 @@ function inicializarComponentesFiltrosVentas() {
 }
 
 // ========================================
+// FUNCIONES AUXILIARES
+// ========================================
+
+/**
+ * Formatea una fecha al formato local YYYY-MM-DD sin conversión a UTC
+ * Esto evita problemas de timezone cuando se usa toISOString()
+ */
+function formatearFechaLocal(fecha) {
+    const año = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${dia}`;
+}
+
+// ========================================
 // CARGA DE DATOS (RPC fn_obtener_lista_ventas)
 // ========================================
 async function ejecutarBusquedaDeVentas() {
@@ -449,9 +464,9 @@ async function ejecutarBusquedaDeVentas() {
         let fechaInicio = null;
         let fechaFin = null;
         if (flatpickrRangoFechasVentas && flatpickrRangoFechasVentas.selectedDates.length > 0) {
-            fechaInicio = flatpickrRangoFechasVentas.selectedDates[0].toISOString().split('T')[0];
+            fechaInicio = formatearFechaLocal(flatpickrRangoFechasVentas.selectedDates[0]);
             if (flatpickrRangoFechasVentas.selectedDates.length > 1) {
-                fechaFin = flatpickrRangoFechasVentas.selectedDates[1].toISOString().split('T')[0];
+                fechaFin = formatearFechaLocal(flatpickrRangoFechasVentas.selectedDates[1]);
             } else {
                 fechaFin = fechaInicio;
             }
@@ -828,9 +843,9 @@ async function actualizarTarjetasAnalisisPeriodo() {
         let fechaInicio = null;
         let fechaFin = null;
         if (flatpickrRangoFechasVentas && flatpickrRangoFechasVentas.selectedDates.length > 0) {
-            fechaInicio = flatpickrRangoFechasVentas.selectedDates[0].toISOString().split('T')[0];
+            fechaInicio = formatearFechaLocal(flatpickrRangoFechasVentas.selectedDates[0]);
             if (flatpickrRangoFechasVentas.selectedDates.length > 1) {
-                fechaFin = flatpickrRangoFechasVentas.selectedDates[1].toISOString().split('T')[0];
+                fechaFin = formatearFechaLocal(flatpickrRangoFechasVentas.selectedDates[1]);
             } else {
                 fechaFin = fechaInicio;
             }

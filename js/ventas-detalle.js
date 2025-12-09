@@ -146,7 +146,7 @@ function renderizarDatosDetalleVenta(datos) {
     const direccion = datos.direccion_entrega || null;
     const vendedor = datos.usuario_responsable || null;
     const detalles = datos.detalles_venta || [];
-    const pagos = datos.pagos || [];
+    const pagos = datos.pagos_venta || [];
 
     // Determinar clases de badges
     let estadoClase = 'badge-secondary';
@@ -264,14 +264,14 @@ function renderizarDatosDetalleVenta(datos) {
 
     if (pagos && pagos.length > 0) {
         pagos.forEach(p => {
-            totalPagado += p.monto_pagado || 0;
+            totalPagado += p.monto || 0;
 
             const fila = `
                 <tr>
                     <td>${moment(p.fecha_pago).format('DD/MM/YYYY hh:mm A')}</td>
                     <td>${p.metodo_pago || 'N/A'}</td>
                     <td>${p.notas || '-'}</td>
-                    <td class="text-right">${formatCurrency(p.monto_pagado)}</td>
+                    <td class="text-right">${formatCurrency(p.monto)}</td>
                 </tr>
             `;
             tbodyPagos.append(fila);

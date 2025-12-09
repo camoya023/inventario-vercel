@@ -54,7 +54,7 @@ async function cargarVistaDetalleCompra(idCompra) {
         renderizarDatosDetalleCompra(data);
 
         // Configurar event listeners
-        configurarEventListenersDetalle();
+        configurarEventListenersDetalleCompra();
 
         console.log('[Compras] Detalle de compra cargado correctamente');
 
@@ -101,7 +101,7 @@ async function cargarVistaDetalleCompra(idCompra) {
 /**
  * Configura los event listeners de la vista de detalle
  */
-function configurarEventListenersDetalle() {
+function configurarEventListenersDetalleCompra() {
     const btnVolver = document.getElementById('btn-volver-a-lista-compras');
     if (btnVolver) {
         btnVolver.addEventListener('click', () => {
