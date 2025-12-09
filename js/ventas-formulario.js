@@ -148,10 +148,16 @@ async function cargarDatosVentaParaEditar(idVenta) {
         if (error) throw error;
         if (!data) throw new Error('No se encontraron datos de la venta');
 
+        // Verificar que la respuesta sea exitosa
+        if (!data.exito) {
+            const mensajeError = data.mensaje || 'Error al obtener la venta';
+            throw new Error(mensajeError);
+        }
+
         console.log('[Ventas] Datos de venta recibidos:', data);
 
-        // Poblar formulario
-        await poblarFormularioVenta(data);
+        // Poblar formulario con los datos extraídos
+        await poblarFormularioVenta(data.datos);
 
     } catch (error) {
         console.error('[Ventas] Error al cargar datos:', error);
@@ -173,11 +179,10 @@ async function poblarFormularioVenta(datos) {
         const option = new Option(nombreCliente, datos.clientes.id, true, true);
         $('#select-cliente').append(option).trigger('change');
 
-        // Esto disparará la carga de datos del cliente
-        setTimeout(async () => {
-            const response = await obtenerDetallesClienteSupabase(datos.clientes.id);
-            renderizarDatosClienteEnFormularioVenta(response);
-        }, 500);
+        // Cargar datos del cliente (incluyendo direcciones) y esperar a que termine
+        const response = await obtenerDetallesClienteSupabase(datos.clientes.id);
+        // Pasar la dirección de la venta para que se seleccione en lugar de la predeterminada
+        renderizarDatosClienteEnFormularioVenta(response, datos.id_direccion_entrega);
     }
 
     // Fecha
@@ -191,12 +196,7 @@ async function poblarFormularioVenta(datos) {
     // Tipo de envío
     $('#venta-tipo-envio').val(datos.tipo_envio || 'Recogen').trigger('change');
 
-    // Dirección de entrega
-    if (datos.id_direccion_entrega) {
-        setTimeout(() => {
-            $('#venta-direccion').val(datos.id_direccion_entrega);
-        }, 1000);
-    }
+    // Nota: La dirección de entrega se selecciona automáticamente en renderizarDatosClienteEnFormularioVenta()
 
     // Costo de envío
     $('#venta-costo-envio').val(datos.costo_envio || 0);
@@ -209,20 +209,18 @@ async function poblarFormularioVenta(datos) {
         $('#carrito-tbody').find('.empty-cart-row').remove();
 
         for (const detalle of datos.detalles_venta) {
+            // Usar el operador spread para copiar todos los campos del producto
+            // incluyendo id_producto que está en detalle.productos
             const productoData = {
-                id_producto: detalle.id_producto,
-                nombre_producto: detalle.productos?.nombre_producto || 'Producto',
-                sku: detalle.productos?.sku || 'N/A',
+                ...detalle.productos,
                 precio_venta_actual: detalle.precio_unitario_venta,
-                costo_promedio: detalle.costo_unitario_venta || 0,
-                id_tipo_impuesto: detalle.id_tipo_impuesto,
-                porcentaje_impuesto: detalle.porcentaje_impuesto || 0
+                costo_promedio: detalle.costo_unitario_venta || 0
             };
 
             agregarProductoAlCarrito(productoData, detalle.cantidad);
 
-            // Actualizar valores específicos
-            const fila = $(`#carrito-tbody tr[data-id-producto="${detalle.id_producto}"]`);
+            // Actualizar valores específicos (descuento)
+            const fila = $(`#carrito-tbody tr[data-id-producto="${productoData.id_producto}"]`);
             fila.find('.input-descuento').val(detalle.porcentaje_descuento || 0);
         }
 
@@ -596,8 +594,10 @@ async function obtenerDetallesClienteSupabase(clienteId) {
 
 /**
  * Renderiza los datos del cliente en la tarjeta de información
+ * @param {Object} response - Respuesta con los datos del cliente
+ * @param {string} idDireccionASeleccionar - ID de la dirección a seleccionar (opcional)
  */
-function renderizarDatosClienteEnFormularioVenta(response) {
+function renderizarDatosClienteEnFormularioVenta(response, idDireccionASeleccionar = null) {
     const infoCard = document.getElementById('cliente-info-card');
 
     if (!response.exito) {
@@ -643,8 +643,12 @@ function renderizarDatosClienteEnFormularioVenta(response) {
             }
         });
 
-        if (idDireccionPredeterminada) {
-            selectDireccion.val(idDireccionPredeterminada).trigger('change');
+        // Si se especificó una dirección a seleccionar (modo edición), usar esa
+        // De lo contrario, usar la predeterminada (modo creación)
+        const direccionASeleccionar = idDireccionASeleccionar || idDireccionPredeterminada;
+        if (direccionASeleccionar) {
+            selectDireccion.val(direccionASeleccionar).trigger('change');
+            console.log('[Ventas] Dirección seleccionada:', direccionASeleccionar);
         }
     } else {
         selectDireccion.append('<option value="" disabled>Este cliente no tiene direcciones registradas.</option>');
@@ -1098,7 +1102,7 @@ async function guardarVenta(event) {
             botonGuardar.prop('disabled', false).text('Finalizar y Guardar Venta');
 
             if (data && data.success) {
-                toastr.success(`¡Venta ${data.codigo_venta} actualizada exitosamente!`, 'Éxito');
+                toastr.success('¡Venta actualizada correctamente!', 'Éxito');
                 setTimeout(() => cargarPaginaVentas(), 2000);
             } else {
                 const mensaje = data?.mensaje || 'Error desconocido al actualizar la venta';
