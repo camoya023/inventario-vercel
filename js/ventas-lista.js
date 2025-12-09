@@ -1475,12 +1475,12 @@ async function mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, sa
             <p>Saldo Pendiente: <strong>${formatCurrency(saldoPendiente)}</strong></p>
             <div class="swal2-form">
                 <label>Monto del Pago:</label>
-                <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}">
+                <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}">
 
                 <label>Método de Pago:</label>
                 <select id="swal-metodo" class="swal2-input">
                     <option value="">Seleccione un método</option>
-                    <option value="Efectivo">Efectivo</option>
+                    <option value="Efectivo" selected>Efectivo</option>
                     <option value="Tarjeta Débito">Tarjeta Débito</option>
                     <option value="Tarjeta Crédito">Tarjeta Crédito</option>
                     <option value="Transferencia">Transferencia</option>
@@ -1532,11 +1532,22 @@ async function mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, sa
             });
 
             const client = getSupabaseClient();
-            const { data, error } = await client.rpc('fn_registrar_pago_venta', {
-                p_id_venta: idVenta,
-                p_monto_pagado: monto,
-                p_metodo_pago: metodo,
-                p_notas: notas || null
+
+            // Obtener el ID del usuario actual
+            const { data: { session }, error: sessionError } = await client.auth.getSession();
+            if (sessionError || !session?.user?.id) {
+                throw new Error('No se pudo obtener la sesión del usuario');
+            }
+
+            const { data, error } = await client.rpc('fn_agregar_pago_venta', {
+                id_venta: idVenta,
+                monto: monto,
+                metodo_pago: metodo,
+                id_cuenta_bancaria_destino: null,  // TODO: Agregar selector de cuenta si es necesario
+                referencia_pago: notas || null,
+                fecha_pago: null,  // Usará NOW() en la función
+                id_usuario_responsable: session.user.id,
+                empresa_id: null  // La función lo obtendrá de la venta
             });
 
             if (error) {
