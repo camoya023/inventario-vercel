@@ -1049,7 +1049,7 @@ function recopilarDatosDelFormulario() {
         }
     });
 
-    // Construir objeto principal (SIN descuento global)
+    // Construir objeto principal
     const datosVenta = {
         id_cliente: $('#select-cliente').val() || null,
         fecha_venta: fechaSeleccionada.toISOString(),
@@ -1059,6 +1059,8 @@ function recopilarDatosDelFormulario() {
         costo_envio: parseFloat($('#venta-costo-envio').val()) || 0,
         observaciones: $('#venta-observaciones').val(),
         monto_subtotal: totalesVentaActual.subtotal,
+        porcentaje_descuento_global: 0, // ✅ Ya no se usa descuento global por porcentaje
+        monto_descuento_global: totalesVentaActual.descuento, // ✅ Suma de descuentos por línea
         impuestos: totalesVentaActual.impuestos,
         monto_total: totalesVentaActual.total,
         productos: productos,
@@ -1121,6 +1123,8 @@ async function guardarVenta(event) {
                     tipo_envio: datosParaGuardar.tipo_envio,
                     id_direccion_entrega: datosParaGuardar.id_direccion_entrega,
                     monto_subtotal: datosParaGuardar.monto_subtotal,
+                    porcentaje_descuento_global: datosParaGuardar.porcentaje_descuento_global,
+                    monto_descuento_global: datosParaGuardar.monto_descuento_global,
                     impuestos: datosParaGuardar.impuestos,
                     costo_envio: datosParaGuardar.costo_envio,
                     monto_total: datosParaGuardar.monto_total,

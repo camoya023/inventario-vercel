@@ -535,6 +535,13 @@ async function ejecutarBusquedaDeVentas() {
 // ========================================
 function renderizarTablaVentas(ventas) {
     const tbody = document.getElementById('tbody-ventas');
+
+    // ✅ Verificar que el elemento existe (puede no existir si cambiamos de vista)
+    if (!tbody) {
+        console.warn('[Ventas] Tabla no encontrada - probablemente cambiamos de vista');
+        return;
+    }
+
     tbody.innerHTML = '';
 
     if (!ventas || ventas.length === 0) {
