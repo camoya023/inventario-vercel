@@ -1379,8 +1379,7 @@ async function mostrarDialogoCambiarEstado(idVenta, codigoVenta, nombreCliente, 
         inputOptions: {
             'Borrador': 'Borrador',
             'En Proceso': 'En Proceso',
-            'Completado': 'Completado',
-            'Cancelada': 'Cancelada'
+            'Completado': 'Completado'
         },
         inputPlaceholder: 'Seleccione un nuevo estado',
         showCancelButton: true,
@@ -1404,9 +1403,17 @@ async function mostrarDialogoCambiarEstado(idVenta, codigoVenta, nombreCliente, 
             });
 
             const client = getSupabaseClient();
+
+            // Obtener el ID del usuario actual
+            const { data: { session }, error: sessionError } = await client.auth.getSession();
+            if (sessionError || !session?.user?.id) {
+                throw new Error('No se pudo obtener la sesión del usuario');
+            }
+
             const { data, error } = await client.rpc('fn_cambiar_estado_venta', {
-                p_id_venta: idVenta,
-                p_nuevo_estado: nuevoEstado
+                id_venta_a_cambiar: idVenta,
+                nuevo_estado: nuevoEstado,
+                id_usuario_responsable: session.user.id
             });
 
             if (error) {
