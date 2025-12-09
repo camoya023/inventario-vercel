@@ -5,8 +5,11 @@
     <div class="page-header-controls">
       <div class="header-title-container">
         <h2 class="page-section-title">Detalle de Venta</h2>
-        <span id="detalle-codigo-venta" class="header-code"></span>
-        <span id="detalle-estado-venta" class="status-badge"></span>
+        <div class="header-badges">
+          <span id="detalle-codigo-venta" class="header-code"></span>
+          <span id="detalle-estado-venta" class="status-badge"></span>
+          <span id="detalle-estado-pago-header" class="status-badge"></span>
+        </div>
       </div>
       <div class="header-actions">
         <button id="btn-imprimir-factura-detalle" class="button button-secondary">
@@ -25,18 +28,26 @@
         <div id="detalle-fecha" class="summary-card-value">Cargando...</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-label">Estado</div>
-        <div id="detalle-estado" class="summary-card-value">Cargando...</div>
+        <div class="summary-card-label">Subtotal</div>
+        <div id="detalle-subtotal" class="summary-card-value">$0</div>
       </div>
       <div class="summary-card">
-        <div class="summary-card-label">Estado Pago</div>
-        <div id="detalle-estado-pago" class="summary-card-value">Cargando...</div>
+        <div class="summary-card-label">Descuentos</div>
+        <div id="detalle-descuentos" class="summary-card-value text-warning">-$0</div>
       </div>
       <div class="summary-card">
+        <div class="summary-card-label">Impuestos</div>
+        <div id="detalle-impuestos" class="summary-card-value">$0</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Costo de Envío</div>
+        <div id="detalle-costo-envio-card" class="summary-card-value">$0</div>
+      </div>
+      <div class="summary-card summary-card-highlight">
         <div class="summary-card-label">Total Venta</div>
         <div id="detalle-total" class="summary-card-value text-success">Cargando...</div>
       </div>
-      <div class="summary-card">
+      <div class="summary-card summary-card-highlight">
         <div class="summary-card-label">Saldo Pendiente</div>
         <div id="detalle-saldo" class="summary-card-value text-danger">Cargando...</div>
       </div>
@@ -79,10 +90,6 @@
             <div class="info-row">
               <span class="info-label">Tipo de Envío:</span>
               <span class="info-value" id="detalle-tipo-envio">-</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Costo de Envío:</span>
-              <span class="info-value" id="detalle-costo-envio">-</span>
             </div>
             <div class="info-row full-width">
               <span class="info-label">Dirección:</span>

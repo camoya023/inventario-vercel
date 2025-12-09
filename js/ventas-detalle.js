@@ -170,6 +170,7 @@ function renderizarDatosDetalleVenta(datos) {
     // Rellenar header
     $('#detalle-codigo-venta').text(venta.codigo_venta || `VENTA-${venta.id_venta.substring(0,8)}`);
     $('#detalle-estado-venta').html(`<span class="badge ${estadoClase}">${venta.estado}</span>`);
+    $('#detalle-estado-pago-header').html(`<span class="badge ${pagoClase}">${venta.estado_pago}</span>`);
 
     // Rellenar tarjetas de resumen
     const nombreCliente = cliente
@@ -178,8 +179,6 @@ function renderizarDatosDetalleVenta(datos) {
 
     $('#detalle-cliente').text(nombreCliente);
     $('#detalle-fecha').text(moment(venta.fecha_venta).format('DD/MM/YYYY'));
-    $('#detalle-estado').html(`<span class="badge ${estadoClase}">${venta.estado}</span>`);
-    $('#detalle-estado-pago').html(`<span class="badge ${pagoClase}">${venta.estado_pago}</span>`);
     $('#detalle-total').text(formatCurrency(venta.monto_total));
     $('#detalle-saldo').text(formatCurrency(venta.saldo_pendiente));
 
@@ -189,7 +188,8 @@ function renderizarDatosDetalleVenta(datos) {
     $('#detalle-cliente-telefono').text(cliente ? cliente.telefono_principal : 'N/A');
 
     // Rellenar información de entrega
-    $('#detalle-tipo-envio').text(venta.tipo_envio || 'No aplica');
+    const tipoEnvio = venta.tipo_envio || 'No aplica';
+    $('#detalle-tipo-envio').text(tipoEnvio);
 
     if (direccion) {
         const textoDireccion = `${direccion.direccion_completa}, ${direccion.barrio || ''}, ${direccion.ciudad_municipio}`;
@@ -197,8 +197,6 @@ function renderizarDatosDetalleVenta(datos) {
     } else {
         $('#detalle-direccion').text('No aplica');
     }
-
-    $('#detalle-costo-envio').text(formatCurrency(venta.costo_envio));
 
     // Rellenar información adicional
     $('#detalle-vendedor').text(vendedor?.nombre_completo || 'No disponible');
@@ -212,6 +210,7 @@ function renderizarDatosDetalleVenta(datos) {
     let totalDescuentos = 0;
     let totalImpuestos = 0;
     let totalGeneral = 0;
+    let subtotalCalculado = 0; // ✅ NUEVO: Para calcular el subtotal real
 
     if (detalles && detalles.length > 0) {
         detalles.forEach(d => {
@@ -228,6 +227,7 @@ function renderizarDatosDetalleVenta(datos) {
             const montoImpuesto = d.monto_impuesto || 0;
             const totalLinea = d.total_linea || subtotalLinea;
 
+            subtotalCalculado += subtotalLinea; // ✅ SUMAR subtotal de cada línea
             totalDescuentos += montoDescuento;
             totalImpuestos += montoImpuesto;
             totalGeneral += totalLinea;
@@ -255,6 +255,18 @@ function renderizarDatosDetalleVenta(datos) {
     $('#detalle-total-descuento').text(formatCurrency(totalDescuentos));
     $('#detalle-total-impuestos').text(formatCurrency(totalImpuestos));
     $('#detalle-total-general').text(formatCurrency(totalGeneral));
+
+    // ✅ Actualizar tarjetas de resumen con los valores correctos
+    $('#detalle-subtotal').text(formatCurrency(subtotalCalculado));
+    $('#detalle-descuentos').text('-' + formatCurrency(venta.monto_descuento_global || totalDescuentos));
+    $('#detalle-impuestos').text(formatCurrency(venta.impuestos || totalImpuestos));
+
+    // ✅ Costo de envío: Mostrar N/A si tipo_envio = "Recogen"
+    if (venta.tipo_envio === 'Recogen') {
+        $('#detalle-costo-envio-card').text('N/A');
+    } else {
+        $('#detalle-costo-envio-card').text(formatCurrency(venta.costo_envio || 0));
+    }
 
     // Rellenar tabla de pagos
     const tbodyPagos = $('#tbody-detalle-pagos');
