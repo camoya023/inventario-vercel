@@ -1468,62 +1468,165 @@ async function mostrarDialogoCambiarEstado(idVenta, codigoVenta, nombreCliente, 
 async function mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, saldoPendiente) {
     console.log('[Ventas] Agregando pago a venta:', codigoVenta);
 
+    // Cargar cuentas bancarias
+    const client = getSupabaseClient();
+    let cuentasBancarias = [];
+
+    try {
+        const { data: cuentas, error } = await client
+            .from('cuentas_bancarias_empresa')
+            .select('id, nombre_cuenta, numero_cuenta')
+            .order('nombre_cuenta');
+
+        if (!error && cuentas) {
+            cuentasBancarias = cuentas;
+        }
+    } catch (error) {
+        console.error('[Ventas] Error al cargar cuentas:', error);
+    }
+
+    // Generar opciones de cuentas bancarias
+    const opcionesCuentas = cuentasBancarias.map(cuenta =>
+        `<option value="${cuenta.id}">${cuenta.nombre_cuenta} - ${cuenta.numero_cuenta || ''}</option>`
+    ).join('');
+
     const result = await Swal.fire({
         title: `Registrar Pago - Venta ${codigoVenta}`,
         html: `
             <p>Cliente: <strong>${nombreCliente}</strong></p>
             <p>Saldo Pendiente: <strong>${formatCurrency(saldoPendiente)}</strong></p>
             <div class="swal2-form">
-                <label>Monto del Pago:</label>
-                <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}">
-
                 <label>Método de Pago:</label>
                 <select id="swal-metodo" class="swal2-input">
-                    <option value="">Seleccione un método</option>
                     <option value="Efectivo" selected>Efectivo</option>
-                    <option value="Tarjeta Débito">Tarjeta Débito</option>
-                    <option value="Tarjeta Crédito">Tarjeta Crédito</option>
                     <option value="Transferencia">Transferencia</option>
-                    <option value="Nequi">Nequi</option>
-                    <option value="Daviplata">Daviplata</option>
-                    <option value="Otro">Otro</option>
+                    <option value="Pago Mixto">Pago Mixto</option>
                 </select>
 
-                <label>Notas (opcional):</label>
-                <textarea id="swal-notas" class="swal2-textarea" placeholder="Observaciones del pago"></textarea>
+                <!-- Campos para Efectivo y Transferencia simple -->
+                <div id="campos-simple" style="display: block;">
+                    <label>Monto a Pagar:</label>
+                    <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}">
+
+                    <div id="campo-cuenta" style="display: none;">
+                        <label>Cuenta Destino:</label>
+                        <select id="swal-cuenta" class="swal2-input">
+                            <option value="">Seleccione Cuenta...</option>
+                            ${opcionesCuentas}
+                        </select>
+
+                        <label>Referencia (Opcional):</label>
+                        <input type="text" id="swal-referencia" class="swal2-input" placeholder="Ej: # de transacción">
+                    </div>
+                </div>
+
+                <!-- Campos para Pago Mixto -->
+                <div id="campos-mixto" style="display: none;">
+                    <label>Monto Efectivo:</label>
+                    <input type="number" id="swal-monto-efectivo" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0">
+
+                    <label>Monto Transferencia:</label>
+                    <input type="number" id="swal-monto-transferencia" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0">
+
+                    <label>Cuenta (Transf.):</label>
+                    <select id="swal-cuenta-mixto" class="swal2-input">
+                        <option value="">Seleccione Cuenta...</option>
+                        ${opcionesCuentas}
+                    </select>
+
+                    <label>Referencia (Opcional):</label>
+                    <input type="text" id="swal-referencia-mixto" class="swal2-input" placeholder="Ej: # de transacción">
+                </div>
             </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'Registrar Pago',
         cancelButtonText: 'Cancelar',
-        width: '500px',
+        width: '550px',
+        didOpen: () => {
+            const selectMetodo = document.getElementById('swal-metodo');
+            const camposSimple = document.getElementById('campos-simple');
+            const camposMixto = document.getElementById('campos-mixto');
+            const campoCuenta = document.getElementById('campo-cuenta');
+
+            // Manejar cambio de método de pago
+            selectMetodo.addEventListener('change', function() {
+                const metodo = this.value;
+
+                if (metodo === 'Pago Mixto') {
+                    camposSimple.style.display = 'none';
+                    camposMixto.style.display = 'block';
+                } else {
+                    camposSimple.style.display = 'block';
+                    camposMixto.style.display = 'none';
+
+                    if (metodo === 'Transferencia') {
+                        campoCuenta.style.display = 'block';
+                    } else {
+                        campoCuenta.style.display = 'none';
+                    }
+                }
+            });
+        },
         preConfirm: () => {
-            const monto = parseFloat(document.getElementById('swal-monto').value);
             const metodo = document.getElementById('swal-metodo').value;
-            const notas = document.getElementById('swal-notas').value;
 
-            if (!monto || monto <= 0) {
-                Swal.showValidationMessage('Ingrese un monto válido');
-                return false;
+            if (metodo === 'Pago Mixto') {
+                const montoEfectivo = parseFloat(document.getElementById('swal-monto-efectivo').value) || 0;
+                const montoTransferencia = parseFloat(document.getElementById('swal-monto-transferencia').value) || 0;
+                const cuentaMixto = document.getElementById('swal-cuenta-mixto').value;
+                const referenciaMixto = document.getElementById('swal-referencia-mixto').value;
+
+                const totalMixto = montoEfectivo + montoTransferencia;
+
+                if (totalMixto <= 0) {
+                    Swal.showValidationMessage('Debe ingresar al menos un monto');
+                    return false;
+                }
+
+                if (totalMixto > saldoPendiente) {
+                    Swal.showValidationMessage(`El total (${formatCurrency(totalMixto)}) no puede exceder el saldo pendiente`);
+                    return false;
+                }
+
+                if (montoTransferencia > 0 && !cuentaMixto) {
+                    Swal.showValidationMessage('Debe seleccionar una cuenta para la transferencia');
+                    return false;
+                }
+
+                return {
+                    metodo: 'Pago Mixto',
+                    montoEfectivo,
+                    montoTransferencia,
+                    cuenta: cuentaMixto,
+                    referencia: referenciaMixto
+                };
+            } else {
+                const monto = parseFloat(document.getElementById('swal-monto').value);
+                const cuenta = document.getElementById('swal-cuenta')?.value || null;
+                const referencia = document.getElementById('swal-referencia')?.value || null;
+
+                if (!monto || monto <= 0) {
+                    Swal.showValidationMessage('Ingrese un monto válido');
+                    return false;
+                }
+
+                if (monto > saldoPendiente) {
+                    Swal.showValidationMessage(`El monto no puede exceder el saldo pendiente (${formatCurrency(saldoPendiente)})`);
+                    return false;
+                }
+
+                if (metodo === 'Transferencia' && !cuenta) {
+                    Swal.showValidationMessage('Debe seleccionar una cuenta destino');
+                    return false;
+                }
+
+                return { metodo, monto, cuenta, referencia };
             }
-
-            if (monto > saldoPendiente) {
-                Swal.showValidationMessage(`El monto no puede exceder el saldo pendiente (${formatCurrency(saldoPendiente)})`);
-                return false;
-            }
-
-            if (!metodo) {
-                Swal.showValidationMessage('Seleccione un método de pago');
-                return false;
-            }
-
-            return { monto, metodo, notas };
         }
     });
 
     if (result.isConfirmed) {
-        const { monto, metodo, notas } = result.value;
-
         try {
             Swal.fire({
                 title: 'Procesando...',
@@ -1539,32 +1642,91 @@ async function mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, sa
                 throw new Error('No se pudo obtener la sesión del usuario');
             }
 
-            const { data, error } = await client.rpc('fn_agregar_pago_venta', {
-                id_venta: idVenta,
-                monto: monto,
-                metodo_pago: metodo,
-                id_cuenta_bancaria_destino: null,  // TODO: Agregar selector de cuenta si es necesario
-                referencia_pago: notas || null,
-                fecha_pago: null,  // Usará NOW() en la función
-                id_usuario_responsable: session.user.id,
-                empresa_id: null  // La función lo obtendrá de la venta
-            });
+            const userId = session.user.id;
 
-            if (error) {
-                console.error('[Ventas] Error al registrar pago:', error);
-                throw new Error(error.message);
+            // Procesar según el método de pago
+            if (result.value.metodo === 'Pago Mixto') {
+                // Registrar pago en efectivo (si hay monto)
+                if (result.value.montoEfectivo > 0) {
+                    const { data: dataEfectivo, error: errorEfectivo } = await client.rpc('fn_agregar_pago_venta', {
+                        id_venta: idVenta,
+                        monto: result.value.montoEfectivo,
+                        metodo_pago: 'Efectivo',
+                        id_cuenta_bancaria_destino: null,
+                        referencia_pago: null,
+                        fecha_pago: null,
+                        id_usuario_responsable: userId,
+                        empresa_id: null
+                    });
+
+                    if (errorEfectivo || dataEfectivo?.exito === false) {
+                        throw new Error(dataEfectivo?.mensaje || 'Error al registrar pago en efectivo');
+                    }
+                }
+
+                // Registrar pago por transferencia (si hay monto)
+                if (result.value.montoTransferencia > 0) {
+                    const { data: dataTransf, error: errorTransf } = await client.rpc('fn_agregar_pago_venta', {
+                        id_venta: idVenta,
+                        monto: result.value.montoTransferencia,
+                        metodo_pago: 'Transferencia',
+                        id_cuenta_bancaria_destino: result.value.cuenta || null,
+                        referencia_pago: result.value.referencia || null,
+                        fecha_pago: null,
+                        id_usuario_responsable: userId,
+                        empresa_id: null
+                    });
+
+                    if (errorTransf || dataTransf?.exito === false) {
+                        throw new Error(dataTransf?.mensaje || 'Error al registrar pago por transferencia');
+                    }
+                }
+
+                const totalPagado = result.value.montoEfectivo + result.value.montoTransferencia;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pagos Registrados',
+                    html: `
+                        <p>Se registraron los siguientes pagos:</p>
+                        <ul style="text-align: left; display: inline-block;">
+                            ${result.value.montoEfectivo > 0 ? `<li>Efectivo: ${formatCurrency(result.value.montoEfectivo)}</li>` : ''}
+                            ${result.value.montoTransferencia > 0 ? `<li>Transferencia: ${formatCurrency(result.value.montoTransferencia)}</li>` : ''}
+                        </ul>
+                        <p><strong>Total: ${formatCurrency(totalPagado)}</strong></p>
+                    `,
+                    confirmButtonText: 'OK'
+                });
+
+            } else {
+                // Pago simple (Efectivo o Transferencia)
+                const { data, error } = await client.rpc('fn_agregar_pago_venta', {
+                    id_venta: idVenta,
+                    monto: result.value.monto,
+                    metodo_pago: result.value.metodo,
+                    id_cuenta_bancaria_destino: result.value.cuenta || null,
+                    referencia_pago: result.value.referencia || null,
+                    fecha_pago: null,
+                    id_usuario_responsable: userId,
+                    empresa_id: null
+                });
+
+                if (error) {
+                    console.error('[Ventas] Error al registrar pago:', error);
+                    throw new Error(error.message);
+                }
+
+                if (data?.exito === false) {
+                    throw new Error(data.mensaje || 'Error al registrar el pago');
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pago Registrado',
+                    text: `Se registró un pago de ${formatCurrency(result.value.monto)} exitosamente.`,
+                    confirmButtonText: 'OK'
+                });
             }
-
-            if (data?.exito === false) {
-                throw new Error(data.mensaje || 'Error al registrar el pago');
-            }
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Pago Registrado',
-                text: `Se registró un pago de ${formatCurrency(monto)} exitosamente.`,
-                confirmButtonText: 'OK'
-            });
 
             await ejecutarBusquedaDeVentas();
 
@@ -1608,63 +1770,117 @@ async function mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente)
         }
 
         const venta = data.datos;
-        const pagos = venta.pagos || [];
+        const pagos = venta.pagos_venta || [];  // ✅ CORREGIDO: el campo es "pagos_venta"
+        const totalPagado = pagos.reduce((sum, p) => sum + (parseFloat(p.monto) || 0), 0);
+        const saldoPendiente = venta.monto_total - totalPagado;
 
         // Generar HTML de la tabla de pagos
         let htmlPagos = '';
         if (pagos.length > 0) {
             htmlPagos = `
-                <table class="swal2-table" style="width: 100%; text-align: left; margin-top: 20px;">
+                <table class="swal2-table" style="width: 100%; text-align: left; margin-top: 15px; border-collapse: collapse;">
                     <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Método</th>
-                            <th>Monto</th>
+                        <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                            <th style="padding: 10px; text-align: left;">FECHA</th>
+                            <th style="padding: 10px; text-align: left;">MÉTODO</th>
+                            <th style="padding: 10px; text-align: right;">MONTO</th>
+                            <th style="padding: 10px; text-align: center;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
 
-            let totalPagado = 0;
-            pagos.forEach(p => {
-                totalPagado += p.monto_pagado || 0;
-                const fechaPago = moment(p.fecha_pago).format('DD/MM/YYYY HH:mm');
+            pagos.forEach((p, index) => {
+                const fechaPago = moment(p.fecha_pago).format('DD/MM/YYYY');
                 htmlPagos += `
-                    <tr>
-                        <td>${fechaPago}</td>
-                        <td>${p.metodo_pago}</td>
-                        <td style="text-align: right;">${formatCurrency(p.monto_pagado)}</td>
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding: 8px;">${fechaPago}</td>
+                        <td style="padding: 8px;">${p.metodo_pago}</td>
+                        <td style="padding: 8px; text-align: right;">${formatCurrency(p.monto)}</td>
+                        <td style="padding: 8px; text-align: center;">
+                            <button class="btn-accion-pago" data-accion="editar" data-index="${index}"
+                                    style="background: none; border: none; cursor: pointer; margin: 0 5px; font-size: 16px;"
+                                    title="Editar pago">
+                                <i class="fas fa-edit" style="color: #3498db;"></i>
+                            </button>
+                            <button class="btn-accion-pago" data-accion="borrar" data-index="${index}"
+                                    style="background: none; border: none; cursor: pointer; margin: 0 5px; font-size: 16px;"
+                                    title="Eliminar pago">
+                                    <i class="fas fa-trash" style="color: #e74c3c;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
 
             htmlPagos += `
                     </tbody>
-                    <tfoot>
-                        <tr style="font-weight: bold;">
-                            <td colspan="2">TOTAL PAGADO:</td>
-                            <td style="text-align: right;">${formatCurrency(totalPagado)}</td>
-                        </tr>
-                        <tr style="font-weight: bold;">
-                            <td colspan="2">SALDO PENDIENTE:</td>
-                            <td style="text-align: right;">${formatCurrency(venta.saldo_pendiente)}</td>
-                        </tr>
-                    </tfoot>
                 </table>
             `;
         } else {
-            htmlPagos = '<p style="margin-top: 20px; text-align: center; color: #999;">No se han registrado pagos para esta venta.</p>';
+            htmlPagos = '<p style="margin: 30px 0; text-align: center; color: #999;">No se han registrado pagos para esta venta.</p>';
         }
 
-        Swal.fire({
-            title: `Pagos de la Venta ${codigoVenta}`,
+        const resultado = await Swal.fire({
+            title: 'Gestión de Pagos',
             html: `
-                <p>Cliente: <strong>${nombreCliente}</strong></p>
-                <p>Total Venta: <strong>${formatCurrency(venta.monto_total)}</strong></p>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <p style="font-size: 16px; margin: 5px 0;">Venta <strong>${codigoVenta}</strong></p>
+                    <p style="margin: 5px 0;">Cliente: <strong>${nombreCliente}</strong></p>
+                    <div style="margin: 15px 0; font-size: 14px;">
+                        <span>Total: <strong>${formatCurrency(venta.monto_total)}</strong></span>
+                        <span style="margin: 0 15px;">Pagado: <strong>${formatCurrency(totalPagado)}</strong></span>
+                        <span>Saldo: <strong style="color: ${saldoPendiente > 0 ? '#e74c3c' : '#27ae60'};">${formatCurrency(saldoPendiente)}</strong></span>
+                    </div>
+                </div>
                 ${htmlPagos}
+                <div style="margin-top: 20px;">
+                    <button id="btn-registrar-pago" class="swal2-confirm swal2-styled" style="background-color: #3498db;">
+                        Registrar Pago
+                    </button>
+                </div>
             `,
-            width: '600px',
-            confirmButtonText: 'Cerrar'
+            width: '700px',
+            showConfirmButton: false,
+            showCloseButton: true,
+            willClose: () => {
+                // Refrescar la tabla de ventas al cerrar el modal
+                ejecutarBusquedaDeVentas();
+            },
+            didOpen: () => {
+                // Botón registrar pago
+                const btnRegistrarPago = document.getElementById('btn-registrar-pago');
+                if (btnRegistrarPago && saldoPendiente > 0) {
+                    btnRegistrarPago.addEventListener('click', async () => {
+                        Swal.close();
+                        await mostrarDialogoAgregarPago(idVenta, codigoVenta, nombreCliente, saldoPendiente);
+                        // Recargar el diálogo de pagos después de agregar
+                        await mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente);
+                    });
+                } else if (btnRegistrarPago) {
+                    btnRegistrarPago.disabled = true;
+                    btnRegistrarPago.title = 'La venta está completamente pagada';
+                    btnRegistrarPago.style.opacity = '0.5';
+                }
+
+                // Botones de acciones (editar/borrar)
+                const botonesAccion = document.querySelectorAll('.btn-accion-pago');
+                botonesAccion.forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const accion = btn.dataset.accion;
+                        const index = parseInt(btn.dataset.index);
+                        const pago = pagos[index];
+
+                        if (accion === 'editar') {
+                            Swal.close();
+                            await editarPago(pago, idVenta, codigoVenta, nombreCliente);
+                            await mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente);
+                        } else if (accion === 'borrar') {
+                            await borrarPago(pago, idVenta, codigoVenta, nombreCliente);
+                        }
+                    });
+                });
+            }
         });
 
     } catch (error) {
@@ -1675,6 +1891,230 @@ async function mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente)
             text: 'Error al cargar los pagos: ' + error.message,
             confirmButtonText: 'Cerrar'
         });
+    }
+}
+
+/**
+ * Editar un pago existente
+ */
+async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
+    console.log('[Ventas] Editando pago:', pago);
+
+    const client = getSupabaseClient();
+
+    // Obtener los datos de la venta para calcular el máximo permitido
+    let montoTotalVenta = 0;
+    let totalOtrosPagos = 0;
+
+    try {
+        const { data, error } = await client.rpc('fn_obtener_venta_detalle', {
+            p_id_venta: idVenta
+        });
+
+        if (!error && data?.exito) {
+            const venta = data.datos;
+            montoTotalVenta = venta.monto_total;
+
+            // Calcular total de OTROS pagos (excluyendo el que se está editando)
+            const pagosVenta = venta.pagos_venta || [];
+            totalOtrosPagos = pagosVenta
+                .filter(p => p.id !== pago.id)
+                .reduce((sum, p) => sum + parseFloat(p.monto), 0);
+        }
+    } catch (error) {
+        console.error('[Ventas] Error al obtener datos de venta:', error);
+    }
+
+    // Calcular el monto máximo permitido para este pago
+    const montoMaximoPermitido = montoTotalVenta - totalOtrosPagos;
+
+    // Cargar cuentas bancarias
+    let cuentasBancarias = [];
+
+    try {
+        const { data: cuentas } = await client
+            .from('cuentas_bancarias_empresa')
+            .select('id, nombre_cuenta, numero_cuenta')
+            .order('nombre_cuenta');
+
+        if (cuentas) cuentasBancarias = cuentas;
+    } catch (error) {
+        console.error('[Ventas] Error al cargar cuentas:', error);
+    }
+
+    const opcionesCuentas = cuentasBancarias.map(c =>
+        `<option value="${c.id}" ${c.id === pago.id_cuenta_bancaria_destino ? 'selected' : ''}>${c.nombre_cuenta}</option>`
+    ).join('');
+
+    const mostrarCuenta = pago.metodo_pago === 'Transferencia';
+
+    const result = await Swal.fire({
+        title: `Editar Pago - ${codigoVenta}`,
+        html: `
+            <div class="swal2-form">
+                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                    Monto máximo permitido: <strong style="color: #27ae60;">${formatCurrency(montoMaximoPermitido)}</strong>
+                </p>
+
+                <label>Monto:</label>
+                <input type="number" id="edit-monto" class="swal2-input" value="${pago.monto}" step="0.01" min="0" max="${montoMaximoPermitido}">
+
+                <label>Método de Pago:</label>
+                <select id="edit-metodo" class="swal2-input">
+                    <option value="Efectivo" ${pago.metodo_pago === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                    <option value="Transferencia" ${pago.metodo_pago === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
+                </select>
+
+                <div id="edit-campo-cuenta" style="display: ${mostrarCuenta ? 'block' : 'none'};">
+                    <label>Cuenta Destino:</label>
+                    <select id="edit-cuenta" class="swal2-input">
+                        <option value="">Seleccione Cuenta...</option>
+                        ${opcionesCuentas}
+                    </select>
+                </div>
+
+                <label>Referencia (Opcional):</label>
+                <input type="text" id="edit-referencia" class="swal2-input" value="${pago.referencia_pago || ''}" placeholder="# de transacción">
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar Cambios',
+        cancelButtonText: 'Cancelar',
+        width: '500px',
+        didOpen: () => {
+            const selectMetodo = document.getElementById('edit-metodo');
+            const campoCuenta = document.getElementById('edit-campo-cuenta');
+
+            selectMetodo.addEventListener('change', function() {
+                campoCuenta.style.display = this.value === 'Transferencia' ? 'block' : 'none';
+            });
+        },
+        preConfirm: () => {
+            const monto = parseFloat(document.getElementById('edit-monto').value);
+            const metodo = document.getElementById('edit-metodo').value;
+            const cuenta = document.getElementById('edit-cuenta')?.value || null;
+            const referencia = document.getElementById('edit-referencia').value;
+
+            if (!monto || monto <= 0) {
+                Swal.showValidationMessage('Ingrese un monto válido');
+                return false;
+            }
+
+            if (monto > montoMaximoPermitido) {
+                Swal.showValidationMessage(`El monto no puede exceder ${formatCurrency(montoMaximoPermitido)}`);
+                return false;
+            }
+
+            if (metodo === 'Transferencia' && !cuenta) {
+                Swal.showValidationMessage('Debe seleccionar una cuenta');
+                return false;
+            }
+
+            return { monto, metodo, cuenta, referencia };
+        }
+    });
+
+    if (result.isConfirmed) {
+        try {
+            Swal.fire({
+                title: 'Actualizando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const { data: { session } } = await client.auth.getSession();
+            if (!session?.user?.id) {
+                throw new Error('No se pudo obtener la sesión del usuario');
+            }
+
+            const { data, error } = await client.rpc('fn_editar_pago_venta', {
+                id_pago: pago.id,
+                monto: result.value.monto,
+                metodo_pago: result.value.metodo,
+                id_cuenta_bancaria_destino: result.value.cuenta,
+                referencia_pago: result.value.referencia
+            });
+
+            if (error || data?.exito === false) {
+                throw new Error(data?.mensaje || error?.message || 'Error al actualizar el pago');
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Pago Actualizado',
+                text: 'El pago se actualizó correctamente',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error('[Ventas] Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
+    }
+}
+
+/**
+ * Borrar un pago
+ */
+async function borrarPago(pago, idVenta, codigoVenta, nombreCliente) {
+    const result = await Swal.fire({
+        title: '¿Eliminar este pago?',
+        html: `
+            <p>Venta: <strong>${codigoVenta}</strong></p>
+            <p>Monto: <strong>${formatCurrency(pago.monto)}</strong></p>
+            <p>Método: <strong>${pago.metodo_pago}</strong></p>
+            <p style="color: #e74c3c; margin-top: 15px;">Esta acción no se puede deshacer.</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#e74c3c'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            Swal.fire({
+                title: 'Eliminando...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const client = getSupabaseClient();
+            const { data, error } = await client.rpc('fn_eliminar_pago_venta', {
+                id_pago: pago.id
+            });
+
+            if (error || data?.exito === false) {
+                throw new Error(data?.mensaje || error?.message || 'Error al eliminar el pago');
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Pago Eliminado',
+                text: 'El pago se eliminó correctamente',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            // Recargar el diálogo de pagos
+            setTimeout(() => {
+                mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente);
+            }, 1500);
+
+        } catch (error) {
+            console.error('[Ventas] Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message
+            });
+        }
     }
 }
 
