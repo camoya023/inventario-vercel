@@ -1,0 +1,84 @@
+<div class="page-content-wrapper">
+    <!-- Encabezado de la Página -->
+    <div class="page-header-controls">
+        <h2 class="page-section-title">
+            <i class="fas fa-edit"></i> Ajustes de Inventario
+        </h2>
+        <p class="page-description">Ajusta el stock por averías, conteo físico u otros motivos.</p>
+    </div>
+
+    <!-- Formulario de Ajuste -->
+    <div class="form-section-card">
+        <!-- Encabezado del Formulario -->
+        <div class="ajuste-header">
+            <div class="form-group">
+                <label for="ajuste-fecha">Fecha del Ajuste <span class="required">*</span></label>
+                <input type="text" id="ajuste-fecha" class="form-input" placeholder="Seleccione una fecha" readonly>
+            </div>
+            <div class="form-group">
+                <label for="ajuste-tipo-movimiento">Tipo de Ajuste <span class="required">*</span></label>
+                <select id="ajuste-tipo-movimiento" class="form-input-select">
+                    <option value="" disabled selected>Seleccione un tipo...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="ajuste-notas">Notas / Referencia</label>
+                <input type="text" id="ajuste-notas" class="form-input" placeholder="Ej: Conteo físico Junio, Avería bodega">
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Búsqueda de Productos -->
+        <div class="form-group">
+            <label for="ajuste-buscar-producto">Añadir Producto a la Lista</label>
+            <div class="product-search-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="ajuste-buscar-producto" class="form-input" placeholder="Buscar por nombre o SKU...">
+                <div id="ajuste-search-results" class="product-search-results"></div>
+            </div>
+        </div>
+
+        <!-- Tabla de Productos para Ajuste -->
+        <div class="table-container mt-4">
+            <table class="data-table-default" id="tabla-lista-ajuste">
+                <!-- Cabecera para Ajuste Simple -->
+                <thead id="thead-ajuste-simple">
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Stock Actual</th>
+                        <th class="text-center">Cantidad a Ajustar</th>
+                        <th class="text-center">Costo Promedio</th>
+                        <th class="text-center">Stock Resultante</th>
+                        <th class="text-center"></th>
+                    </tr>
+                </thead>
+
+                <!-- Cabecera para Conteo Físico -->
+                <thead id="thead-ajuste-fisico" style="display: none;">
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Stock en Sistema</th>
+                        <th class="text-center">Conteo Físico</th>
+                        <th class="text-center">Costo Promedio</th>
+                        <th class="text-center">Diferencia</th>
+                        <th class="text-center"></th>
+                    </tr>
+                </thead>
+
+                <tbody id="tbody-ajustes">
+                    <tr class="empty-row">
+                        <td colspan="6" class="text-center">Añada productos para empezar el ajuste.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botón de Guardar -->
+    <div class="form-actions-footer">
+        <button type="button" id="btn-guardar-ajuste-inventario" class="button button-primary button-lg">
+            <i class="fas fa-save"></i> Guardar Ajuste de Inventario
+        </button>
+    </div>
+</div>
