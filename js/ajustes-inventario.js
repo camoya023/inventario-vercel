@@ -10,6 +10,9 @@ let ajustesInventario_tiposMovimiento = [];
 let ajustesInventario_flatpickrInstance = null;
 let ajustesInventario_searchTimeout = null;
 
+// Variables para patrón dirty form
+let ajustesInventario_estadoInicial = null;
+
 /**
  * Función principal de inicialización del módulo
  */
@@ -27,6 +30,11 @@ function inicializarVistaAjustesInventario() {
 
     // Cargar tipos de movimiento
     cargarTiposMovimientoSelect();
+
+    // Capturar estado inicial para dirty form (después de breve delay para asegurar que todo esté cargado)
+    setTimeout(() => {
+        capturarEstadoInicialAjuste();
+    }, 100);
 
     console.log('[AJUSTES-INVENTARIO] Vista inicializada correctamente.');
 }
@@ -194,6 +202,31 @@ function configurarListenersAjustesInventario() {
     const btnGuardar = document.getElementById('btn-guardar-ajuste-inventario');
     if (btnGuardar) {
         btnGuardar.addEventListener('click', guardarAjusteInventario);
+    }
+
+    // Listener para el botón cancelar con validación dirty form
+    const btnCancelar = document.getElementById('btn-cancelar-ajuste-inventario');
+    if (btnCancelar) {
+        btnCancelar.addEventListener('click', function() {
+            console.log('[AJUSTES-INVENTARIO] Cancelar clickeado');
+
+            // Verificar si hay cambios sin guardar
+            if (verificarCambiosEnAjuste()) {
+                // Formulario sucio - mostrar confirmación
+                const mensaje = 'Hay cambios sin guardar que se perderán.';
+                const titulo = '¿Cancelar ajuste?';
+
+                mostrarModalConfirmacion(mensaje, function() {
+                    console.log('[AJUSTES-INVENTARIO] Usuario confirmó cancelar con cambios');
+                    limpiarFormularioAjuste();
+                    showNotification('Formulario limpiado', 'info');
+                }, titulo);
+            } else {
+                // Formulario limpio - limpiar de todas formas por si acaso
+                console.log('[AJUSTES-INVENTARIO] No hay cambios, limpiando formulario');
+                limpiarFormularioAjuste();
+            }
+        });
     }
 }
 
@@ -743,7 +776,60 @@ function limpiarFormularioAjuste() {
     document.getElementById('ajuste-buscar-producto').value = '';
     document.getElementById('ajuste-search-results').classList.remove('show');
 
+    // Recapturar estado inicial después de limpiar
+    setTimeout(() => {
+        capturarEstadoInicialAjuste();
+    }, 100);
+
     console.log('[AJUSTES-INVENTARIO] Formulario limpiado');
+}
+
+/**
+ * Capturar estado inicial del formulario para dirty form pattern
+ */
+function capturarEstadoInicialAjuste() {
+    ajustesInventario_estadoInicial = {
+        fecha: document.getElementById('ajuste-fecha').value,
+        tipoMovimiento: document.getElementById('ajuste-tipo-movimiento').value,
+        notas: document.getElementById('ajuste-notas').value,
+        cantidadProductos: document.querySelectorAll('#tbody-ajustes tr:not(.empty-row)').length
+    };
+
+    console.log('[AJUSTES-INVENTARIO] Estado inicial capturado:', ajustesInventario_estadoInicial);
+}
+
+/**
+ * Verificar si hay cambios en el formulario
+ * @returns {boolean} True si hay cambios, false en caso contrario
+ */
+function verificarCambiosEnAjuste() {
+    console.log('[AJUSTES-INVENTARIO] Verificando cambios...');
+
+    if (!ajustesInventario_estadoInicial) {
+        console.log('[AJUSTES-INVENTARIO] No hay estado inicial, no hay cambios');
+        return false;
+    }
+
+    // Obtener estado actual
+    const estadoActual = {
+        fecha: document.getElementById('ajuste-fecha').value,
+        tipoMovimiento: document.getElementById('ajuste-tipo-movimiento').value,
+        notas: document.getElementById('ajuste-notas').value,
+        cantidadProductos: document.querySelectorAll('#tbody-ajustes tr:not(.empty-row)').length
+    };
+
+    // Comparar estados
+    for (const key in estadoActual) {
+        if (estadoActual[key] !== ajustesInventario_estadoInicial[key]) {
+            console.log(`[AJUSTES-INVENTARIO] Cambio detectado en: ${key}`);
+            console.log(`  Inicial: "${ajustesInventario_estadoInicial[key]}"`);
+            console.log(`  Actual: "${estadoActual[key]}"`);
+            return true;
+        }
+    }
+
+    console.log('[AJUSTES-INVENTARIO] No hay cambios');
+    return false;
 }
 
 // Exponer función de inicialización globalmente
