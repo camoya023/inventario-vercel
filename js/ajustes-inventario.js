@@ -340,6 +340,27 @@ function agregarProductoATabla(producto) {
         return;
     }
 
+    // Validación especial para Stock Inicial (INI-STK)
+    const tipoSelect = document.getElementById('ajuste-tipo-movimiento');
+    const tipoMovimientoId = tipoSelect.value;
+    const tipoSeleccionado = ajustesInventario_tiposMovimiento.find(
+        tm => tm.id_tipo_movimiento === tipoMovimientoId
+    );
+
+    if (tipoSeleccionado && tipoSeleccionado.codigo_tipo_movimiento === 'INI-STK') {
+        const stockActual = producto.stock_actual || 0;
+        if (stockActual > 0) {
+            showNotification(
+                `No se puede usar "Stock Inicial" en el producto "${producto.nombre_producto}" porque ya tiene stock de ${stockActual} unidades. ` +
+                `Use "Entrada por Ajuste" para agregar unidades.`,
+                'error'
+            );
+            document.getElementById('ajuste-search-results').classList.remove('show');
+            document.getElementById('ajuste-buscar-producto').value = '';
+            return;
+        }
+    }
+
     // Remover fila vacía si existe
     if (emptyRow) {
         emptyRow.remove();
@@ -406,7 +427,7 @@ function agregarProductoATabla(producto) {
             </td>
             <td class="text-center stock-actual">${stockActual}</td>
             <td class="text-center">
-                <input type="number" class="input-ajuste" value="0" step="0.001">
+                <input type="number" class="input-ajuste" value="0" min="0" step="0.001">
             </td>
             <td class="text-center">
                 <input type="number" class="input-costo" value="${costoPromedio}" min="0" step="0.01">
@@ -432,6 +453,12 @@ function agregarProductoATabla(producto) {
     const inputCantidad = nuevaFila.querySelector('.input-ajuste');
 
     inputCantidad.addEventListener('input', function() {
+        // Validar números negativos en modo ajuste simple
+        if (!esConteoFisico && parseFloat(this.value) < 0) {
+            this.value = Math.abs(parseFloat(this.value));
+            showNotification('En ajustes simples ingrese solo cantidades positivas. El tipo de movimiento determina si es entrada o salida.', 'warning');
+        }
+
         if (esConteoFisico) {
             actualizarDiferenciaConteo(this);
         } else {
@@ -595,6 +622,12 @@ async function guardarAjusteInventario() {
                 return;
             }
         } else {
+            // Validaciones para ajustes simples
+            if (cantidad < 0) {
+                showNotification(`Producto en fila ${index + 1}: En ajustes simples ingrese solo cantidades positivas. El tipo de movimiento determina si es entrada o salida.`, 'error');
+                hayErrores = true;
+                return;
+            }
             if (cantidad === 0) {
                 showNotification(`Producto en fila ${index + 1}: La cantidad a ajustar no puede ser cero`, 'error');
                 hayErrores = true;
