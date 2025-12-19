@@ -117,6 +117,13 @@
     background-color: #dc3545;
 }
 
+/* Badge para estado Pendiente - Amarillo con texto blanco */
+.badge-warning-pendiente {
+    background-color: #FFC107 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
 /* Actions Menu */
 .actions-menu-container {
     position: relative;
@@ -879,8 +886,32 @@
     .header-badges {
         gap: 0.5rem;
     }
-    
+
     .header-code {
         font-size: 1rem;
     }
+}
+
+/* Estilo para productos con estado_item Pendiente en detalle de venta */
+.item-pendiente {
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.12) 0%, rgba(255, 193, 7, 0.04) 100%);
+    border-left: 4px solid #FFC107;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.item-pendiente:hover {
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.18) 0%, rgba(255, 193, 7, 0.08) 100%);
+    transform: translateX(2px);
+}
+
+.item-pendiente td {
+    border-bottom-color: rgba(255, 193, 7, 0.2);
+}
+
+/* Añadir un pequeño indicador visual */
+.item-pendiente td:first-child::before {
+    content: "⏳";
+    margin-right: 6px;
+    font-size: 0.9em;
 }

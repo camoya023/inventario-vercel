@@ -226,14 +226,18 @@ function renderizarDatosDetalleVenta(datos) {
             const montoDescuento = d.monto_descuento || 0;
             const montoImpuesto = d.monto_impuesto || 0;
             const totalLinea = d.total_linea || subtotalLinea;
+            const estadoItem = d.estado_item || '';
 
             subtotalCalculado += subtotalLinea; // ✅ SUMAR subtotal de cada línea
             totalDescuentos += montoDescuento;
             totalImpuestos += montoImpuesto;
             totalGeneral += totalLinea;
 
+            // Agregar clase especial si el item está pendiente
+            const claseFilaPendiente = estadoItem === 'Pendiente' ? 'item-pendiente' : '';
+
             const fila = `
-                <tr>
+                <tr class="${claseFilaPendiente}">
                     <td>${sku}</td>
                     <td>${nombreProducto}</td>
                     <td class="text-right">${d.cantidad}</td>

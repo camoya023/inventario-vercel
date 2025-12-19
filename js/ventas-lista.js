@@ -697,6 +697,7 @@ function renderizarTablaVentas(ventas) {
 function obtenerBadgeEstadoVenta(estado) {
   const badges = {
     Borrador: '<span class="badge badge-secondary">Borrador</span>',
+    Pendiente: '<span class="badge badge-warning-pendiente">Pendiente</span>',
     "En Proceso": '<span class="badge badge-info">En Proceso</span>',
     Completado: '<span class="badge badge-success">Completado</span>',
     Cancelada: '<span class="badge badge-danger">Cancelada</span>',
