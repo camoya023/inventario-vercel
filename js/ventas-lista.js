@@ -755,13 +755,27 @@ async function confirmarAnularVenta(idVenta, codigoVenta, nombreCliente) {
     html: `
             <p>Estás a punto de ANULAR la venta <strong>${codigoVenta}</strong>.</p>
             <p>Cliente: <strong>${nombreCliente}</strong></p>
-            <p>El inventario se revertirá. ¿Estás seguro de continuar?</p>
+            <p>Esta acción es irreversible y devolverá los productos al stock físico. ¿Deseas continuar?</p>
         `,
     icon: "warning",
+    input: "text",
+    inputPlaceholder: "Ej: Cliente desistió de la compra...",
+    inputAttributes: {
+      autocapitalize: "off",
+      autocomplete: "off"
+    },
     showCancelButton: true,
     confirmButtonText: "Sí, Anular",
     cancelButtonText: "Cancelar",
     confirmButtonColor: "#d33",
+    inputValidator: (value) => {
+      if (!value || value.trim().length === 0) {
+        return "Debes ingresar un motivo para anular la venta";
+      }
+      if (value.trim().length < 5) {
+        return "Por favor ingresa un motivo descriptivo (mínimo 5 caracteres)";
+      }
+    }
   });
 
   if (result.isConfirmed) {
@@ -773,8 +787,10 @@ async function confirmarAnularVenta(idVenta, codigoVenta, nombreCliente) {
       });
 
       const client = getSupabaseClient();
+      const motivo = result.value.trim();
       const { data, error } = await client.rpc("fn_anular_venta", {
         p_id_venta: idVenta,
+        p_motivo: motivo
       });
 
       if (error) {
