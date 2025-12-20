@@ -756,13 +756,13 @@ function abrirModalProducto(modo = 'add', productoParaEditar = null) {
 /**
  * Cierra el modal de producto con validación de cambios.
  */
-function cerrarModalProducto() {
+function cerrarModalProducto(forzarCierre = false) {
     if (!modalProducto) return;
 
     console.log('[Productos] Intentando cerrar modal...');
 
-    // Verificar si hay cambios sin guardar
-    if (verificarCambiosEnFormularioProducto()) {
+    // Verificar si hay cambios sin guardar (omitir si viene de guardado exitoso)
+    if (!forzarCierre && verificarCambiosEnFormularioProducto()) {
         // Formulario sucio - mostrar confirmación
         const mensaje = 'Hay cambios sin guardar que se perderán.';
         const titulo = '¿Cancelar sin guardar?';
@@ -777,8 +777,8 @@ function cerrarModalProducto() {
             }, 250);
         }, titulo);
     } else {
-        // Formulario limpio - cerrar sin confirmación
-        console.log('[Productos] No hay cambios, cerrando sin confirmación');
+        // Formulario limpio o cierre forzado - cerrar sin confirmación
+        console.log('[Productos] Cerrando sin confirmación (forzarCierre:', forzarCierre, ')');
         modalProducto.classList.remove('is-visible');
         setTimeout(() => {
             if (!modalProducto.classList.contains('is-visible')) {
@@ -1037,7 +1037,7 @@ async function manejarGuardarProducto(event) {
             // Operación exitosa
             console.log('[Productos] ✓ Producto guardado exitosamente');
             showNotification(data.mensaje || 'Producto guardado con éxito.', 'success');
-            cerrarModalProducto();
+            cerrarModalProducto(true); // Forzar cierre sin verificar cambios
             refrescarTablaProductos();
         } else {
             // Respuesta inesperada
