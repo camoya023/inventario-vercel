@@ -282,6 +282,8 @@ function configurarEventListenersListaVentas() {
         const codigoVenta = fila.dataset.codigoVenta;
         const nombreCliente = fila.dataset.nombreCliente;
         const saldoPendiente = parseFloat(fila.dataset.saldoPendiente) || 0;
+        const estado = fila.dataset.estado;
+        const estadoPago = fila.dataset.estadoPago;
 
         console.log(`[Ventas] Acción: "${accion}" en Venta ID: ${idVenta}`);
 
@@ -332,7 +334,8 @@ function configurarEventListenersListaVentas() {
             await mostrarDialogoGestionarPagos(
               idVenta,
               codigoVenta,
-              nombreCliente
+              nombreCliente,
+              estado
             );
             break;
 
@@ -611,6 +614,8 @@ function renderizarTablaVentas(ventas) {
     row.dataset.codigoVenta = venta.codigo_venta;
     row.dataset.nombreCliente = venta.nombre_cliente || "Ventas Mostrador";
     row.dataset.saldoPendiente = venta.saldo_pendiente || 0;
+    row.dataset.estado = venta.estado;
+    row.dataset.estadoPago = venta.estado_pago;
 
     // Formatear fecha
     const fecha = moment(venta.fecha_venta).format("DD/MM/YYYY");
@@ -653,11 +658,17 @@ function renderizarTablaVentas(ventas) {
             `;
     }
 
-    opcionesMenu += `
-            <div class="divider"></div>
+    // Opciones de pagos (solo mostrar "Agregar Pago" si NO está pagada Y NO está anulada)
+    opcionesMenu += `<div class="divider"></div>`;
+
+    if (venta.estado_pago !== "Pagada" && venta.estado !== "Anulada") {
+      opcionesMenu += `
             <a href="#" class="actions-menu-item" data-action="agregar_pago">
                 <i class="fas fa-dollar-sign"></i> Agregar Pago
-            </a>
+            </a>`;
+    }
+
+    opcionesMenu += `
             <a href="#" class="actions-menu-item" data-action="ver_pagos">
                 <i class="fas fa-list-ul"></i> Ver Pagos
             </a>
@@ -1845,10 +1856,24 @@ async function mostrarDialogoAgregarPago(
             }
           );
 
-          if (errorEfectivo || dataEfectivo?.exito === false) {
-            throw new Error(
-              dataEfectivo?.mensaje || "Error al registrar pago en efectivo"
-            );
+          // Capturar error de Supabase (triggers, validaciones)
+          if (errorEfectivo) {
+            Swal.fire({
+              icon: 'error',
+              title: 'No se pudo registrar el pago',
+              text: errorEfectivo.message
+            });
+            return;
+          }
+
+          // Verificar respuesta RPC
+          if (dataEfectivo?.exito === false) {
+            Swal.fire({
+              icon: 'error',
+              title: 'No se pudo registrar el pago',
+              text: dataEfectivo.mensaje || "Error al registrar pago en efectivo"
+            });
+            return;
           }
         }
 
@@ -1868,10 +1893,24 @@ async function mostrarDialogoAgregarPago(
             }
           );
 
-          if (errorTransf || dataTransf?.exito === false) {
-            throw new Error(
-              dataTransf?.mensaje || "Error al registrar pago por transferencia"
-            );
+          // Capturar error de Supabase (triggers, validaciones)
+          if (errorTransf) {
+            Swal.fire({
+              icon: 'error',
+              title: 'No se pudo registrar el pago',
+              text: errorTransf.message
+            });
+            return;
+          }
+
+          // Verificar respuesta RPC
+          if (dataTransf?.exito === false) {
+            Swal.fire({
+              icon: 'error',
+              title: 'No se pudo registrar el pago',
+              text: dataTransf.mensaje || "Error al registrar pago por transferencia"
+            });
+            return;
           }
         }
 
@@ -1918,13 +1957,25 @@ async function mostrarDialogoAgregarPago(
           empresa_id: null,
         });
 
+        // Capturar error de Supabase (triggers, validaciones)
         if (error) {
           console.error("[Ventas] Error al registrar pago:", error);
-          throw new Error(error.message);
+          Swal.fire({
+            icon: 'error',
+            title: 'No se pudo registrar el pago',
+            text: error.message
+          });
+          return;
         }
 
+        // Verificar respuesta RPC
         if (data?.exito === false) {
-          throw new Error(data.mensaje || "Error al registrar el pago");
+          Swal.fire({
+            icon: 'error',
+            title: 'No se pudo registrar el pago',
+            text: data.mensaje || "Error al registrar el pago"
+          });
+          return;
         }
 
         Swal.fire({
@@ -1956,9 +2007,12 @@ async function mostrarDialogoAgregarPago(
 async function mostrarDialogoGestionarPagos(
   idVenta,
   codigoVenta,
-  nombreCliente
+  nombreCliente,
+  estado
 ) {
   console.log("[Ventas] Gestionando pagos de venta:", codigoVenta);
+
+  const ventaAnulada = estado === "Anulada";
 
   try {
     Swal.fire({
@@ -2007,6 +2061,14 @@ async function mostrarDialogoGestionarPagos(
 
       pagos.forEach((p, index) => {
         const fechaPago = moment(p.fecha_pago).format("DD/MM/YYYY");
+
+        // Deshabilitar botones si la venta está anulada
+        const btnDisabled = ventaAnulada ? 'disabled' : '';
+        const cursorStyle = ventaAnulada ? 'not-allowed' : 'pointer';
+        const opacityStyle = ventaAnulada ? '0.4' : '1';
+        const titleEditar = ventaAnulada ? 'No se puede editar (venta anulada)' : 'Editar pago';
+        const titleBorrar = ventaAnulada ? 'No se puede eliminar (venta anulada)' : 'Eliminar pago';
+
         htmlPagos += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 8px;">${fechaPago}</td>
@@ -2016,13 +2078,13 @@ async function mostrarDialogoGestionarPagos(
                         )}</td>
                         <td style="padding: 8px; text-align: center;">
                             <button class="btn-accion-pago" data-accion="editar" data-index="${index}"
-                                    style="background: none; border: none; cursor: pointer; margin: 0 5px; font-size: 16px;"
-                                    title="Editar pago">
+                                    style="background: none; border: none; cursor: ${cursorStyle}; margin: 0 5px; font-size: 16px; opacity: ${opacityStyle};"
+                                    title="${titleEditar}" ${btnDisabled}>
                                 <i class="fas fa-edit" style="color: #3498db;"></i>
                             </button>
                             <button class="btn-accion-pago" data-accion="borrar" data-index="${index}"
-                                    style="background: none; border: none; cursor: pointer; margin: 0 5px; font-size: 16px;"
-                                    title="Eliminar pago">
+                                    style="background: none; border: none; cursor: ${cursorStyle}; margin: 0 5px; font-size: 16px; opacity: ${opacityStyle};"
+                                    title="${titleBorrar}" ${btnDisabled}>
                                     <i class="fas fa-trash" style="color: #e74c3c;"></i>
                             </button>
                         </td>
@@ -2038,6 +2100,15 @@ async function mostrarDialogoGestionarPagos(
       htmlPagos =
         '<p style="margin: 30px 0; text-align: center; color: #999;">No se han registrado pagos para esta venta.</p>';
     }
+
+    // Mensaje informativo para ventas anuladas
+    const mensajeVentaAnulada = ventaAnulada ? `
+                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 12px; margin: 15px 0; text-align: center;">
+                    <i class="fas fa-exclamation-triangle" style="color: #856404; margin-right: 5px;"></i>
+                    <strong style="color: #856404;">Venta Anulada:</strong>
+                    <span style="color: #856404;">No se pueden realizar movimientos de pagos</span>
+                </div>
+            ` : '';
 
     const resultado = await Swal.fire({
       title: "Gestión de Pagos",
@@ -2057,6 +2128,7 @@ async function mostrarDialogoGestionarPagos(
                         };">${formatCurrency(saldoPendiente)}</strong></span>
                     </div>
                 </div>
+                ${mensajeVentaAnulada}
                 ${htmlPagos}
                 <div style="margin-top: 20px;">
                     <button id="btn-registrar-pago" class="swal2-confirm swal2-styled" style="background-color: #3498db;">
@@ -2074,7 +2146,14 @@ async function mostrarDialogoGestionarPagos(
       didOpen: () => {
         // Botón registrar pago
         const btnRegistrarPago = document.getElementById("btn-registrar-pago");
-        if (btnRegistrarPago && saldoPendiente > 0) {
+
+        // Deshabilitar si la venta está anulada
+        if (btnRegistrarPago && ventaAnulada) {
+          btnRegistrarPago.disabled = true;
+          btnRegistrarPago.title = "No se pueden registrar pagos (venta anulada)";
+          btnRegistrarPago.style.opacity = "0.5";
+          btnRegistrarPago.style.cursor = "not-allowed";
+        } else if (btnRegistrarPago && saldoPendiente > 0) {
           btnRegistrarPago.addEventListener("click", async () => {
             Swal.close();
             await mostrarDialogoAgregarPago(
@@ -2087,7 +2166,8 @@ async function mostrarDialogoGestionarPagos(
             await mostrarDialogoGestionarPagos(
               idVenta,
               codigoVenta,
-              nombreCliente
+              nombreCliente,
+              estado
             );
           });
         } else if (btnRegistrarPago) {
@@ -2110,10 +2190,11 @@ async function mostrarDialogoGestionarPagos(
               await mostrarDialogoGestionarPagos(
                 idVenta,
                 codigoVenta,
-                nombreCliente
+                nombreCliente,
+                estado
               );
             } else if (accion === "borrar") {
-              await borrarPago(pago, idVenta, codigoVenta, nombreCliente);
+              await borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado);
             }
           });
         });
@@ -2293,10 +2374,24 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         referencia_pago: result.value.referencia,
       });
 
-      if (error || data?.exito === false) {
-        throw new Error(
-          data?.mensaje || error?.message || "Error al actualizar el pago"
-        );
+      // CRÍTICO: Capturar error de Supabase (triggers, validaciones, etc.)
+      if (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'No se pudo actualizar',
+          text: error.message
+        });
+        return;
+      }
+
+      // Verificar respuesta RPC
+      if (data?.exito === false) {
+        Swal.fire({
+          icon: 'error',
+          title: 'No se pudo actualizar',
+          text: data.mensaje || "Error al actualizar el pago"
+        });
+        return;
       }
 
       Swal.fire({
@@ -2320,7 +2415,7 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
 /**
  * Borrar un pago
  */
-async function borrarPago(pago, idVenta, codigoVenta, nombreCliente) {
+async function borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado) {
   const result = await Swal.fire({
     title: "¿Eliminar este pago?",
     html: `
@@ -2365,7 +2460,7 @@ async function borrarPago(pago, idVenta, codigoVenta, nombreCliente) {
 
       // Recargar el diálogo de pagos
       setTimeout(() => {
-        mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente);
+        mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente, estado);
       }, 1500);
     } catch (error) {
       console.error("[Ventas] Error:", error);

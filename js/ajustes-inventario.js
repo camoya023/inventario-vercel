@@ -723,22 +723,53 @@ async function guardarAjusteInventario() {
         // Llamar a función RPC de Supabase
         const { data, error } = await client.rpc('rpc_guardar_ajuste_inventario', datosAjuste);
 
+        // Capturar errores de Supabase (validaciones de stock, triggers, etc.)
         if (error) {
             console.error('[AJUSTES-INVENTARIO] Error al guardar:', error);
-            showNotification('Error al guardar el ajuste: ' + error.message, 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo guardar',
+                text: error.message
+            });
             return;
         }
 
         console.log('[AJUSTES-INVENTARIO] Respuesta:', data);
 
         if (data && data.exito) {
-            showNotification(data.mensaje || 'Ajuste de inventario guardado correctamente', 'success');
+            // Mensaje dinámico según el tipo de movimiento
+            let mensajeExito = 'Ajuste de inventario guardado correctamente';
+
+            if (tipoSeleccionado.efecto_en_stock > 0) {
+                // Entrada (códigos: ENT-AJ, INI-STK, ENT-DEV, etc.)
+                mensajeExito = 'Entrada de stock registrada';
+            } else if (tipoSeleccionado.efecto_en_stock < 0) {
+                // Salida (códigos: SAL-AJ, SAL-MER, SAL-DEV, etc.)
+                mensajeExito = 'Salida de stock registrada';
+            }
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: mensajeExito,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
             // Limpiar formulario
             limpiarFormularioAjuste();
         } else if (data && !data.exito) {
-            showNotification(data.mensaje || 'Error al guardar el ajuste', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo guardar',
+                text: data.mensaje || 'Error al guardar el ajuste'
+            });
         } else {
-            showNotification('Error al guardar el ajuste', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Error al guardar el ajuste'
+            });
         }
 
     } catch (error) {
