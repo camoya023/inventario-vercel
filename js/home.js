@@ -380,6 +380,23 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #ajustes-inventario-link no encontrado');
   }
 
+  // ========================================
+  // INFORMES
+  // ========================================
+
+  // Informe de Stock
+  const informeStockLink = document.getElementById('informeStock');
+  if (informeStockLink) {
+    informeStockLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de informe de stock...');
+      cargarVistaInformeStock();
+    });
+    console.log('[HOME] Event listener de Informe de Stock configurado');
+  } else {
+    console.warn('[HOME] Enlace #informeStock no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 
@@ -786,6 +803,47 @@ async function cargarVistaAjustesInventario() {
     } catch (error) {
         console.error('[HOME] Error al cargar vista de ajustes de inventario:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de ajustes de inventario: ${error.message}</div>`;
+    }
+}
+
+async function cargarVistaInformeStock() {
+    console.log('[HOME] Cargando vista de informe de stock...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando informe de stock...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/informe-stock.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Cargar el script del módulo de informe de stock
+        await cargarScriptSiNoExiste('/js/informe-stock.js', 'informe-stock-script');
+
+        // Inicializar la vista de informe de stock
+        if (typeof cargarPaginaInformeStock === 'function') {
+            await cargarPaginaInformeStock();
+            console.log('[HOME] Vista de informe de stock cargada e inicializada');
+        } else {
+            console.error('[HOME] Función cargarPaginaInformeStock no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de informe de stock:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el informe de stock: ${error.message}</div>`;
     }
 }
 

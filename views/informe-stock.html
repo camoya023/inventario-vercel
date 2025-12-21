@@ -1,0 +1,164 @@
+<div class="page-content-wrapper">
+
+    <!-- Encabezado -->
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Informe de Stock Actual</h2>
+        <button id="btn-exportar-csv-stock" class="button button-success">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
+    </div>
+
+    <!-- KPIs / Tarjetas de Indicadores -->
+    <section class="stock-kpis-grid">
+        <!-- Tarjeta 1: Valor Inventario -->
+        <div class="kpi-card kpi-card-blue">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Valor Inventario</p>
+                    <p class="kpi-card-value" id="kpi-valor-inventario">$ 0</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-blue">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Total Productos -->
+        <div class="kpi-card kpi-card-gray">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Total Referencias</p>
+                    <p class="kpi-card-value" id="kpi-total-productos">0</p>
+                    <p class="kpi-card-subtitle">Referencias encontradas</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-gray">
+                    <i class="fas fa-boxes"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Bajo Stock -->
+        <div class="kpi-card kpi-card-yellow">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Bajo Stock</p>
+                    <p class="kpi-card-value" id="kpi-bajo-stock">0</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-yellow">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Agotados -->
+        <div class="kpi-card kpi-card-red">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Agotados</p>
+                    <p class="kpi-card-value" id="kpi-agotados">0</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-red">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alerta de Alta Reserva (opcional, se muestra solo si % > 50) -->
+    <div id="alerta-alta-reserva" class="alert-alta-reserva" style="display: none;">
+        <i class="fas fa-info-circle"></i>
+        <span>Alta Reserva: <strong id="porcentaje-comprometido">0%</strong> del inventario está reservado</span>
+    </div>
+
+    <!-- Panel de Filtros -->
+    <div class="page-toolbar-container">
+        <button id="btn-toggle-filtros-stock" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-stock-content">
+            <i class="fas fa-filter"></i> Opciones y Filtros <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="filtros-stock-content" class="page-toolbar-collapsible">
+            <div class="page-toolbar">
+                <div class="toolbar-row">
+                    <!-- Búsqueda -->
+                    <div class="search-form-container">
+                        <input type="search" id="input-buscar-stock" class="form-input" placeholder="Buscar por SKU o Nombre...">
+                    </div>
+
+                    <!-- Filtro de Marca -->
+                    <div class="filter-container">
+                        <label for="filtro-marca-stock" class="form-label-inline">Marca:</label>
+                        <select id="filtro-marca-stock" class="form-input-select">
+                            <option value="">Todas las marcas</option>
+                        </select>
+                    </div>
+
+                    <!-- Filtro de Estado -->
+                    <div class="filter-container">
+                        <label for="filtro-estado-stock" class="form-label-inline">Estado:</label>
+                        <select id="filtro-estado-stock" class="form-input-select">
+                            <option value="">Todos</option>
+                            <option value="DISPONIBLE">Disponible</option>
+                            <option value="BAJO">Bajo Stock</option>
+                            <option value="AGOTADO">Agotado</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div class="table-wrapper">
+        <table class="data-table-default">
+            <thead>
+                <tr>
+                    <th class="sortable-header" data-sort-key="NOMBRE">
+                        <div class="sortable-header-content">
+                            Producto
+                            <span class="sort-indicator">
+                                <i class="fas fa-sort"></i>
+                            </span>
+                        </div>
+                    </th>
+                    <th class="sortable-header" data-sort-key="MARCA">
+                        <div class="sortable-header-content">
+                            Marca
+                            <span class="sort-indicator">
+                                <i class="fas fa-sort"></i>
+                            </span>
+                        </div>
+                    </th>
+                    <th class="text-center">Unidad</th>
+                    <th class="text-right">Físico</th>
+                    <th class="text-right">Reservado</th>
+                    <th class="sortable-header text-right" data-sort-key="DISPONIBLE">
+                        <div class="sortable-header-content">
+                            Disponible
+                            <span class="sort-indicator">
+                                <i class="fas fa-sort"></i>
+                            </span>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="tbody-stock">
+                <tr>
+                    <td colspan="6" class="text-center" style="padding: 40px; font-style: italic; color: #888;">
+                        <i class="fas fa-spinner fa-spin"></i> Cargando informe de stock...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Controles de Paginación -->
+    <div id="pagination-controls-stock" class="pagination-controls">
+        <button id="btn-prev-page-stock" class="button button-secondary" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span id="page-info-stock" class="page-info">Página 1 de 1</span>
+        <button id="btn-next-page-stock" class="button button-secondary" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+</div>
