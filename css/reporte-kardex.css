@@ -1,0 +1,483 @@
+/* =========================================================================
+   ESTILOS ESPECÍFICOS PARA REPORTE KARDEX
+   ========================================================================= */
+
+/* =========================================================================
+   SECCIÓN 1: KPIs / TARJETAS DE INDICADORES FINANCIEROS
+   ========================================================================= */
+
+/* Grid de tarjetas KPI */
+.kardex-kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Tarjetas KPI - Estilo Base */
+.kpi-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Variantes de color para las tarjetas */
+.kpi-card-green {
+    border-left-color: #15803d; /* Verde oscuro (Entradas) */
+}
+
+.kpi-card-red {
+    border-left-color: #b91c1c; /* Rojo oscuro (Salidas) */
+}
+
+.kpi-card-blue {
+    border-left-color: #1572E8; /* Azul (Balance) */
+}
+
+/* Contenido de la tarjeta */
+.kpi-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.kpi-card-text {
+    flex: 1;
+}
+
+.kpi-card-label {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6B7280; /* Tailwind gray-500 */
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card-value {
+    margin: 0;
+    font-size: 1.875rem; /* 30px */
+    font-weight: 700;
+    color: #1F2937; /* Tailwind gray-800 */
+    line-height: 1.2;
+}
+
+/* Colores específicos para los valores */
+.kpi-value-green {
+    color: #15803d;
+}
+
+.kpi-value-red {
+    color: #b91c1c;
+}
+
+.kpi-value-blue {
+    color: #1572E8;
+}
+
+.kpi-card-subtitle {
+    margin: 0;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #9CA3AF; /* Tailwind gray-400 */
+}
+
+/* Íconos de las tarjetas */
+.kpi-card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.kpi-card-icon i {
+    font-size: 1.5rem;
+}
+
+.kpi-icon-green {
+    background-color: #dcfce7; /* Tailwind green-100 */
+    color: #15803d; /* Tailwind green-800 */
+}
+
+.kpi-icon-red {
+    background-color: #fee2e2; /* Tailwind red-100 */
+    color: #b91c1c; /* Tailwind red-800 */
+}
+
+.kpi-icon-blue {
+    background-color: #dbeafe; /* Tailwind blue-100 */
+    color: #1572E8; /* Primary color */
+}
+
+
+/* =========================================================================
+   SECCIÓN 2: FILTROS COLAPSABLES
+   ========================================================================= */
+
+/* Botón de toggle de filtros */
+#btn-toggle-filtros-kardex {
+    transition: all 0.3s ease;
+}
+
+#btn-toggle-filtros-kardex .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+#btn-toggle-filtros-kardex[aria-expanded="false"] .fa-chevron-down {
+    transform: rotate(-90deg);
+}
+
+/* Contenido colapsable de la barra de herramientas */
+#filtros-kardex-content.page-toolbar-collapsible {
+    max-height: 400px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+}
+
+#filtros-kardex-content.page-toolbar-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Estilos para la barra de herramientas */
+.page-toolbar-collapsible .page-toolbar {
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Filas del toolbar */
+.page-toolbar-collapsible .toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Contenedores de filtro */
+.page-toolbar-collapsible .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.page-toolbar-collapsible .filter-container-wide {
+    flex: 1;
+    min-width: 220px;
+}
+
+.page-toolbar-collapsible .form-label-inline {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #374151; /* Tailwind gray-700 */
+}
+
+/* Input de fecha */
+.form-input-date {
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+.form-input-date:focus {
+    outline: none;
+    border-color: #1572E8;
+    box-shadow: 0 0 0 3px rgba(21, 114, 232, 0.1);
+}
+
+
+/* =========================================================================
+   SECCIÓN 3: TABLA KARDEX (FINANCIAL STYLE)
+   ========================================================================= */
+
+/* Estilo general de la tabla */
+.tabla-kardex {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem; /* Texto compacto para ver más datos */
+}
+
+.tabla-kardex thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+    color: #495057;
+}
+
+.tabla-kardex tbody td {
+    padding: 0.625rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.tabla-kardex tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.tabla-kardex tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Columnas específicas */
+
+/* Columna de Fecha - Compacta y gris */
+.tabla-kardex td:nth-child(1) {
+    font-size: 0.8rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+/* Columna de Producto - Nombre en negrita, SKU en gris */
+.producto-nombre {
+    font-weight: 600;
+    color: #212529;
+    display: block;
+}
+
+.producto-sku {
+    font-size: 0.75rem;
+    color: #adb5bd;
+    display: block;
+    margin-top: 0.125rem;
+}
+
+/* Columna de Saldo - Destacada */
+.tabla-kardex td:nth-child(7) {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+
+/* =========================================================================
+   CLASES FINANCIERAS (SEMÁFORO)
+   ========================================================================= */
+
+/* Valores Positivos (Entradas) */
+.val-positivo {
+    color: #15803d; /* Verde oscuro */
+    font-weight: 700;
+}
+
+/* Valores Negativos (Salidas) */
+.val-negativo {
+    color: #b91c1c; /* Rojo oscuro */
+    font-weight: 700;
+}
+
+/* Badge de Movimiento (Tipo de operación) */
+.badge-movimiento {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+/* Variantes de badges según tipo de movimiento */
+.badge-compra {
+    background-color: #dcfce7; /* Verde claro */
+    color: #166534; /* Verde oscuro */
+}
+
+.badge-venta {
+    background-color: #fee2e2; /* Rojo claro */
+    color: #991b1b; /* Rojo oscuro */
+}
+
+.badge-ajuste {
+    background-color: #fef3c7; /* Amarillo claro */
+    color: #92400e; /* Ámbar oscuro */
+}
+
+.badge-devolucion {
+    background-color: #dbeafe; /* Azul claro */
+    color: #1e40af; /* Azul oscuro */
+}
+
+.badge-default {
+    background-color: #f3f4f6; /* Gris claro */
+    color: #4b5563; /* Gris oscuro */
+}
+
+
+/* =========================================================================
+   AVATAR DE USUARIO (MINI)
+   ========================================================================= */
+
+.user-avatar-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.user-name-short {
+    font-size: 0.85rem;
+    color: #374151;
+}
+
+
+/* =========================================================================
+   MENSAJES Y ALERTAS
+   ========================================================================= */
+
+/* Alerta cuando no hay resultados */
+.alert-no-results {
+    background-color: #f8f9fa;
+    border: 1px dashed #d1d5db;
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+    margin-top: 1rem;
+}
+
+.alert-no-results i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #9ca3af;
+}
+
+.alert-no-results p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+
+/* =========================================================================
+   EXPORTACIÓN CSV - LOADING STATE
+   ========================================================================= */
+
+.button-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.button-loading::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin-loader 0.6s linear infinite;
+}
+
+@keyframes spin-loader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    /* KPIs en columna */
+    .kardex-kpis-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .kpi-card-value {
+        font-size: 1.5rem;
+    }
+
+    /* Filtros en columna */
+    .page-toolbar-collapsible .toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-toolbar-collapsible .filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* Tabla más compacta */
+    .tabla-kardex {
+        font-size: 0.75rem;
+    }
+
+    .tabla-kardex thead th {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.7rem;
+    }
+
+    .tabla-kardex tbody td {
+        padding: 0.5rem 0.375rem;
+    }
+
+    /* Ocultar columnas menos importantes en móvil */
+    .tabla-kardex th:nth-child(5),
+    .tabla-kardex td:nth-child(5) {
+        display: none; /* Ocultar "Costo Unit." */
+    }
+
+    .tabla-kardex th:nth-child(8),
+    .tabla-kardex td:nth-child(8) {
+        display: none; /* Ocultar "Usuario" */
+    }
+}
+
+@media (max-width: 480px) {
+    /* En pantallas muy pequeñas, tabla scrollable horizontal */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .tabla-kardex {
+        min-width: 600px;
+    }
+}

@@ -397,6 +397,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #informeStock no encontrado');
   }
 
+  // Reporte Kardex / Movimientos de Inventario
+  const reporteKardexLink = document.getElementById('reporte-kardex-link');
+  if (reporteKardexLink) {
+    reporteKardexLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de Kardex / Movimientos...');
+      cargarPaginaReporteKardex();
+    });
+    console.log('[HOME] Event listener de Reporte Kardex configurado');
+  } else {
+    console.warn('[HOME] Enlace #reporte-kardex-link no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 

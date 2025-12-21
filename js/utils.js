@@ -518,3 +518,70 @@ if (document.readyState === 'loading') {
 } else {
   mostrarBadgeEntorno();
 }
+
+/* =========================================================================
+   FUNCIONES DE FORMATEO (PARA REPORTES Y KARDEX)
+   ========================================================================= */
+
+/**
+ * Formatea un número como moneda colombiana (COP)
+ * @param {number} amount - Cantidad a formatear
+ * @returns {string} - Cantidad formateada como moneda
+ */
+window.formatMoney = function(amount) {
+  if (amount === null || amount === undefined) return '$ 0';
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
+/**
+ * Formatea una fecha a formato legible colombiano con hora
+ * @param {string} dateString - Fecha en formato ISO o timestamp
+ * @returns {string} - Fecha formateada (dd/mm/yyyy hh:mm)
+ */
+window.formatDate = function(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+/**
+ * Formatea una fecha solo fecha (sin hora)
+ * @param {string} dateString - Fecha en formato ISO o timestamp
+ * @returns {string} - Fecha formateada (dd/mm/yyyy)
+ */
+window.formatDateOnly = function(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+};
+
+/**
+ * Obtiene la fecha de hace N días en formato ISO (YYYY-MM-DD)
+ * @param {number} days - Número de días hacia atrás
+ * @returns {string} - Fecha en formato ISO
+ */
+window.getDateDaysAgo = function(days) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().split('T')[0];
+};
+
+/**
+ * Obtiene la fecha de hoy en formato ISO (YYYY-MM-DD)
+ * @returns {string} - Fecha en formato ISO
+ */
+window.getTodayISO = function() {
+  return new Date().toISOString().split('T')[0];
+};

@@ -1,0 +1,186 @@
+<div class="page-content-wrapper">
+
+    <!-- ====================================================================
+         SECCIÓN 1: ENCABEZADO Y TARJETAS KPI (RESUMEN FINANCIERO)
+         ==================================================================== -->
+
+    <!-- Encabezado de la página -->
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Kardex / Historial de Movimientos</h2>
+        <button id="btn-exportar-csv-kardex" class="button button-success">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
+    </div>
+
+    <!-- Grid de KPIs / Tarjetas de Indicadores Financieros -->
+    <section class="kardex-kpis-grid">
+
+        <!-- Tarjeta 1: Entradas Valorizadas -->
+        <div class="kpi-card kpi-card-green">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Entradas Valorizadas</p>
+                    <p class="kpi-card-value kpi-value-green" id="kpi-entradas">$ 0</p>
+                    <p class="kpi-card-subtitle">Total ingresos periodo</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-green">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Salidas Valorizadas -->
+        <div class="kpi-card kpi-card-red">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Salidas Valorizadas</p>
+                    <p class="kpi-card-value kpi-value-red" id="kpi-salidas">$ 0</p>
+                    <p class="kpi-card-subtitle">Total egresos periodo</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-red">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Balance Neto del Periodo -->
+        <div class="kpi-card kpi-card-blue">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Balance del Periodo</p>
+                    <p class="kpi-card-value kpi-value-blue" id="kpi-balance">$ 0</p>
+                    <p class="kpi-card-subtitle">Diferencia valorizada</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-blue">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================================
+         SECCIÓN 2: BARRA DE FILTROS / HERRAMIENTAS
+         ==================================================================== -->
+
+    <div class="page-toolbar-container">
+        <button id="btn-toggle-filtros-kardex" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-kardex-content">
+            <i class="fas fa-filter"></i> Filtros y Opciones <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <div id="filtros-kardex-content" class="page-toolbar-collapsible">
+            <div class="page-toolbar">
+
+                <!-- Primera fila de filtros -->
+                <div class="toolbar-row">
+
+                    <!-- Rango de Fechas (CRÍTICO) -->
+                    <div class="filter-container filter-container-wide">
+                        <label for="fecha-desde" class="form-label-inline">Desde:</label>
+                        <input type="date" id="fecha-desde" class="form-input-date">
+                    </div>
+
+                    <div class="filter-container filter-container-wide">
+                        <label for="fecha-hasta" class="form-label-inline">Hasta:</label>
+                        <input type="date" id="fecha-hasta" class="form-input-date">
+                    </div>
+
+                    <!-- Filtro de Producto (Autocomplete) -->
+                    <div class="filter-container filter-container-wide">
+                        <label for="filtro-producto-kardex" class="form-label-inline">Producto:</label>
+                        <input
+                            type="search"
+                            id="filtro-producto-kardex"
+                            class="form-input"
+                            placeholder="Buscar producto o SKU..."
+                            autocomplete="off"
+                        >
+                        <input type="hidden" id="filtro-producto-id-kardex">
+                    </div>
+
+                </div>
+
+                <!-- Segunda fila de filtros -->
+                <div class="toolbar-row">
+
+                    <!-- Tipo de Movimiento -->
+                    <div class="filter-container">
+                        <label for="filtro-tipo-movimiento" class="form-label-inline">Tipo Movimiento:</label>
+                        <select id="filtro-tipo-movimiento" class="form-input-select">
+                            <option value="">Cargando...</option>
+                        </select>
+                    </div>
+
+                    <!-- Usuario -->
+                    <div class="filter-container">
+                        <label for="filtro-usuario-kardex" class="form-label-inline">Usuario:</label>
+                        <select id="filtro-usuario-kardex" class="form-input-select">
+                            <option value="">Todos los usuarios</option>
+                            <!-- Se llenarán dinámicamente -->
+                        </select>
+                    </div>
+
+                    <!-- Botones de Búsqueda y Limpieza -->
+                    <div class="filter-container" style="display: flex; gap: 8px;">
+                        <button id="btn-buscar-kardex" class="button button-primary">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                        <button id="btn-limpiar-kardex" class="button button-secondary" title="Limpiar filtros y recargar">
+                            <i class="fas fa-eraser"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         SECCIÓN 3: TABLA DE MOVIMIENTOS (FINANCIAL STYLE)
+         ==================================================================== -->
+
+    <div class="table-wrapper">
+        <table class="data-table-default tabla-kardex">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th class="text-center">Movimiento</th>
+                    <th class="text-right">Cant. (+/-)</th>
+                    <th class="text-right">Costo Unit.</th>
+                    <th class="text-right">Total ($)</th>
+                    <th class="text-right">Saldo</th>
+                    <th class="text-center">Usuario</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-kardex">
+                <tr>
+                    <td colspan="8" class="text-center" style="padding: 40px; font-style: italic; color: #888;">
+                        <i class="fas fa-info-circle"></i> Seleccione un rango de fechas y presione "Buscar" para ver los movimientos.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div id="mensaje-sin-resultados-kardex" class="alert-no-results" style="display: none;">
+        <i class="fas fa-inbox"></i>
+        <p>No se encontraron movimientos para los filtros seleccionados.</p>
+    </div>
+
+    <!-- Controles de Paginación (opcional, si hay muchos datos) -->
+    <div id="pagination-controls-kardex" class="pagination-controls" style="display: none;">
+        <button id="btn-prev-page-kardex" class="button button-secondary" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span id="page-info-kardex" class="page-info">Mostrando todos los registros</span>
+        <button id="btn-next-page-kardex" class="button button-secondary" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+</div>
