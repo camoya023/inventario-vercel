@@ -2,12 +2,16 @@
 // MÓDULO DE INFORME DE STOCK - VERCEL
 // =========================================================================
 
+// 🚨 BANDERA DE MÓDULO ACTIVO (evita colisiones con otros módulos)
+let informeStockModuloActivo = false;
+
 // Variables globales del módulo
 let stock_currentPage = 1;
 const stock_rowsPerPage = 50;
 let stock_allData = []; // Array completo de datos (para paginación client-side)
 let stock_filteredData = []; // Datos después de aplicar filtros
 let stock_isLoading = false;
+let stock_debounceTimer = null; // Timer para búsqueda con debounce
 
 // Filtros actuales
 let stock_currentSearchTerm = "";
@@ -23,10 +27,37 @@ let stock_currentSortDirection = "ASC"; // Valores: 'ASC', 'DESC'
 // =========================================================================
 
 /**
+ * Limpia todos los timers y recursos del módulo
+ * Esta función se llama cuando se desactiva el módulo
+ */
+function limpiarModuloInformeStock() {
+    console.log('[Informe Stock] Limpiando timers y recursos del módulo...');
+
+    // Limpiar timer de búsqueda
+    if (stock_debounceTimer) {
+        clearTimeout(stock_debounceTimer);
+        stock_debounceTimer = null;
+        console.log('[Informe Stock]   ✓ Timer de búsqueda limpiado');
+    }
+
+    // Aquí se pueden agregar más limpiezas en el futuro
+    // Por ejemplo: cancelar peticiones fetch pendientes, limpiar otros timers, etc.
+
+    console.log('[Informe Stock] Módulo limpiado correctamente');
+}
+
+/**
  * Resetea todas las variables globales del módulo de informe de stock
  */
 function resetearVariablesGlobalesStock() {
     console.log('[Informe Stock] Reseteando variables globales...');
+
+    // Limpiar timer de búsqueda si existe
+    if (stock_debounceTimer) {
+        clearTimeout(stock_debounceTimer);
+        stock_debounceTimer = null;
+    }
+
     stock_currentPage = 1;
     stock_allData = [];
     stock_filteredData = [];
@@ -45,6 +76,14 @@ function resetearVariablesGlobalesStock() {
  */
 async function cargarPaginaInformeStock() {
     console.log('[Informe Stock] ===== INICIALIZANDO MÓDULO DE INFORME DE STOCK =====');
+
+    // 🚨 CRÍTICO: Desactivar otros módulos antes de activar este
+    if (typeof desactivarTodosLosModulos === 'function') {
+        desactivarTodosLosModulos();
+    }
+
+    // 🚨 ACTIVAR BANDERA DE MÓDULO
+    informeStockModuloActivo = true;
 
     // Resetear variables globales
     resetearVariablesGlobalesStock();
@@ -86,10 +125,13 @@ function configurarEventListenersInformeStock() {
     // Input de búsqueda (con debounce)
     const inputBuscar = document.getElementById('input-buscar-stock');
     if (inputBuscar) {
-        let debounceTimer;
         inputBuscar.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
+            // Limpiar timer anterior si existe
+            if (stock_debounceTimer) {
+                clearTimeout(stock_debounceTimer);
+            }
+            // Crear nuevo timer
+            stock_debounceTimer = setTimeout(() => {
                 stock_currentSearchTerm = this.value.trim();
                 aplicarFiltrosYRecargar();
             }, 300);
@@ -131,7 +173,7 @@ function configurarEventListenersInformeStock() {
         btnPrev.addEventListener('click', () => {
             if (stock_currentPage > 1) {
                 stock_currentPage--;
-                renderizarTablaPaginada();
+                renderizarTablaPaginadaStock();
             }
         });
     }
@@ -141,7 +183,7 @@ function configurarEventListenersInformeStock() {
             const totalPages = Math.ceil(stock_filteredData.length / stock_rowsPerPage);
             if (stock_currentPage < totalPages) {
                 stock_currentPage++;
-                renderizarTablaPaginada();
+                renderizarTablaPaginadaStock();
             }
         });
     }
@@ -205,6 +247,12 @@ async function cargarDesplegablesInformeStock() {
  * Carga los KPIs y los datos de la tabla
  */
 async function cargarDatosInformeStock() {
+    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
+    if (!informeStockModuloActivo) {
+        console.warn('[Informe Stock] Módulo inactivo, cancelando carga de datos.');
+        return;
+    }
+
     if (stock_isLoading) {
         console.log('[Informe Stock] Ya hay una carga en proceso, ignorando...');
         return;
@@ -252,6 +300,12 @@ async function cargarKPIs(client) {
         });
 
         if (error) throw error;
+
+        // 🚨 VERIFICAR SI EL MÓDULO SIGUE ACTIVO después de la operación asíncrona
+        if (!informeStockModuloActivo) {
+            console.warn('[Informe Stock] Módulo inactivo después de cargar KPIs, cancelando actualización DOM.');
+            return { success: false };
+        }
 
         if (data) {
             // Actualizar valores en el DOM
@@ -307,6 +361,12 @@ async function cargarDatosTabla(client) {
 
         if (error) throw error;
 
+        // 🚨 VERIFICAR SI EL MÓDULO SIGUE ACTIVO después de la operación asíncrona
+        if (!informeStockModuloActivo) {
+            console.warn('[Informe Stock] Módulo inactivo después de cargar datos, cancelando renderizado.');
+            return { success: false };
+        }
+
         // Guardar datos completos
         stock_allData = data || [];
         stock_filteredData = data || [];
@@ -315,7 +375,7 @@ async function cargarDatosTabla(client) {
 
         // Resetear a página 1 y renderizar
         stock_currentPage = 1;
-        renderizarTablaPaginada();
+        renderizarTablaPaginadaStock();
 
         return { success: true };
     } catch (error) {
@@ -345,14 +405,27 @@ async function cargarDatosTabla(client) {
 /**
  * Renderiza la tabla con paginación client-side
  */
-function renderizarTablaPaginada() {
+function renderizarTablaPaginadaStock() {
+    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
+    if (!informeStockModuloActivo) {
+        console.warn('[Informe Stock] Módulo inactivo, cancelando renderizado.');
+        return;
+    }
+
     console.log(`[Informe Stock] Renderizando página ${stock_currentPage}...`);
 
     const tbody = document.getElementById('tbody-stock');
+
+    // --- BLOQUE DE SEGURIDAD ---
+    // Protección contra cambios de vista rápidos (DOM no listo)
     if (!tbody) {
-        console.error('[Informe Stock] No se encontró el tbody');
+        console.warn('[Informe Stock] Tbody no encontrado en el DOM (cambio de vista detectado).');
+        // Vital: Resetear flags para no bloquear futuras cargas
+        stock_isLoading = false;
+        informeStockModuloActivo = false;
         return;
     }
+    // ---------------------------
 
     // Calcular índices de paginación
     const startIndex = (stock_currentPage - 1) * stock_rowsPerPage;
@@ -371,7 +444,7 @@ function renderizarTablaPaginada() {
                 </td>
             </tr>
         `;
-        actualizarControlesPaginacion();
+        actualizarControlesPaginacionStock();
         return;
     }
 
@@ -411,7 +484,7 @@ function renderizarTablaPaginada() {
     });
 
     // Actualizar controles de paginación
-    actualizarControlesPaginacion();
+    actualizarControlesPaginacionStock();
 
     // Actualizar indicadores de ordenamiento
     actualizarIndicadoresOrdenamiento();
@@ -422,7 +495,7 @@ function renderizarTablaPaginada() {
 /**
  * Actualiza los controles de paginación
  */
-function actualizarControlesPaginacion() {
+function actualizarControlesPaginacionStock() {
     const totalPages = Math.ceil(stock_filteredData.length / stock_rowsPerPage);
     const btnPrev = document.getElementById('btn-prev-page-stock');
     const btnNext = document.getElementById('btn-next-page-stock');
@@ -475,6 +548,12 @@ function actualizarIndicadoresOrdenamiento() {
  * Aplica los filtros actuales y recarga los datos
  */
 async function aplicarFiltrosYRecargar() {
+    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
+    if (!informeStockModuloActivo) {
+        console.warn('[Informe Stock] Módulo inactivo, cancelando aplicación de filtros.');
+        return;
+    }
+
     console.log('[Informe Stock] Aplicando filtros y recargando...');
     console.log('[Informe Stock] Filtros:', {
         busqueda: stock_currentSearchTerm,

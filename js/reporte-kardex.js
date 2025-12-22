@@ -8,6 +8,9 @@
 // ========================================
 // VARIABLES GLOBALES
 // ========================================
+// 🚨 BANDERA DE MÓDULO ACTIVO (evita colisiones con otros módulos)
+let kardexModuloActivo = false;
+
 let datosKardexActuales = []; // Array para almacenar los resultados actuales
 let datosKPIsActuales = null; // Objeto para almacenar los KPIs
 
@@ -28,6 +31,14 @@ const estadoPaginacion = {
  */
 async function cargarPaginaReporteKardex() {
     console.log('[Kardex] ===== INICIALIZANDO MÓDULO DE KARDEX =====');
+
+    // 🚨 CRÍTICO: Desactivar otros módulos antes de activar este
+    if (typeof desactivarTodosLosModulos === 'function') {
+        desactivarTodosLosModulos();
+    }
+
+    // 🚨 ACTIVAR BANDERA DE MÓDULO
+    kardexModuloActivo = true;
 
     try {
         const workArea = document.querySelector('.work-area');
@@ -515,6 +526,12 @@ async function cargarDatosTablaKardex(filtros) {
  * Corta el array de datos según la página actual
  */
 function renderizarTablaPaginada() {
+    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
+    if (!kardexModuloActivo) {
+        console.warn('[Kardex] Módulo inactivo, cancelando renderizado.');
+        return;
+    }
+
     const inicio = (estadoPaginacion.paginaActual - 1) * estadoPaginacion.filasPorPagina;
     const fin = inicio + estadoPaginacion.filasPorPagina;
     const movimientosPagina = datosKardexActuales.slice(inicio, fin);
@@ -568,13 +585,24 @@ function actualizarControlesPaginacion() {
  * @param {Array} movimientos - Array de objetos con los movimientos
  */
 function renderizarTablaKardex(movimientos) {
+    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
+    if (!kardexModuloActivo) {
+        console.warn('[Kardex] Módulo inactivo, cancelando renderizado.');
+        return;
+    }
+
     const tbody = document.getElementById('tbody-kardex');
     const mensajeSinResultados = document.getElementById('mensaje-sin-resultados-kardex');
 
+    // --- BLOQUE DE SEGURIDAD ---
+    // Protección contra cambios de vista rápidos (DOM no listo)
     if (!tbody) {
-        console.error('[Kardex] No se encontró el tbody');
+        console.warn('[Kardex] Tbody no encontrado en el DOM (cambio de vista detectado).');
+        // Desactivar módulo para evitar futuras ejecuciones
+        kardexModuloActivo = false;
         return;
     }
+    // ---------------------------
 
     // Limpiar tabla
     tbody.innerHTML = '';

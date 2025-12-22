@@ -570,6 +570,49 @@ function navegarA(idVistaAMostrar) {
 }
 
 // ========================================
+// GESTIÓN DE MÓDULOS ACTIVOS
+// ========================================
+
+/**
+ * Desactiva todos los módulos para evitar conflictos al cambiar de vista
+ * Esta función debe llamarse ANTES de cargar cualquier nueva vista
+ */
+function desactivarTodosLosModulos() {
+    console.log('[HOME] 🛑 Desactivando todos los módulos...');
+
+    // Desactivar módulo de Informe Stock
+    if (typeof informeStockModuloActivo !== 'undefined' && informeStockModuloActivo) {
+        // Primero limpiar timers y recursos
+        if (typeof limpiarModuloInformeStock === 'function') {
+            limpiarModuloInformeStock();
+        }
+        // Luego desactivar la bandera
+        informeStockModuloActivo = false;
+        console.log('[HOME]   ✓ Informe Stock desactivado');
+    }
+
+    // Desactivar módulo de Kardex
+    if (typeof kardexModuloActivo !== 'undefined' && kardexModuloActivo) {
+        // Aquí se puede agregar función de limpieza si es necesario
+        // if (typeof limpiarModuloKardex === 'function') {
+        //     limpiarModuloKardex();
+        // }
+        kardexModuloActivo = false;
+        console.log('[HOME]   ✓ Kardex desactivado');
+    }
+
+    // Aquí se pueden agregar más módulos en el futuro
+    // if (typeof otroModuloActivo !== 'undefined' && otroModuloActivo) {
+    //     if (typeof limpiarOtroModulo === 'function') {
+    //         limpiarOtroModulo();
+    //     }
+    //     otroModuloActivo = false;
+    // }
+
+    console.log('[HOME] ✅ Todos los módulos desactivados');
+}
+
+// ========================================
 // CARGA DINÁMICA DE VISTAS
 // ========================================
 
@@ -821,6 +864,9 @@ async function cargarVistaAjustesInventario() {
 
 async function cargarVistaInformeStock() {
     console.log('[HOME] Cargando vista de informe de stock...');
+
+    // 🚨 CRÍTICO: Desactivar todos los módulos antes de cargar nueva vista
+    desactivarTodosLosModulos();
 
     const workArea = document.querySelector('.work-area');
     if (!workArea) {
