@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="/css/ventas.css">
   <link rel="stylesheet" href="/css/ajustes-inventario.css">
   <link rel="stylesheet" href="/css/informe-stock.css">
+  <link rel="stylesheet" href="/css/reporte-ventas.css">
 
   <style>
     /* Contenedores de vistas */
@@ -202,6 +203,7 @@
           <div class="sidebar__submenu" style="display: none;">
             <div id="informeStock" class="sidebar__submenu-item">Informe de stock</div>
             <div id="reporte-kardex-link" class="sidebar__submenu-item">Movimientos de Inventario</div>
+            <div id="informe-ventas-link" class="sidebar__submenu-item">Informe de Ventas</div>
             <div class="sidebar__submenu-item">Productos en tendencia</div>
             <div id="informe-compra-producto-link" class="sidebar__submenu-item">Informe de compra del producto</div>
             <div id="informe-venta-producto-link" class="sidebar__submenu-item">Informe de venta del producto</div>
@@ -259,6 +261,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Application JavaScript -->
   <!-- Config local debe cargarse ANTES de config.js -->
@@ -266,7 +269,8 @@
   <script src="/js/config.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/login.js"></script>
-  <script src="/js/home.js"></script>
+
+  <!-- Módulos de funcionalidad (deben cargarse ANTES de home.js) -->
   <script src="/js/clientes-lista.js"></script>
   <script src="/js/clientes-formulario.js"></script>
   <script src="/js/clientes-detalle.js"></script>
@@ -279,6 +283,14 @@
   <script src="/js/ventas-detalle.js"></script>
   <script src="/js/ajustes-inventario.js"></script>
   <script src="/js/reporte-kardex.js"></script>
+  <script src="/js/reporte-ventas.js"></script>
+  <script src="/js/informe-stock.js"></script>
+  <script src="/js/productos-lista.js"></script>
+  <script src="/js/categorias-lista.js"></script>
+  <script src="/js/marcas-lista.js"></script>
+
+  <!-- Home.js debe cargarse AL FINAL (configura los event listeners) -->
+  <script src="/js/home.js"></script>
 
   <!-- Application Logic -->
   <script>

@@ -1,0 +1,185 @@
+<div class="page-content-wrapper">
+
+    <!-- ====================================================================
+         SECCIÓN 1: ENCABEZADO Y TARJETAS KPI (RESUMEN DE VENTAS)
+         ==================================================================== -->
+
+    <!-- Encabezado de la página -->
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Informe de Ventas</h2>
+        <button id="btn-exportar-csv-ventas" class="button button-success">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
+    </div>
+
+    <!-- Grid de KPIs / Tarjetas de Indicadores de Ventas -->
+    <section class="ventas-kpis-grid">
+
+        <!-- Tarjeta 1: Ventas Totales -->
+        <div class="kpi-card kpi-card-blue">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Ventas Totales</p>
+                    <p class="kpi-card-value kpi-value-blue" id="kpi-ventas-totales">$ 0</p>
+                    <p class="kpi-card-subtitle">Total del periodo</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-blue">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Cantidad de Ventas -->
+        <div class="kpi-card kpi-card-purple">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Cantidad de Ventas</p>
+                    <p class="kpi-card-value kpi-value-purple" id="kpi-cantidad-ventas">0</p>
+                    <p class="kpi-card-subtitle">Transacciones realizadas</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-purple">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Ticket Promedio -->
+        <div class="kpi-card kpi-card-teal">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Ticket Promedio</p>
+                    <p class="kpi-card-value kpi-value-teal" id="kpi-ticket-promedio">$ 0</p>
+                    <p class="kpi-card-subtitle">Promedio por venta</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-teal">
+                    <i class="fas fa-receipt"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Ganancia Estimada (DESTACADA) -->
+        <div class="kpi-card kpi-card-green kpi-card-destacada">
+            <div class="kpi-card-content">
+                <div class="kpi-card-text">
+                    <p class="kpi-card-label">Ganancia Estimada</p>
+                    <p class="kpi-card-value kpi-value-green" id="kpi-ganancia-estimada">$ 0</p>
+                    <p class="kpi-card-subtitle">Utilidad del periodo</p>
+                </div>
+                <div class="kpi-card-icon kpi-icon-green">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ====================================================================
+         SECCIÓN 2: BARRA DE FILTROS / HERRAMIENTAS
+         ==================================================================== -->
+
+    <div class="page-toolbar-container">
+        <button id="btn-toggle-filtros-ventas" class="button button-secondary button-sm" aria-expanded="true" aria-controls="filtros-ventas-content">
+            <i class="fas fa-filter"></i> Filtros y Opciones <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <div id="filtros-ventas-content" class="page-toolbar-collapsible">
+            <div class="page-toolbar filtros-ventas-inline">
+
+                <!-- Fecha Desde -->
+                <div class="filtro-item-inline">
+                    <label for="fecha-desde-ventas">Desde</label>
+                    <input type="date" id="fecha-desde-ventas" class="form-input-date">
+                </div>
+
+                <!-- Fecha Hasta -->
+                <div class="filtro-item-inline">
+                    <label for="fecha-hasta-ventas">Hasta</label>
+                    <input type="date" id="fecha-hasta-ventas" class="form-input-date">
+                </div>
+
+                <!-- Cliente -->
+                <div class="filtro-item-inline filtro-cliente-flex">
+                    <label for="filtro-cliente-ventas">Cliente</label>
+                    <select id="filtro-cliente-ventas" class="form-select">
+                        <option value="">Todos los clientes</option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <button id="btn-buscar-ventas" class="button button-primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <button id="btn-limpiar-ventas" class="button button-secondary" title="Limpiar filtros y recargar">
+                    <i class="fas fa-eraser"></i> Limpiar Filtros
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         SECCIÓN 3: GRÁFICO DE TOP PRODUCTOS
+         ==================================================================== -->
+
+    <div class="grafico-container">
+        <div class="grafico-header">
+            <h3 class="grafico-titulo">
+                <i class="fas fa-chart-bar"></i> Top Productos Más Vendidos
+            </h3>
+            <p class="grafico-subtitulo">Por cantidad de unidades vendidas en el periodo seleccionado</p>
+        </div>
+        <div class="grafico-content">
+            <canvas id="graficoTopProductos"></canvas>
+        </div>
+        <div id="mensaje-sin-datos-grafico" class="alert-no-results" style="display: none;">
+            <i class="fas fa-chart-bar"></i>
+            <p>No hay datos suficientes para generar el gráfico.</p>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         SECCIÓN 4: TABLA DE VENTAS DETALLADA
+         ==================================================================== -->
+
+    <div class="table-wrapper">
+        <table class="data-table-default tabla-ventas">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th class="text-right">Total</th>
+                    <th class="text-center">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-ventas">
+                <tr>
+                    <td colspan="5" class="text-center" style="padding: 40px; font-style: italic; color: #888;">
+                        <i class="fas fa-info-circle"></i> Seleccione un rango de fechas y presione "Buscar" para ver las ventas.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mensaje cuando no hay resultados -->
+    <div id="mensaje-sin-resultados-ventas" class="alert-no-results" style="display: none;">
+        <i class="fas fa-inbox"></i>
+        <p>No se encontraron ventas para los filtros seleccionados.</p>
+    </div>
+
+    <!-- Controles de Paginación -->
+    <div id="pagination-controls-ventas" class="pagination-controls" style="display: none;">
+        <button id="btn-prev-page-ventas" class="button button-secondary" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span id="page-info-ventas" class="page-info">Mostrando todos los registros</span>
+        <button id="btn-next-page-ventas" class="button button-secondary" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+</div>

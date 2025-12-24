@@ -410,6 +410,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #reporte-kardex-link no encontrado');
   }
 
+  // Informe de Ventas
+  const informeVentasLink = document.getElementById('informe-ventas-link');
+  if (informeVentasLink) {
+    informeVentasLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de Informe de Ventas...');
+      cargarPaginaInformeVentas();
+    });
+    console.log('[HOME] Event listener de Informe de Ventas configurado');
+  } else {
+    console.warn('[HOME] Enlace #informe-ventas-link no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 

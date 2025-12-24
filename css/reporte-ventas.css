@@ -1,0 +1,558 @@
+/* =========================================================================
+   ESTILOS ESPECÍFICOS PARA INFORME DE VENTAS
+   ========================================================================= */
+
+/* =========================================================================
+   SECCIÓN 1: KPIs / TARJETAS DE INDICADORES DE VENTAS
+   ========================================================================= */
+
+/* Grid de tarjetas KPI */
+.ventas-kpis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Tarjetas KPI - Estilo Base */
+.kpi-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tarjeta destacada (Ganancia Estimada) */
+.kpi-card-destacada {
+    box-shadow: 0 4px 8px rgba(21, 128, 61, 0.2);
+    border-left-width: 5px;
+}
+
+.kpi-card-destacada:hover {
+    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.3);
+}
+
+/* Variantes de color para las tarjetas */
+.kpi-card-blue {
+    border-left-color: #1572E8; /* Azul (Ventas Totales) */
+}
+
+.kpi-card-purple {
+    border-left-color: #7c3aed; /* Púrpura (Cantidad de Ventas) */
+}
+
+.kpi-card-teal {
+    border-left-color: #0d9488; /* Teal (Ticket Promedio) */
+}
+
+.kpi-card-green {
+    border-left-color: #15803d; /* Verde oscuro (Ganancia Estimada) */
+}
+
+/* Contenido de la tarjeta */
+.kpi-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.kpi-card-text {
+    flex: 1;
+}
+
+.kpi-card-label {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6B7280; /* Tailwind gray-500 */
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-card-value {
+    margin: 0;
+    font-size: 1.875rem; /* 30px */
+    font-weight: 700;
+    color: #1F2937; /* Tailwind gray-800 */
+    line-height: 1.2;
+}
+
+/* Colores específicos para los valores */
+.kpi-value-blue {
+    color: #1572E8;
+}
+
+.kpi-value-purple {
+    color: #7c3aed;
+}
+
+.kpi-value-teal {
+    color: #0d9488;
+}
+
+.kpi-value-green {
+    color: #15803d;
+}
+
+.kpi-card-subtitle {
+    margin: 0;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #9CA3AF; /* Tailwind gray-400 */
+}
+
+/* Íconos de las tarjetas */
+.kpi-card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.kpi-card-icon i {
+    font-size: 1.5rem;
+}
+
+.kpi-icon-blue {
+    background-color: #dbeafe; /* Tailwind blue-100 */
+    color: #1572E8;
+}
+
+.kpi-icon-purple {
+    background-color: #ede9fe; /* Tailwind purple-100 */
+    color: #7c3aed;
+}
+
+.kpi-icon-teal {
+    background-color: #ccfbf1; /* Tailwind teal-100 */
+    color: #0d9488;
+}
+
+.kpi-icon-green {
+    background-color: #dcfce7; /* Tailwind green-100 */
+    color: #15803d;
+}
+
+
+/* =========================================================================
+   SECCIÓN 2: FILTROS COLAPSABLES
+   ========================================================================= */
+
+/* Botón de toggle de filtros */
+#btn-toggle-filtros-ventas {
+    transition: all 0.3s ease;
+}
+
+#btn-toggle-filtros-ventas .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+
+#btn-toggle-filtros-ventas[aria-expanded="false"] .fa-chevron-down {
+    transform: rotate(-90deg);
+}
+
+/* Contenido colapsable de la barra de herramientas */
+#filtros-ventas-content.page-toolbar-collapsible {
+    max-height: 400px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out;
+}
+
+#filtros-ventas-content.page-toolbar-collapsible.collapsed {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+}
+
+/* Estilos para la barra de herramientas */
+.page-toolbar-collapsible .page-toolbar {
+    display: flex;
+    flex-direction: row;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+}
+
+/* Layout horizontal con labels encima de inputs */
+.filtros-ventas-inline {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    flex-wrap: nowrap;
+}
+
+/* Items de filtro con label encima del input */
+.filtro-item-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Labels encima del input */
+.filtro-item-inline label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* Input de fecha - más compacto */
+.form-input-date {
+    padding: 0.5rem 0.625rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    width: 145px;
+}
+
+.form-input-date:focus {
+    outline: none;
+    border-color: #1572E8;
+    box-shadow: 0 0 0 3px rgba(21, 114, 232, 0.1);
+}
+
+/* Filtro de cliente - flexible con más espacio para nombres largos */
+.filtro-cliente-flex {
+    flex: 1;
+    min-width: 320px;
+    max-width: 450px;
+}
+
+.filtro-cliente-flex select {
+    width: 100%;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================================
+   SECCIÓN 3: GRÁFICO DE TOP PRODUCTOS
+   ========================================================================= */
+
+.grafico-container {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.grafico-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.grafico-titulo {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1F2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.grafico-titulo i {
+    color: #1572E8;
+}
+
+.grafico-subtitulo {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.grafico-content {
+    position: relative;
+    min-height: 300px;
+    max-height: 400px;
+}
+
+.grafico-content canvas {
+    max-height: 400px;
+}
+
+/* Mensaje cuando no hay datos para el gráfico */
+.grafico-container .alert-no-results {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+
+/* =========================================================================
+   SECCIÓN 4: TABLA DE VENTAS
+   ========================================================================= */
+
+/* Estilo general de la tabla */
+.tabla-ventas {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.tabla-ventas thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+    color: #495057;
+}
+
+.tabla-ventas tbody td {
+    padding: 0.625rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.tabla-ventas tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.tabla-ventas tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Columna de Fecha - Compacta y gris */
+.tabla-ventas td:nth-child(1) {
+    font-size: 0.8rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+/* Columna de Folio - Destacada */
+.tabla-ventas td:nth-child(2) {
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Columna de Total - Alineada a la derecha */
+.tabla-ventas td:nth-child(4) {
+    font-weight: 600;
+    color: #15803d;
+}
+
+
+/* =========================================================================
+   BADGES DE ESTADO DE VENTA
+   ========================================================================= */
+
+.badge-estado {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+/* Estados de Venta */
+.badge-completada {
+    background-color: #dcfce7; /* Verde claro */
+    color: #166534; /* Verde oscuro */
+}
+
+.badge-pendiente {
+    background-color: #fef3c7; /* Amarillo claro */
+    color: #92400e; /* Ámbar oscuro */
+}
+
+.badge-cancelada {
+    background-color: #fee2e2; /* Rojo claro */
+    color: #991b1b; /* Rojo oscuro */
+}
+
+.badge-en-proceso {
+    background-color: #dbeafe; /* Azul claro */
+    color: #1e40af; /* Azul oscuro */
+}
+
+.badge-default {
+    background-color: #f3f4f6; /* Gris claro */
+    color: #4b5563; /* Gris oscuro */
+}
+
+
+/* =========================================================================
+   MENSAJES Y ALERTAS
+   ========================================================================= */
+
+/* Alerta cuando no hay resultados */
+.alert-no-results {
+    background-color: #f8f9fa;
+    border: 1px dashed #d1d5db;
+    border-radius: 6px;
+    padding: 2rem;
+    text-align: center;
+    color: #6b7280;
+    margin-top: 1rem;
+}
+
+.alert-no-results i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: #9ca3af;
+}
+
+.alert-no-results p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+
+/* =========================================================================
+   LOADING STATES
+   ========================================================================= */
+
+.button-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.button-loading::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin-loader 0.6s linear infinite;
+}
+
+@keyframes spin-loader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================= */
+
+@media (max-width: 968px) {
+    /* Permitir wrap en tablets */
+    .filtros-ventas-inline {
+        flex-wrap: wrap;
+    }
+
+    .filtro-cliente-flex {
+        min-width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* KPIs en columna */
+    .ventas-kpis-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .kpi-card-value {
+        font-size: 1.5rem;
+    }
+
+    /* Filtros en columna para móviles */
+    .filtros-ventas-inline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .filtro-item-inline {
+        width: 100%;
+    }
+
+    .filtro-cliente-flex {
+        width: 100%;
+        min-width: auto;
+        max-width: none;
+    }
+
+    .form-input-date {
+        width: 100%;
+    }
+
+    .filtro-item-inline select,
+    .filtro-item-inline input {
+        width: 100%;
+    }
+
+    /* Gráfico más pequeño */
+    .grafico-content {
+        min-height: 200px;
+        max-height: 300px;
+    }
+
+    .grafico-content canvas {
+        max-height: 300px;
+    }
+
+    /* Tabla más compacta */
+    .tabla-ventas {
+        font-size: 0.75rem;
+    }
+
+    .tabla-ventas thead th {
+        padding: 0.5rem 0.375rem;
+        font-size: 0.7rem;
+    }
+
+    .tabla-ventas tbody td {
+        padding: 0.5rem 0.375rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* En pantallas muy pequeñas, tabla scrollable horizontal */
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .tabla-ventas {
+        min-width: 500px;
+    }
+
+    /* Gráfico aún más pequeño */
+    .grafico-content {
+        min-height: 150px;
+        max-height: 250px;
+    }
+
+    .grafico-content canvas {
+        max-height: 250px;
+    }
+}
