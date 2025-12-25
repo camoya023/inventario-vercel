@@ -1,63 +1,23 @@
-/* NEW Analysis Panel Styles */
-.analysis-panel {
-    background-color: #fdfdfe;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out, opacity 0.3s ease-in, padding 0.4s ease-out;
-    padding: 0 16px;
-    border-bottom: 1px solid transparent;
+/* ========================================
+   ÁREA DE FILTROS COLAPSABLE
+   ======================================== */
+
+/* Contenedor de filtros colapsable - estado inicial (contraído) */
+#filtros-ventas-content.page-toolbar-collapsible {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out, padding 0.4s ease-out;
+    padding: 0 16px !important;
+    margin: 0 !important;
 }
 
-.analysis-panel.is-visible {
-    max-height: 200px;
-    opacity: 1;
-    padding: 16px;
-    border-bottom-color: #e0e0e0;
-    margin-bottom: 16px;
-}
-
-.analysis-panel .kpi-container {
-    border-bottom: none;
-    padding: 0;
-}
-
-/* KPI Cards */
-.kpi-container {
-    display: flex;
-    gap: 16px;
-    padding: 16px 0;
-    flex-wrap: wrap;
-}
-
-.kpi-card {
-    flex: 1;
-    min-width: 200px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    padding: 16px;
-    border: 1px solid #dee2e6;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.kpi-label {
-    font-size: 14px;
-    color: #6c757d;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.kpi-value {
-    font-size: 24px;
-    font-weight: 700;
-    color: #212529;
-}
-
-.kpi-value.text-success {
-    color: #198754;
+/* Estado expandido */
+#filtros-ventas-content.page-toolbar-collapsible.is-visible {
+    max-height: 400px !important;
+    opacity: 1 !important;
+    padding: 16px !important;
+    margin-top: 8px !important;
 }
 
 /* Distribución uniforme de columnas para tabla de ventas */
@@ -306,6 +266,17 @@
 #btn-toggle-filtros-ventas.has-active-filters:hover {
     background-color: #0b5ed7 !important;
     transform: translateY(-1px);
+}
+
+/* Estilos para el ícono del botón Filtros con rotación */
+.filter-chevron {
+    margin-left: 6px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.filter-chevron.rotated {
+    transform: rotate(90deg);
 }
 
 .loading-notification {

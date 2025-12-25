@@ -126,12 +126,6 @@ function configurarEventListenersListaVentas() {
     btnToggleFiltros.addEventListener("click", toggleFiltrosVentas);
   }
 
-  // Toggle Análisis
-  const btnToggleAnalisis = document.getElementById("btn-toggle-analisis");
-  if (btnToggleAnalisis) {
-    btnToggleAnalisis.addEventListener("click", toggleAnalisisVentas);
-  }
-
   // Input de búsqueda con debounce
   const inputBuscar = document.getElementById("input-buscar-ventas");
   if (inputBuscar) {
@@ -932,65 +926,6 @@ async function confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente) {
 }
 
 // ========================================
-// PANEL DE ANÁLISIS/KPIs
-// ========================================
-async function actualizarTarjetasAnalisisPeriodo() {
-  console.log("[Ventas] Actualizando tarjetas de análisis...");
-
-  try {
-    const client = getSupabaseClient();
-
-    // Parsear rango de fechas
-    let fechaInicio = null;
-    let fechaFin = null;
-    if (
-      flatpickrRangoFechasVentas &&
-      flatpickrRangoFechasVentas.selectedDates.length > 0
-    ) {
-      fechaInicio = formatearFechaLocal(
-        flatpickrRangoFechasVentas.selectedDates[0]
-      );
-      if (flatpickrRangoFechasVentas.selectedDates.length > 1) {
-        fechaFin = formatearFechaLocal(
-          flatpickrRangoFechasVentas.selectedDates[1]
-        );
-      } else {
-        fechaFin = fechaInicio;
-      }
-    }
-
-    // Llamar a RPC de análisis (si existe)
-    const { data, error } = await client.rpc("fn_obtener_analisis_ventas", {
-      p_fecha_inicio: fechaInicio,
-      p_fecha_fin: fechaFin,
-      p_cliente_id: estadoPaginacionVentas.filtros.clienteId || null,
-      p_estado_venta: estadoPaginacionVentas.filtros.estadoVenta || null,
-    });
-
-    if (error) {
-      console.error("[Ventas] Error al cargar análisis:", error);
-      return;
-    }
-
-    // Actualizar tarjetas
-    if (data && data.exito !== false) {
-      document.getElementById("kpi-ingresos").textContent = formatCurrency(
-        data.total_ingresos || 0
-      );
-      document.getElementById("kpi-ganancia").textContent = formatCurrency(
-        data.ganancia_neta || 0
-      );
-      document.getElementById("kpi-num-ventas").textContent =
-        data.numero_ventas || 0;
-      document.getElementById("kpi-ticket-promedio").textContent =
-        formatCurrency(data.ticket_promedio || 0);
-    }
-  } catch (error) {
-    console.error("[Ventas] Error al actualizar análisis:", error);
-  }
-}
-
-// ========================================
 // GESTOR DE COLUMNAS
 // ========================================
 // ========================================
@@ -1001,45 +936,22 @@ async function actualizarTarjetasAnalisisPeriodo() {
 function toggleFiltrosVentas() {
   const filtrosContent = document.getElementById("filtros-ventas-content");
   const btnToggle = document.getElementById("btn-toggle-filtros-ventas");
-  const icon = btnToggle.querySelector("i.fa-chevron-up, i.fa-chevron-down");
-  const analysisPanel = document.getElementById("analysis-panel");
+  const chevronIcon = btnToggle.querySelector(".filter-chevron");
 
   if (filtrosContent.classList.contains("is-visible")) {
+    // Contraer filtros
     filtrosContent.classList.remove("is-visible");
-    if (icon) {
-      icon.classList.remove("fa-chevron-up");
-      icon.classList.add("fa-chevron-down");
+    btnToggle.setAttribute("aria-expanded", "false");
+    if (chevronIcon) {
+      chevronIcon.classList.remove("rotated");
     }
   } else {
+    // Expandir filtros
     filtrosContent.classList.add("is-visible");
-    if (icon) {
-      icon.classList.remove("fa-chevron-down");
-      icon.classList.add("fa-chevron-up");
+    btnToggle.setAttribute("aria-expanded", "true");
+    if (chevronIcon) {
+      chevronIcon.classList.add("rotated");
     }
-    // Cerrar análisis si está abierto
-    if (analysisPanel && analysisPanel.classList.contains("is-visible")) {
-      analysisPanel.classList.remove("is-visible");
-    }
-  }
-}
-
-/**
- * Toggle de análisis
- */
-function toggleAnalisisVentas() {
-  const analysisPanel = document.getElementById("analysis-panel");
-  const filtrosContent = document.getElementById("filtros-ventas-content");
-
-  if (analysisPanel.classList.contains("is-visible")) {
-    analysisPanel.classList.remove("is-visible");
-  } else {
-    analysisPanel.classList.add("is-visible");
-    // Cerrar filtros si está abierto
-    if (filtrosContent && filtrosContent.classList.contains("is-visible")) {
-      filtrosContent.classList.remove("is-visible");
-    }
-    // Actualizar datos del panel
-    actualizarTarjetasAnalisisPeriodo();
   }
 }
 
