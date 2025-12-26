@@ -1,9 +1,9 @@
 /* ========================================
-   ÁREA DE FILTROS COLAPSABLE
+   ÁREA DE FILTROS COLAPSABLE - SOLO PARA VISTA LISTA DE VENTAS
    ======================================== */
 
 /* Contenedor de filtros colapsable - estado inicial (contraído) */
-#filtros-ventas-content.page-toolbar-collapsible {
+#vista-lista-ventas #filtros-ventas-content.page-toolbar-collapsible {
     max-height: 0 !important;
     opacity: 0 !important;
     overflow: hidden !important;
@@ -13,7 +13,7 @@
 }
 
 /* Estado expandido */
-#filtros-ventas-content.page-toolbar-collapsible.is-visible {
+#vista-lista-ventas #filtros-ventas-content.page-toolbar-collapsible.is-visible {
     max-height: 400px !important;
     opacity: 1 !important;
     padding: 16px !important;
