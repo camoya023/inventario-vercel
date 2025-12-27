@@ -1581,15 +1581,19 @@ async function mostrarDialogoAgregarPago(
     .join("");
 
   const result = await Swal.fire({
-    title: `Registrar Pago - Venta ${codigoVenta}`,
+    title: `Registrar Pago para Venta ${codigoVenta}`,
     html: `
-            <p>Cliente: <strong>${nombreCliente}</strong></p>
-            <p>Saldo Pendiente: <strong>${formatCurrency(
-              saldoPendiente
-            )}</strong></p>
-            <div class="swal2-form">
-                <label>Método de Pago:</label>
-                <select id="swal-metodo" class="swal2-input">
+            <div style="margin-bottom: 20px; text-align: left; padding: 0 20px;">
+                <p style="margin: 5px 0;"><strong>Cliente:</strong> ${nombreCliente}</p>
+                <p style="margin: 5px 0;"><strong>Saldo Pendiente:</strong> <span style="color: #1572E8; font-weight: bold;">${formatCurrency(saldoPendiente)}</span></p>
+            </div>
+
+            <div class="swal2-form" style="text-align: left; padding: 0 20px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Fecha del Pago:</label>
+                <input type="text" id="swal-fecha-pago" class="swal2-input" placeholder="Seleccione fecha" style="margin-bottom: 15px;">
+
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Método de Pago:</label>
+                <select id="swal-metodo" class="swal2-input" style="margin-bottom: 15px;">
                     <option value="Efectivo" selected>Efectivo</option>
                     <option value="Transferencia">Transferencia</option>
                     <option value="Pago Mixto">Pago Mixto</option>
@@ -1597,36 +1601,41 @@ async function mostrarDialogoAgregarPago(
 
                 <!-- Campos para Efectivo y Transferencia simple -->
                 <div id="campos-simple" style="display: block;">
-                    <label>Monto a Pagar:</label>
-                    <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto a Pagar:</label>
+                    <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}" style="margin-bottom: 15px;">
 
                     <div id="campo-cuenta" style="display: none;">
-                        <label>Cuenta Destino:</label>
-                        <select id="swal-cuenta" class="swal2-input">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cuenta Destino:</label>
+                        <select id="swal-cuenta" class="swal2-input" style="margin-bottom: 15px;">
                             <option value="">Seleccione Cuenta...</option>
                             ${opcionesCuentas}
                         </select>
 
-                        <label>Referencia (Opcional):</label>
-                        <input type="text" id="swal-referencia" class="swal2-input" placeholder="Ej: # de transacción">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Referencia (Opcional):</label>
+                        <input type="text" id="swal-referencia" class="swal2-input" placeholder="Ej: # de transacción" style="margin-bottom: 15px;">
                     </div>
                 </div>
 
                 <!-- Campos para Pago Mixto -->
                 <div id="campos-mixto" style="display: none;">
-                    <label>Monto Efectivo:</label>
-                    <input type="number" id="swal-monto-efectivo" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto Efectivo:</label>
+                            <input type="number" id="swal-monto-efectivo" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0" style="margin: 0;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto Transferencia:</label>
+                            <input type="number" id="swal-monto-transferencia" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0" style="margin: 0;">
+                        </div>
+                    </div>
 
-                    <label>Monto Transferencia:</label>
-                    <input type="number" id="swal-monto-transferencia" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0">
-
-                    <label>Cuenta (Transf.):</label>
-                    <select id="swal-cuenta-mixto" class="swal2-input">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cuenta (Transferencia):</label>
+                    <select id="swal-cuenta-mixto" class="swal2-input" style="margin-bottom: 15px;">
                         <option value="">Seleccione Cuenta...</option>
                         ${opcionesCuentas}
                     </select>
 
-                    <label>Referencia (Opcional):</label>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Referencia (Opcional):</label>
                     <input type="text" id="swal-referencia-mixto" class="swal2-input" placeholder="Ej: # de transacción">
                 </div>
             </div>
@@ -1640,6 +1649,26 @@ async function mostrarDialogoAgregarPago(
       const camposSimple = document.getElementById("campos-simple");
       const camposMixto = document.getElementById("campos-mixto");
       const campoCuenta = document.getElementById("campo-cuenta");
+
+      // Inicializar Flatpickr para el campo de fecha
+      if (typeof flatpickr !== "undefined") {
+        // Obtener fecha actual en la zona horaria local
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const fechaLocal = `${year}-${month}-${day}`;
+
+        flatpickr("#swal-fecha-pago", {
+          locale: "es",
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "d/m/Y",
+          defaultDate: fechaLocal,
+          maxDate: "today" // No permitir fechas futuras
+        });
+      }
 
       // Manejar cambio de método de pago
       selectMetodo.addEventListener("change", function () {
@@ -1662,6 +1691,13 @@ async function mostrarDialogoAgregarPago(
     },
     preConfirm: () => {
       const metodo = document.getElementById("swal-metodo").value;
+      const fechaPago = document.getElementById("swal-fecha-pago").value;
+
+      // Validar fecha
+      if (!fechaPago) {
+        Swal.showValidationMessage("Debe seleccionar una fecha para el pago");
+        return false;
+      }
 
       if (metodo === "Pago Mixto") {
         const montoEfectivo =
@@ -1704,6 +1740,7 @@ async function mostrarDialogoAgregarPago(
           montoTransferencia,
           cuenta: cuentaMixto,
           referencia: referenciaMixto,
+          fechaPago,
         };
       } else {
         const monto = parseFloat(document.getElementById("swal-monto").value);
@@ -1730,7 +1767,7 @@ async function mostrarDialogoAgregarPago(
           return false;
         }
 
-        return { metodo, monto, cuenta, referencia };
+        return { metodo, monto, cuenta, referencia, fechaPago };
       }
     },
   });
@@ -1768,7 +1805,7 @@ async function mostrarDialogoAgregarPago(
               metodo_pago: "Efectivo",
               id_cuenta_bancaria_destino: null,
               referencia_pago: null,
-              fecha_pago: null,
+              fecha_pago: result.value.fechaPago,
               id_usuario_responsable: userId,
               empresa_id: null,
             }
@@ -1805,7 +1842,7 @@ async function mostrarDialogoAgregarPago(
               metodo_pago: "Transferencia",
               id_cuenta_bancaria_destino: result.value.cuenta || null,
               referencia_pago: result.value.referencia || null,
-              fecha_pago: null,
+              fecha_pago: result.value.fechaPago,
               id_usuario_responsable: userId,
               empresa_id: null,
             }
@@ -1870,7 +1907,7 @@ async function mostrarDialogoAgregarPago(
           metodo_pago: result.value.metodo,
           id_cuenta_bancaria_destino: result.value.cuenta || null,
           referencia_pago: result.value.referencia || null,
-          fecha_pago: null,
+          fecha_pago: result.value.fechaPago,
           id_usuario_responsable: userId,
           empresa_id: null,
         });
@@ -1978,7 +2015,8 @@ async function mostrarDialogoGestionarPagos(
             `;
 
       pagos.forEach((p, index) => {
-        const fechaPago = moment(p.fecha_pago).format("DD/MM/YYYY");
+        // Usar moment.utc() para evitar conversión de zona horaria
+        const fechaPago = moment.utc(p.fecha_pago).format("DD/MM/YYYY");
 
         // Deshabilitar botones si la venta está anulada
         const btnDisabled = ventaAnulada ? 'disabled' : '';
@@ -2191,20 +2229,23 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
   const result = await Swal.fire({
     title: `Editar Pago - ${codigoVenta}`,
     html: `
-            <div class="swal2-form">
+            <div class="swal2-form" style="text-align: left; padding: 0 20px;">
                 <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
                     Monto máximo permitido: <strong style="color: #27ae60;">${formatCurrency(
                       montoMaximoPermitido
                     )}</strong>
                 </p>
 
-                <label>Monto:</label>
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Fecha del Pago:</label>
+                <input type="text" id="edit-fecha-pago" class="swal2-input" placeholder="Seleccione fecha" style="margin-bottom: 15px;">
+
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto:</label>
                 <input type="number" id="edit-monto" class="swal2-input" value="${
                   pago.monto
-                }" step="0.01" min="0" max="${montoMaximoPermitido}">
+                }" step="0.01" min="0" max="${montoMaximoPermitido}" style="margin-bottom: 15px;">
 
-                <label>Método de Pago:</label>
-                <select id="edit-metodo" class="swal2-input">
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Método de Pago:</label>
+                <select id="edit-metodo" class="swal2-input" style="margin-bottom: 15px;">
                     <option value="Efectivo" ${
                       pago.metodo_pago === "Efectivo" ? "selected" : ""
                     }>Efectivo</option>
@@ -2216,14 +2257,14 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
                 <div id="edit-campo-cuenta" style="display: ${
                   mostrarCuenta ? "block" : "none"
                 };">
-                    <label>Cuenta Destino:</label>
-                    <select id="edit-cuenta" class="swal2-input">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cuenta Destino:</label>
+                    <select id="edit-cuenta" class="swal2-input" style="margin-bottom: 15px;">
                         <option value="">Seleccione Cuenta...</option>
                         ${opcionesCuentas}
                     </select>
                 </div>
 
-                <label>Referencia (Opcional):</label>
+                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Referencia (Opcional):</label>
                 <input type="text" id="edit-referencia" class="swal2-input" value="${
                   pago.referencia_pago || ""
                 }" placeholder="# de transacción">
@@ -2237,16 +2278,38 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
       const selectMetodo = document.getElementById("edit-metodo");
       const campoCuenta = document.getElementById("edit-campo-cuenta");
 
+      // Inicializar Flatpickr con la fecha del pago (sin conversión de zona horaria)
+      if (typeof flatpickr !== "undefined") {
+        // Extraer solo la parte de fecha (YYYY-MM-DD) sin conversión UTC
+        const fechaPagoISO = pago.fecha_pago ? pago.fecha_pago.split('T')[0] : null;
+
+        flatpickr("#edit-fecha-pago", {
+          locale: "es",
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "d/m/Y",
+          defaultDate: fechaPagoISO,
+          maxDate: "today"
+        });
+      }
+
+      // Manejar cambio de método de pago (solo Efectivo/Transferencia)
       selectMetodo.addEventListener("change", function () {
-        campoCuenta.style.display =
-          this.value === "Transferencia" ? "block" : "none";
+        campoCuenta.style.display = this.value === "Transferencia" ? "block" : "none";
       });
     },
     preConfirm: () => {
-      const monto = parseFloat(document.getElementById("edit-monto").value);
+      const fechaPago = document.getElementById("edit-fecha-pago").value;
       const metodo = document.getElementById("edit-metodo").value;
+      const monto = parseFloat(document.getElementById("edit-monto").value);
       const cuenta = document.getElementById("edit-cuenta")?.value || null;
       const referencia = document.getElementById("edit-referencia").value;
+
+      if (!fechaPago) {
+        Swal.showValidationMessage("Debe seleccionar una fecha para el pago");
+        return false;
+      }
 
       if (!monto || monto <= 0) {
         Swal.showValidationMessage("Ingrese un monto válido");
@@ -2265,7 +2328,7 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         return false;
       }
 
-      return { monto, metodo, cuenta, referencia };
+      return { fechaPago, monto, metodo, cuenta, referencia };
     },
   });
 
@@ -2290,6 +2353,7 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         metodo_pago: result.value.metodo,
         id_cuenta_bancaria_destino: result.value.cuenta,
         referencia_pago: result.value.referencia,
+        fecha_pago: result.value.fechaPago,
       });
 
       // CRÍTICO: Capturar error de Supabase (triggers, validaciones, etc.)
