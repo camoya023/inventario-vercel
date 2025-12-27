@@ -280,8 +280,7 @@ async function inicializarAutocompleteClientes() {
 
                         const { data, error } = await supabaseClient
                             .from('clientes')
-                            .select('id, nombres, apellidos, razon_social, numero_identificacion')
-                            .is('fecha_eliminacion_logica', null)
+                            .select('id, nombres, apellidos, razon_social, numero_identificacion, fecha_eliminacion_logica')
                             .or(`nombres.ilike.%${termino}%,apellidos.ilike.%${termino}%,razon_social.ilike.%${termino}%,numero_identificacion.ilike.%${termino}%`)
                             .limit(15)
                             .order('nombres', { ascending: true });
@@ -300,6 +299,10 @@ async function inicializarAutocompleteClientes() {
                             // Solo agregar documento si existe
                             if (c.numero_identificacion) {
                                 nombreVisual += ` (${c.numero_identificacion})`;
+                            }
+                            // Marcar clientes eliminados lógicamente
+                            if (c.fecha_eliminacion_logica) {
+                                nombreVisual += ' (ELIMINADO)';
                             }
                             return {
                                 id: c.id,
