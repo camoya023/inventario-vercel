@@ -1526,11 +1526,17 @@ async function mostrarDialogoCambiarEstado(
       await ejecutarBusquedaDeVentas();
     } catch (error) {
       console.error("[Ventas] Error:", error);
+
+      // Detectar si es error de stock
+      const mensaje = error.message || "Error desconocido";
+      const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+
       Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-        confirmButtonText: "Cerrar",
+        icon: esErrorStock ? "warning" : "error",
+        title: esErrorStock ? "Stock Insuficiente" : "Error",
+        text: mensaje,
+        confirmButtonText: esErrorStock ? "Entendido" : "Cerrar",
+        confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
       });
     }
   }

@@ -1248,7 +1248,17 @@ async function guardarVenta(event) {
       } else {
         const mensaje =
           data?.mensaje || "Error desconocido al actualizar la venta";
-        toastr.error("Error al actualizar: " + mensaje);
+
+        // Detectar si es error de stock
+        const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+
+        Swal.fire({
+          icon: esErrorStock ? "warning" : "error",
+          title: esErrorStock ? "Stock Insuficiente" : "Error al Actualizar",
+          text: mensaje,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+        });
       }
     } else {
       // MODO CREACIÓN
@@ -1289,7 +1299,17 @@ async function guardarVenta(event) {
       } else {
         const mensaje =
           data?.mensaje || "Error desconocido al guardar la venta";
-        toastr.error("Error al guardar: " + mensaje);
+
+        // Detectar si es error de stock
+        const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+
+        Swal.fire({
+          icon: esErrorStock ? "warning" : "error",
+          title: esErrorStock ? "Stock Insuficiente" : "Error al Guardar",
+          text: mensaje,
+          confirmButtonText: "Entendido",
+          confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+        });
       }
     }
   } catch (error) {
@@ -1297,7 +1317,17 @@ async function guardarVenta(event) {
     botonGuardar.prop("disabled", false).text("Finalizar y Guardar Venta");
     const mensaje =
       error?.message || error?.msg || "Error de comunicación con el servidor";
-    toastr.error(mensaje, "Error de Comunicación");
+
+    // Detectar si es error de stock
+    const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+
+    Swal.fire({
+      icon: esErrorStock ? "warning" : "error",
+      title: esErrorStock ? "Stock Insuficiente" : "Error de Comunicación",
+      text: mensaje,
+      confirmButtonText: "Entendido",
+      confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+    });
   }
 }
 
