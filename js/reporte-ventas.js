@@ -403,16 +403,16 @@ function renderizarKPIsVentas(kpis) {
     const kpiGananciaEstimada = document.getElementById('kpi-ganancia-estimada');
 
     if (kpiVentasTotales) {
-        kpiVentasTotales.textContent = window.formatMoney(kpis.total_dinero || 0);
+        kpiVentasTotales.textContent = window.formatMoney(kpis.total_dinero || 0, true); // true = formato compacto para KPI
     }
     if (kpiCantidadVentas) {
         kpiCantidadVentas.textContent = kpis.cantidad_ventas || 0;
     }
     if (kpiTicketPromedio) {
-        kpiTicketPromedio.textContent = window.formatMoney(kpis.ticket_promedio || 0);
+        kpiTicketPromedio.textContent = window.formatMoney(kpis.ticket_promedio || 0, true); // true = formato compacto para KPI
     }
     if (kpiGananciaEstimada) {
-        kpiGananciaEstimada.textContent = window.formatMoney(kpis.ganancia_estimada || 0);
+        kpiGananciaEstimada.textContent = window.formatMoney(kpis.ganancia_estimada || 0, true); // true = formato compacto para KPI
     }
 
     console.log('[InformeVentas] KPIs renderizados correctamente');

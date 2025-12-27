@@ -458,15 +458,16 @@ function formatearFecha(fecha) {
   }
 }
 
+/**
+ * Formatea un número como moneda
+ * @deprecated Usar window.formatMoney() de utils.js en su lugar
+ * Esta función se mantiene por compatibilidad temporal
+ */
 function formatearMoneda(valor) {
   if (valor == null) return '-';
   try {
-    return parseFloat(valor).toLocaleString('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    });
+    // Usar window.formatMoney sin formato compacto para mostrar valores exactos en tablas
+    return window.formatMoney(parseFloat(valor));
   } catch (error) {
     return '-';
   }

@@ -1344,17 +1344,14 @@ function resetearFormularioCompleto() {
 
 /**
  * Formatea un número como moneda
+ * @deprecated Usar window.formatMoney() de utils.js en su lugar
+ * Esta función se mantiene por compatibilidad temporal
  */
 function formatearMoneda(valor) {
   const numero = valor || 0;
   const numeroRedondeado = Math.round(numero);
-
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(numeroRedondeado);
+  // Usar window.formatMoney sin formato compacto para mostrar valores exactos en formularios
+  return window.formatMoney(numeroRedondeado);
 }
 
 console.log("[Ventas Formulario] Módulo cargado correctamente");

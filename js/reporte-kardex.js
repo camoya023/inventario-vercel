@@ -399,13 +399,13 @@ function renderizarKPIs(kpis) {
     const kpiBalance = document.getElementById('kpi-balance');
 
     if (kpiEntradas) {
-        kpiEntradas.textContent = window.formatMoney(kpis.dinero_entradas || 0);
+        kpiEntradas.textContent = window.formatMoney(kpis.dinero_entradas || 0, true); // true = formato compacto para KPI
     }
     if (kpiSalidas) {
-        kpiSalidas.textContent = window.formatMoney(kpis.dinero_salidas || 0);
+        kpiSalidas.textContent = window.formatMoney(kpis.dinero_salidas || 0, true); // true = formato compacto para KPI
     }
     if (kpiBalance) {
-        kpiBalance.textContent = window.formatMoney(kpis.balance_neto || 0);
+        kpiBalance.textContent = window.formatMoney(kpis.balance_neto || 0, true); // true = formato compacto para KPI
     }
 
     console.log('[Kardex] KPIs renderizados correctamente');

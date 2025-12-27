@@ -526,10 +526,24 @@ if (document.readyState === 'loading') {
 /**
  * Formatea un número como moneda colombiana (COP)
  * @param {number} amount - Cantidad a formatear
+ * @param {boolean} esCompacto - (Opcional) Si es true, usa notación K/M (ej: $90K). Si es false o no se proporciona, muestra el valor completo
  * @returns {string} - Cantidad formateada como moneda
  */
-window.formatMoney = function(amount) {
+window.formatMoney = function(amount, esCompacto = false) {
   if (amount === null || amount === undefined) return '$ 0';
+
+  // Formato compacto manual (más confiable que notation: 'compact')
+  if (esCompacto) {
+    if (amount >= 1000000000) {
+      return '$ ' + (amount / 1000000000).toFixed(1).replace('.0', '') + ' mil M';
+    } else if (amount >= 1000000) {
+      return '$ ' + (amount / 1000000).toFixed(1).replace('.0', '') + ' M';
+    } else if (amount >= 1000) {
+      return '$ ' + (amount / 1000).toFixed(1).replace('.0', '') + ' K';
+    }
+  }
+
+  // Formato completo estándar
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',

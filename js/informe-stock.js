@@ -310,7 +310,7 @@ async function cargarKPIs(client) {
         if (data) {
             // Actualizar valores en el DOM
             document.getElementById('kpi-valor-inventario').textContent =
-                formatearMoneda(data.valor_inventario || 0);
+                window.formatMoney(data.valor_inventario || 0, true); // true = formato compacto para KPI
 
             document.getElementById('kpi-total-productos').textContent =
                 data.total_productos || 0;
@@ -703,18 +703,11 @@ function formatearNumero(numero) {
 
 /**
  * Formatea un valor como moneda
+ * @deprecated Usar window.formatMoney() de utils.js en su lugar
+ * Esta función se mantiene por compatibilidad temporal
  */
-function formatearMoneda(valor) {
-    if (valor === null || valor === undefined) return '$ 0';
-
-    // Formato abreviado para valores grandes
-    if (valor >= 1000000) {
-        return '$ ' + (valor / 1000000).toFixed(1) + 'M';
-    } else if (valor >= 1000) {
-        return '$ ' + (valor / 1000).toFixed(1) + 'K';
-    }
-
-    return '$ ' + Number(valor).toLocaleString('es-CO');
+function formatearMoneda(valor, esCompacto = false) {
+    return window.formatMoney(valor, esCompacto);
 }
 
 /**
