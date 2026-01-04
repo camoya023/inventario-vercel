@@ -1318,16 +1318,23 @@ function generarContenidoFacturaPOS(venta) {
     const precioUnitario = detalle.precio_unitario_venta || 0;
     const totalLinea = detalle.total_linea || detalle.cantidad * precioUnitario;
 
-    // Nombre del producto con longitud limitada
-    const nombreCorto = nombreProducto.substring(0, 15);
     const cantidadStr = detalle.cantidad.toString();
     const precioStr = Math.round(precioUnitario).toLocaleString("es-CO");
     const totalStr = Math.round(totalLinea).toLocaleString("es-CO");
 
-    const lineaProducto = `${nombreCorto.padEnd(15)} ${cantidadStr.padStart(
+    // Envolver el nombre del producto si es muy largo
+    const lineasNombre = envolverTexto(nombreProducto, 15);
+
+    // Primera línea con cantidad, precio y total
+    const primeraLinea = `${lineasNombre[0].padEnd(15)} ${cantidadStr.padStart(
       4
     )} ${precioStr.padStart(6)} ${totalStr.padStart(9)}\n`;
-    contenido += lineaProducto;
+    contenido += primeraLinea;
+
+    // Líneas adicionales del nombre (si las hay)
+    for (let i = 1; i < lineasNombre.length; i++) {
+      contenido += `${lineasNombre[i].padEnd(15)}\n`;
+    }
   });
 
   contenido += SEPARADOR + "\n";
@@ -1354,16 +1361,16 @@ function generarContenidoFacturaPOS(venta) {
     alinearExtremos("TOTAL:", formatearMoneda(venta.monto_total)) + "\n";
   contenido += SEPARADOR + "\n";
 
-  // Estado de pago
+  // Información de pagos
   contenido += "\n";
-  contenido += `Estado de Pago: ${venta.estado_pago}\n`;
-  if (venta.saldo_pendiente > 0) {
-    contenido +=
-      alinearExtremos(
-        "Saldo Pendiente:",
-        formatearMoneda(venta.saldo_pendiente)
-      ) + "\n";
-  }
+  const totalPagado = (venta.monto_total || 0) - (venta.saldo_pendiente || 0);
+  contenido +=
+    alinearExtremos("Total Pagado:", formatearMoneda(totalPagado)) + "\n";
+  contenido +=
+    alinearExtremos(
+      "Saldo Pendiente:",
+      formatearMoneda(venta.saldo_pendiente)
+    ) + "\n";
 
   if (venta.observaciones) {
     contenido += "\n";
@@ -1582,68 +1589,126 @@ async function mostrarDialogoAgregarPago(
 
   const result = await Swal.fire({
     title: `Registrar Pago para Venta ${codigoVenta}`,
+    width: "600px",
     html: `
-            <div style="margin-bottom: 20px; text-align: left; padding: 0 20px;">
-                <p style="margin: 5px 0;"><strong>Cliente:</strong> ${nombreCliente}</p>
-                <p style="margin: 5px 0;"><strong>Saldo Pendiente:</strong> <span style="color: #1572E8; font-weight: bold;">${formatCurrency(saldoPendiente)}</span></p>
-            </div>
+            <div style="max-width: 500px; margin: 0 auto; padding: 10px;">
+                <!-- Información de Cliente y Saldo -->
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="text-align: left;">
+                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 3px;">Cliente</div>
+                            <div style="font-size: 15px; font-weight: 600; color: #495057;">${nombreCliente}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 3px;">Saldo Pendiente</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #dc3545;">${formatCurrency(saldoPendiente)}</div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="swal2-form" style="text-align: left; padding: 0 20px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Fecha del Pago:</label>
-                <input type="text" id="swal-fecha-pago" class="swal2-input" placeholder="Seleccione fecha" style="margin-bottom: 15px;">
+                <!-- Fecha del Pago -->
+                <div style="margin-bottom: 20px;">
+                    <label for="swal-fecha-pago" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Fecha del Pago <span style="color: #dc3545;">*</span>
+                    </label>
+                    <input type="text" id="swal-fecha-pago" class="swal2-input"
+                           placeholder="Seleccione fecha"
+                           style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                </div>
 
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Método de Pago:</label>
-                <select id="swal-metodo" class="swal2-input" style="margin-bottom: 15px;">
-                    <option value="Efectivo" selected>Efectivo</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Pago Mixto">Pago Mixto</option>
-                </select>
+                <!-- Método de Pago -->
+                <div style="margin-bottom: 20px;">
+                    <label for="swal-metodo" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Método de Pago <span style="color: #dc3545;">*</span>
+                    </label>
+                    <select id="swal-metodo" class="swal2-input"
+                            style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                        <option value="Efectivo" selected>Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Pago Mixto">Pago Mixto</option>
+                    </select>
+                </div>
 
                 <!-- Campos para Efectivo y Transferencia simple -->
                 <div id="campos-simple" style="display: block;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto a Pagar:</label>
-                    <input type="number" id="swal-monto" class="swal2-input" placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}" style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 20px;">
+                        <label for="swal-monto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                            Monto a Pagar <span style="color: #dc3545;">*</span>
+                        </label>
+                        <input type="number" id="swal-monto" class="swal2-input"
+                               placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}"
+                               style="width: 100%; margin: 0; padding: 12px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                    </div>
 
                     <div id="campo-cuenta" style="display: none;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cuenta Destino:</label>
-                        <select id="swal-cuenta" class="swal2-input" style="margin-bottom: 15px;">
-                            <option value="">Seleccione Cuenta...</option>
-                            ${opcionesCuentas}
-                        </select>
+                        <div style="margin-bottom: 20px;">
+                            <label for="swal-cuenta" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                                Cuenta Destino <span style="color: #dc3545;">*</span>
+                            </label>
+                            <select id="swal-cuenta" class="swal2-input"
+                                    style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                                <option value="">Seleccione Cuenta...</option>
+                                ${opcionesCuentas}
+                            </select>
+                        </div>
 
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">Referencia (Opcional):</label>
-                        <input type="text" id="swal-referencia" class="swal2-input" placeholder="Ej: # de transacción" style="margin-bottom: 15px;">
+                        <div style="margin-bottom: 20px;">
+                            <label for="swal-referencia" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                                Referencia <span style="font-size: 12px; color: #6c757d;">(opcional)</span>
+                            </label>
+                            <input type="text" id="swal-referencia" class="swal2-input"
+                                   placeholder="Ej: # de transacción"
+                                   style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Campos para Pago Mixto -->
                 <div id="campos-mixto" style="display: none;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                         <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto Efectivo:</label>
-                            <input type="number" id="swal-monto-efectivo" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0" style="margin: 0;">
+                            <label for="swal-monto-efectivo" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057; font-size: 13px;">
+                                Monto Efectivo <span style="color: #dc3545;">*</span>
+                            </label>
+                            <input type="number" id="swal-monto-efectivo" class="swal2-input"
+                                   placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0"
+                                   style="width: 100%; margin: 0; padding: 10px; font-size: 15px; border: 2px solid #e0e0e0; border-radius: 6px;">
                         </div>
                         <div>
-                            <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto Transferencia:</label>
-                            <input type="number" id="swal-monto-transferencia" class="swal2-input" placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0" style="margin: 0;">
+                            <label for="swal-monto-transferencia" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057; font-size: 13px;">
+                                Monto Transferencia <span style="color: #dc3545;">*</span>
+                            </label>
+                            <input type="number" id="swal-monto-transferencia" class="swal2-input"
+                                   placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0"
+                                   style="width: 100%; margin: 0; padding: 10px; font-size: 15px; border: 2px solid #e0e0e0; border-radius: 6px;">
                         </div>
                     </div>
 
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cuenta (Transferencia):</label>
-                    <select id="swal-cuenta-mixto" class="swal2-input" style="margin-bottom: 15px;">
-                        <option value="">Seleccione Cuenta...</option>
-                        ${opcionesCuentas}
-                    </select>
+                    <div style="margin-bottom: 20px;">
+                        <label for="swal-cuenta-mixto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                            Cuenta (Transferencia) <span style="color: #dc3545;">*</span>
+                        </label>
+                        <select id="swal-cuenta-mixto" class="swal2-input"
+                                style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                            <option value="">Seleccione Cuenta...</option>
+                            ${opcionesCuentas}
+                        </select>
+                    </div>
 
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Referencia (Opcional):</label>
-                    <input type="text" id="swal-referencia-mixto" class="swal2-input" placeholder="Ej: # de transacción">
+                    <div style="margin-bottom: 10px;">
+                        <label for="swal-referencia-mixto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                            Referencia <span style="font-size: 12px; color: #6c757d;">(opcional)</span>
+                        </label>
+                        <input type="text" id="swal-referencia-mixto" class="swal2-input"
+                               placeholder="Ej: # de transacción"
+                               style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                    </div>
                 </div>
             </div>
         `,
     showCancelButton: true,
     confirmButtonText: "Registrar Pago",
     cancelButtonText: "Cancelar",
-    width: "550px",
     didOpen: () => {
       const selectMetodo = document.getElementById("swal-metodo");
       const camposSimple = document.getElementById("campos-simple");
