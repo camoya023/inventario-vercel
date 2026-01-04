@@ -474,48 +474,72 @@ function renderizarPaginacionCompras() {
 async function mostrarModalRegistrarPago(idCompra, saldoActual) {
     const result = await Swal.fire({
         title: 'Registrar Pago',
+        width: '500px',
         html: `
-            <div style="text-align: left;">
-                <p style="margin-bottom: 15px;">
-                    <strong>Saldo Actual:</strong> ${formatCurrency(saldoActual)}
-                </p>
+            <div style="max-width: 400px; margin: 0 auto; padding: 10px;">
+                <!-- Saldo Actual -->
+                <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 25px; text-align: center;">
+                    <div style="font-size: 13px; color: #6c757d; margin-bottom: 5px;">Saldo Pendiente</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #dc3545;">${formatCurrency(saldoActual)}</div>
+                </div>
 
-                <label for="swal-monto" style="display: block; margin-bottom: 5px;">
-                    Monto a Pagar <span style="color: red;">*</span>
-                </label>
-                <input id="swal-monto" type="number" class="swal2-input"
-                       value="${saldoActual}" min="0" max="${saldoActual}" step="0.01"
-                       style="width: 90%;">
+                <!-- Monto a Pagar -->
+                <div style="margin-bottom: 20px;">
+                    <label for="swal-monto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Monto a Pagar <span style="color: #dc3545;">*</span>
+                    </label>
+                    <input id="swal-monto" type="number" class="swal2-input"
+                           value="${saldoActual}" min="0" max="${saldoActual}" step="0.01"
+                           placeholder="0.00"
+                           style="width: 100%; margin: 0; padding: 12px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                </div>
 
-                <label for="swal-fecha-pago" style="display: block; margin-top: 10px; margin-bottom: 5px;">
-                    Fecha de Pago <span style="color: red;">*</span>
-                </label>
-                <input id="swal-fecha-pago" type="text" class="swal2-input flatpickr-fecha-pago"
-                       placeholder="Seleccionar fecha" style="width: 90%;">
+                <!-- Fecha de Pago -->
+                <div style="margin-bottom: 20px;">
+                    <label for="swal-fecha-pago" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Fecha de Pago <span style="color: #dc3545;">*</span>
+                    </label>
+                    <input id="swal-fecha-pago" type="text" class="swal2-input flatpickr-fecha-pago"
+                           placeholder="Seleccionar fecha"
+                           style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                </div>
 
-                <label for="swal-metodo" style="display: block; margin-top: 10px; margin-bottom: 5px;">
-                    Método de Pago <span style="color: red;">*</span>
-                </label>
-                <select id="swal-metodo" class="swal2-input" style="width: 90%;">
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                    <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-                    <option value="Tarjeta de Débito">Tarjeta de Débito</option>
-                    <option value="Cheque">Cheque</option>
-                    <option value="Otro">Otro</option>
-                </select>
+                <!-- Método de Pago -->
+                <div style="margin-bottom: 20px;">
+                    <label for="swal-metodo" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Método de Pago <span style="color: #dc3545;">*</span>
+                    </label>
+                    <select id="swal-metodo" class="swal2-input"
+                            style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                        <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
 
-                <label for="swal-referencia" style="display: block; margin-top: 10px; margin-bottom: 5px;">
-                    Referencia (opcional)
-                </label>
-                <input id="swal-referencia" type="text" class="swal2-input"
-                       placeholder="Número de transacción" style="width: 90%;">
+                <!-- Referencia -->
+                <div style="margin-bottom: 20px;">
+                    <label for="swal-referencia" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Referencia <span style="font-size: 12px; color: #6c757d;">(opcional)</span>
+                    </label>
+                    <input id="swal-referencia" type="text" class="swal2-input"
+                           placeholder="Número de transacción o comprobante"
+                           style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                </div>
 
-                <label for="swal-notas" style="display: block; margin-top: 10px; margin-bottom: 5px;">
-                    Notas (opcional)
-                </label>
-                <textarea id="swal-notas" class="swal2-textarea"
-                          placeholder="Notas adicionales" style="width: 90%;"></textarea>
+                <!-- Notas -->
+                <div style="margin-bottom: 10px;">
+                    <label for="swal-notas" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
+                        Notas <span style="font-size: 12px; color: #6c757d;">(opcional)</span>
+                    </label>
+                    <textarea id="swal-notas" class="swal2-textarea"
+                              placeholder="Información adicional sobre el pago"
+                              rows="3"
+                              style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px; resize: vertical;"></textarea>
+                </div>
             </div>
         `,
         didOpen: () => {

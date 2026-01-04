@@ -155,8 +155,12 @@ function renderizarDatosDetalleCompra(datos) {
         pagoClase = 'badge-danger';
     }
 
+    // Actualizar título con datos relevantes
+    const factura = compra.numero_factura || 'S/N';
+    const nombreProveedor = proveedor ? proveedor.nombre_empresa : 'Proveedor desconocido';
+    $('#titulo-detalle-compra').text(`Compra: ${factura} - ${nombreProveedor}`);
+
     // Rellenar resumen
-    $('#detalle-numero-factura').text(compra.numero_factura || `(${compra.id_compra.substring(0,8)}...)`);
     $('#detalle-proveedor').text(proveedor ? proveedor.nombre_empresa : 'PROVEEDOR ELIMINADO');
     $('#detalle-fecha').text(moment(compra.fecha_compra).format('DD/MM/YYYY'));
     $('#detalle-estados').html(`
