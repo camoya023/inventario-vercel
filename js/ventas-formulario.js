@@ -139,29 +139,24 @@ async function cargarDatosIniciales() {
 
 /**
  * Carga los datos de una venta para editarla
+ * Usa la RPC rpc_obtener_venta_para_editar que incluye datos en tiempo real del inventario
  */
 async function cargarDatosVentaParaEditar(idVenta) {
   try {
     console.log("[Ventas] Cargando datos de venta para editar:", idVenta);
 
     const client = getSupabaseClient();
-    const { data, error } = await client.rpc("fn_obtener_venta_detalle", {
+    const { data, error } = await client.rpc("rpc_obtener_venta_para_editar", {
       p_id_venta: idVenta,
     });
 
     if (error) throw error;
     if (!data) throw new Error("No se encontraron datos de la venta");
 
-    // Verificar que la respuesta sea exitosa
-    if (!data.exito) {
-      const mensajeError = data.mensaje || "Error al obtener la venta";
-      throw new Error(mensajeError);
-    }
-
     console.log("[Ventas] Datos de venta recibidos:", data);
 
-    // Poblar formulario con los datos extraídos
-    await poblarFormularioVenta(data.datos);
+    // Poblar formulario con los datos extraídos (nueva estructura: data.venta, data.detalles)
+    await poblarFormularioVentaEdicion(data);
   } catch (error) {
     console.error("[Ventas] Error al cargar datos:", error);
     toastr.error("Error al cargar datos de la venta: " + error.message);
@@ -251,6 +246,181 @@ async function poblarFormularioVenta(datos) {
   }
 
   console.log("[Ventas] Formulario poblado correctamente");
+}
+
+/**
+ * Pobla el formulario con datos de la RPC rpc_obtener_venta_para_editar
+ * Esta función maneja la nueva estructura que incluye datos de stock en tiempo real
+ * @param {Object} data - { venta: {..., cliente: {...}}, detalles: [...] }
+ */
+async function poblarFormularioVentaEdicion(data) {
+  console.log("[Ventas] Poblando formulario con datos de edición...");
+
+  const venta = data.venta;
+  const detalles = data.detalles;
+
+  // Determinar si mostrar detalles logísticos según estado de la venta
+  const estadosActivos = ["Borrador", "Pendiente"];
+  const mostrarDetallesLogisticos = estadosActivos.includes(venta.estado);
+
+  // Cliente (viene anidado en venta.cliente)
+  if (venta.cliente) {
+    const nombreCliente =
+      venta.cliente.razon_social ||
+      `${venta.cliente.nombres || ""} ${venta.cliente.apellidos || ""}`.trim() ||
+      venta.cliente.nombre;
+    const option = new Option(nombreCliente, venta.id_cliente, true, true);
+    $("#select-cliente").append(option).trigger("change");
+
+    // Cargar datos del cliente (incluyendo direcciones)
+    const response = await obtenerDetallesClienteSupabase(venta.id_cliente);
+    renderizarDatosClienteEnFormularioVenta(response, venta.id_direccion_entrega);
+  }
+
+  // Fecha
+  if (flatpickrInstance && venta.fecha_venta) {
+    flatpickrInstance.setDate(moment(venta.fecha_venta).toDate());
+  }
+
+  // Estado
+  if (venta.estado) {
+    $("#venta-estado").val(venta.estado).trigger("change");
+  }
+
+  // Tipo de envío
+  $("#venta-tipo-envio")
+    .val(venta.tipo_envio || "Recogen")
+    .trigger("change");
+
+  // Costo de envío
+  $("#venta-costo-envio").val(venta.costo_envio || 0);
+
+  // Observaciones
+  $("#venta-observaciones").val(venta.observaciones || "");
+
+  // Detalles (productos) con información de stock pendiente
+  if (detalles && detalles.length > 0) {
+    $("#carrito-tbody").find(".empty-cart-row").remove();
+
+    for (const detalle of detalles) {
+      // Construir objeto producto con datos del detalle
+      const productoData = {
+        id_producto: detalle.id_producto,
+        nombre_producto: detalle.nombre_producto || detalle.productos?.nombre_producto,
+        precio_venta_actual: detalle.precio_unitario_venta,
+        costo_promedio: detalle.costo_unitario_venta || 0,
+        id_tipo_impuesto: detalle.id_tipo_impuesto,
+        tipos_impuesto: detalle.tipos_impuesto || { porcentaje: detalle.porcentaje_impuesto || 0 },
+      };
+
+      // Agregar producto al carrito (mostrar logística solo si estado activo)
+      agregarProductoAlCarritoEdicion(productoData, detalle, mostrarDetallesLogisticos);
+    }
+
+    actualizarResumenGeneral();
+  }
+
+  // Pagos (si existen en la respuesta)
+  if (venta.pagos_venta && venta.pagos_venta.length > 0) {
+    $("#payments-container").empty();
+    venta.pagos_venta.forEach((pago) => {
+      agregarFilaDePago(
+        pago.monto,
+        pago.metodo_pago,
+        pago.id_cuenta_bancaria_destino
+      );
+    });
+  }
+
+  console.log("[Ventas] Formulario de edición poblado correctamente");
+}
+
+/**
+ * Agrega un producto al carrito en modo edición, mostrando información de cantidades y alertas
+ * @param {Object} producto - Datos del producto
+ * @param {Object} detalle - Detalle con cantidad_solicitada, cantidad_reservada, cantidad_pendiente, alerta_stock
+ * @param {boolean} mostrarDetallesLogisticos - Si true, muestra badges de stock (solo para estados activos)
+ */
+function agregarProductoAlCarritoEdicion(producto, detalle, mostrarDetallesLogisticos = true) {
+  const carritoBody = $("#carrito-tbody");
+  const idProducto = producto.id_producto;
+
+  // Eliminar fila vacía si existe
+  carritoBody.find(".empty-cart-row").remove();
+
+  const porcentajeImpuesto = producto.tipos_impuesto?.porcentaje || 0;
+  const idTipoImpuesto = producto.id_tipo_impuesto || null;
+
+  // Extraer datos de cantidades
+  const cantidadSolicitada = detalle.cantidad_solicitada || detalle.cantidad || 0;
+  const cantidadReservada = detalle.cantidad_reservada || 0;
+  const cantidadPendiente = detalle.cantidad_pendiente || 0;
+  const stockDisponibleActual = detalle.stock_disponible_actual || 0;
+
+  // Generar HTML de badges solo si la venta está en estado activo
+  const badgesHtml = mostrarDetallesLogisticos
+    ? generarBadgesEstadoStock(cantidadReservada, cantidadPendiente, stockDisponibleActual)
+    : "";
+
+  const nuevaFilaHtml = `
+    <tr data-id-producto="${idProducto}" data-id-tipo-impuesto="${idTipoImpuesto || ""}" data-costo-unitario="${producto.costo_promedio || 0}">
+      <td>
+        <div class="producto-nombre-edicion">${producto.nombre_producto}</div>
+        ${badgesHtml}
+      </td>
+      <td><input type="number" class="form-input-table text-right input-cantidad" value="${cantidadSolicitada}" min="1"></td>
+      <td><input type="number" class="form-input-table text-right input-precio" value="${producto.precio_venta_actual}" step="0.01" min="0"></td>
+      <td><input type="number" class="form-input-table text-right input-descuento" value="${detalle.porcentaje_descuento || 0}" min="0" max="100" step="0.01"></td>
+      <td><input type="number" class="form-input-table text-right input-impuesto" value="${porcentajeImpuesto}" min="0" max="100" step="0.01"></td>
+      <td class="text-right total-linea">$0.00</td>
+      <td class="text-center">
+        <button class="button-icon-danger delete-item-btn"><i class="fas fa-trash-alt"></i></button>
+      </td>
+    </tr>
+  `;
+  carritoBody.prepend(nuevaFilaHtml);
+}
+
+/**
+ * Genera el HTML de los badges de estado de stock para mostrar debajo del nombre del producto
+ * Diseño compacto sin separadores verticales, mostrando stock real de bodega
+ * @param {number} reservada - Cantidad ya reservada
+ * @param {number} pendiente - Cantidad pendiente de reservar
+ * @param {number} stockDisponible - Stock libre en bodega actualmente
+ * @returns {string} HTML con los badges
+ */
+function generarBadgesEstadoStock(reservada, pendiente, stockDisponible) {
+  // Si no hay pendientes, mostrar solo reservado con check verde
+  if (pendiente <= 0) {
+    return `
+      <div class="stock-info-line">
+        <span class="stock-text stock-text-reservado">
+          <i class="fas fa-check-circle"></i> Res: <strong>${reservada}</strong>
+        </span>
+      </div>
+    `;
+  }
+
+  // Hay cantidades pendientes - determinar color del stock en bodega
+  const haySuficienteStock = stockDisponible >= pendiente;
+  const stockColor = haySuficienteStock ? "stock-text-disponible" : "stock-text-sin-stock";
+  const stockIcon = haySuficienteStock
+    ? '<i class="fas fa-check-circle"></i>'
+    : '<i class="fas fa-times-circle"></i>';
+
+  return `
+    <div class="stock-info-line">
+      <span class="stock-text stock-text-muted">
+        <i class="fas fa-box"></i> Res: <strong>${reservada}</strong>
+      </span>
+      <span class="stock-text stock-text-pendiente">
+        <i class="fas fa-clock"></i> Pend: <strong>${pendiente}</strong>
+      </span>
+      <span class="stock-text ${stockColor}">
+        ${stockIcon} Disp: <strong>${stockDisponible}</strong>
+      </span>
+    </div>
+  `;
 }
 
 // ========================================
