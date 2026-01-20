@@ -471,6 +471,29 @@
     box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
 }
 
+/* Min-width para inputs numéricos del carrito */
+.input-cantidad {
+    min-width: 80px;
+}
+
+.input-precio {
+    min-width: 110px;
+}
+
+.input-descuento,
+.input-impuesto {
+    min-width: 70px;
+}
+
+.total-linea {
+    min-width: 100px;
+}
+
+/* Hacer la tabla responsive con scroll horizontal si es necesario */
+#form-nueva-venta .table-wrapper {
+    overflow-x: auto;
+}
+
 .empty-cart-row td {
     text-align: center;
     color: #868e96;
@@ -863,26 +886,155 @@
     }
 }
 
-/* Estilo para productos con estado_item Pendiente en detalle de venta */
-.item-pendiente {
-    background: linear-gradient(90deg, rgba(255, 193, 7, 0.12) 0%, rgba(255, 193, 7, 0.04) 100%);
-    border-left: 4px solid #FFC107;
-    position: relative;
-    transition: all 0.3s ease;
+
+/* ========================================
+   ESTADO DE STOCK - EDICIÓN DE VENTAS (Diseño Compacto)
+   ======================================== */
+
+/* Nombre del producto en modo edición */
+.producto-nombre-edicion {
+    font-weight: 600;
+    color: #212529;
 }
 
-.item-pendiente:hover {
-    background: linear-gradient(90deg, rgba(255, 193, 7, 0.18) 0%, rgba(255, 193, 7, 0.08) 100%);
-    transform: translateX(2px);
+/* Línea de información de stock (debajo del nombre) */
+.stock-info-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+    font-size: 0.85rem;
 }
 
-.item-pendiente td {
-    border-bottom-color: rgba(255, 193, 7, 0.2);
+/* Texto base de stock */
+.stock-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
 }
 
-/* Añadir un pequeño indicador visual */
-.item-pendiente td:first-child::before {
-    content: "⏳";
-    margin-right: 6px;
-    font-size: 0.9em;
+.stock-text i {
+    font-size: 0.8rem;
 }
+
+/* Texto muted (Reservado normal) */
+.stock-text-muted {
+    color: #6c757d;
+}
+
+/* Reservado con check verde (cuando todo está reservado) */
+.stock-text-reservado {
+    color: #198754;
+}
+
+.stock-text-reservado i {
+    color: #198754;
+}
+
+/* Pendiente (amarillo/naranja) */
+.stock-text-pendiente {
+    color: #b45309;
+}
+
+.stock-text-pendiente i {
+    color: #f59e0b;
+}
+
+/* Stock disponible en bodega (verde) */
+.stock-text-disponible {
+    color: #198754;
+}
+
+.stock-text-disponible i {
+    color: #198754;
+}
+
+/* Sin stock en bodega (rojo) */
+.stock-text-sin-stock {
+    color: #dc3545;
+}
+
+.stock-text-sin-stock i {
+    color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stock-info-line {
+        font-size: 0.8rem;
+        gap: 8px;
+    }
+}
+
+/* ========================================
+   SWITCH DE RESERVA DE STOCK - FORMULARIO VENTAS
+   ======================================== */
+
+/* Nombre del producto en carrito */
+.producto-nombre-carrito {
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Contenedor del switch de reserva */
+.reserva-control-container {
+    margin-top: 4px;
+}
+
+/* Switch solo (sin label) */
+.reserva-switch-solo {
+    padding-left: 0;
+    margin-bottom: 4px;
+}
+
+.reserva-switch-solo .form-check-input {
+    width: 2.2em;
+    height: 1.1em;
+    margin-left: 0;
+    cursor: pointer;
+    background-color: #dee2e6;
+    border: none;
+    border-radius: 2em;
+    transition: background-color 0.15s ease-in-out;
+    appearance: none;
+    -webkit-appearance: none;
+    float: none;
+}
+
+.reserva-switch-solo .form-check-input:checked {
+    background-color: #198754;
+}
+
+.reserva-switch-solo .form-check-input:focus {
+    box-shadow: 0 0 0 0.15rem rgba(25, 135, 84, 0.25);
+    outline: none;
+}
+
+.reserva-switch-solo .form-check-input::before {
+    content: '';
+    display: block;
+    width: 0.9em;
+    height: 0.9em;
+    background-color: #fff;
+    border-radius: 50%;
+    margin: 0.1em;
+    transition: transform 0.15s ease-in-out;
+}
+
+.reserva-switch-solo .form-check-input:checked::before {
+    transform: translateX(1.1em);
+}
+
+/* Badges dinámicos del switch - debajo del switch */
+.stock-badges-dinamicos {
+    margin-top: 4px;
+    padding-left: 2px;
+}
+
+.stock-badges-dinamicos .stock-info-line {
+    gap: 10px;
+    font-size: 0.8rem;
+}
+

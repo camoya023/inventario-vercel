@@ -139,29 +139,24 @@ async function cargarDatosIniciales() {
 
 /**
  * Carga los datos de una venta para editarla
+ * Usa la RPC rpc_obtener_venta_para_editar que incluye datos en tiempo real del inventario
  */
 async function cargarDatosVentaParaEditar(idVenta) {
   try {
     console.log("[Ventas] Cargando datos de venta para editar:", idVenta);
 
     const client = getSupabaseClient();
-    const { data, error } = await client.rpc("fn_obtener_venta_detalle", {
+    const { data, error } = await client.rpc("rpc_obtener_venta_para_editar", {
       p_id_venta: idVenta,
     });
 
     if (error) throw error;
     if (!data) throw new Error("No se encontraron datos de la venta");
 
-    // Verificar que la respuesta sea exitosa
-    if (!data.exito) {
-      const mensajeError = data.mensaje || "Error al obtener la venta";
-      throw new Error(mensajeError);
-    }
-
     console.log("[Ventas] Datos de venta recibidos:", data);
 
-    // Poblar formulario con los datos extraídos
-    await poblarFormularioVenta(data.datos);
+    // Poblar formulario con los datos extraídos (nueva estructura: data.venta, data.detalles)
+    await poblarFormularioVentaEdicion(data);
   } catch (error) {
     console.error("[Ventas] Error al cargar datos:", error);
     toastr.error("Error al cargar datos de la venta: " + error.message);
@@ -251,6 +246,182 @@ async function poblarFormularioVenta(datos) {
   }
 
   console.log("[Ventas] Formulario poblado correctamente");
+}
+
+/**
+ * Pobla el formulario con datos de la RPC rpc_obtener_venta_para_editar
+ * Esta función maneja la nueva estructura que incluye datos de stock en tiempo real
+ * @param {Object} data - { venta: {..., cliente: {...}}, detalles: [...] }
+ */
+async function poblarFormularioVentaEdicion(data) {
+  console.log("[Ventas] Poblando formulario con datos de edición...");
+
+  const venta = data.venta;
+  const detalles = data.detalles;
+
+  // Determinar si mostrar detalles logísticos según estado de la venta
+  const estadosActivos = ["Borrador", "Pendiente"];
+  const mostrarDetallesLogisticos = estadosActivos.includes(venta.estado);
+
+  // Cliente (viene anidado en venta.cliente)
+  if (venta.cliente) {
+    const nombreCliente =
+      venta.cliente.razon_social ||
+      `${venta.cliente.nombres || ""} ${venta.cliente.apellidos || ""}`.trim() ||
+      venta.cliente.nombre;
+    const option = new Option(nombreCliente, venta.id_cliente, true, true);
+    $("#select-cliente").append(option).trigger("change");
+
+    // Cargar datos del cliente (incluyendo direcciones)
+    const response = await obtenerDetallesClienteSupabase(venta.id_cliente);
+    renderizarDatosClienteEnFormularioVenta(response, venta.id_direccion_entrega);
+  }
+
+  // Fecha
+  if (flatpickrInstance && venta.fecha_venta) {
+    flatpickrInstance.setDate(moment(venta.fecha_venta).toDate());
+  }
+
+  // Estado
+  if (venta.estado) {
+    $("#venta-estado").val(venta.estado).trigger("change");
+  }
+
+  // Tipo de envío
+  $("#venta-tipo-envio")
+    .val(venta.tipo_envio || "Recogen")
+    .trigger("change");
+
+  // Costo de envío
+  $("#venta-costo-envio").val(venta.costo_envio || 0);
+
+  // Observaciones
+  $("#venta-observaciones").val(venta.observaciones || "");
+
+  // Detalles (productos) con información de stock pendiente
+  if (detalles && detalles.length > 0) {
+    $("#carrito-tbody").find(".empty-cart-row").remove();
+
+    for (const detalle of detalles) {
+      // Construir objeto producto con datos del detalle
+      const productoData = {
+        id_producto: detalle.id_producto,
+        nombre_producto: detalle.nombre_producto || detalle.productos?.nombre_producto,
+        precio_venta_actual: detalle.precio_unitario_venta,
+        costo_promedio: detalle.costo_unitario_venta || 0,
+        id_tipo_impuesto: detalle.id_tipo_impuesto,
+        tipos_impuesto: detalle.tipos_impuesto || { porcentaje: detalle.porcentaje_impuesto || 0 },
+      };
+
+      // Agregar producto al carrito (mostrar logística solo si estado activo)
+      agregarProductoAlCarritoEdicion(productoData, detalle, mostrarDetallesLogisticos);
+    }
+
+    actualizarResumenGeneral();
+  }
+
+  // Pagos (si existen en la respuesta)
+  if (venta.pagos_venta && venta.pagos_venta.length > 0) {
+    $("#payments-container").empty();
+    venta.pagos_venta.forEach((pago) => {
+      agregarFilaDePago(
+        pago.monto,
+        pago.metodo_pago,
+        pago.id_cuenta_bancaria_destino
+      );
+    });
+  }
+
+  console.log("[Ventas] Formulario de edición poblado correctamente");
+}
+
+/**
+ * Agrega un producto al carrito en modo edición, mostrando información de cantidades y alertas
+ * @param {Object} producto - Datos del producto
+ * @param {Object} detalle - Detalle con cantidad_solicitada, cantidad_reservada, cantidad_pendiente, alerta_stock
+ * @param {boolean} mostrarDetallesLogisticos - Si true, muestra badges de stock (solo para estados activos)
+ */
+function agregarProductoAlCarritoEdicion(producto, detalle, mostrarDetallesLogisticos = true) {
+  const carritoBody = $("#carrito-tbody");
+  const idProducto = producto.id_producto;
+
+  // Eliminar fila vacía si existe
+  carritoBody.find(".empty-cart-row").remove();
+
+  const porcentajeImpuesto = producto.tipos_impuesto?.porcentaje || 0;
+  const idTipoImpuesto = producto.id_tipo_impuesto || null;
+
+  // Extraer datos de cantidades
+  const cantidadSolicitada = detalle.cantidad_solicitada || detalle.cantidad || 0;
+  const stockDisponibleActual = detalle.stock_disponible_actual || 0;
+  const cantidadReservadaBD = detalle.cantidad_reservada || 0;
+
+  // Usar contenedor dinámico para que los badges se actualicen al cambiar cantidad
+  const nuevaFilaHtml = `
+    <tr data-id-producto="${idProducto}" data-id-tipo-impuesto="${idTipoImpuesto || ""}" data-costo-unitario="${producto.costo_promedio || 0}" data-stock-disponible="${stockDisponibleActual}" data-reservada-bd="${cantidadReservadaBD}">
+      <td>
+        <div class="producto-nombre-carrito">${producto.nombre_producto}</div>
+        <div class="reserva-control-container"></div>
+      </td>
+      <td><input type="number" class="form-input-table text-right input-cantidad" value="${cantidadSolicitada}" min="1"></td>
+      <td><input type="number" class="form-input-table text-right input-precio" value="${producto.precio_venta_actual}" step="0.01" min="0"></td>
+      <td><input type="number" class="form-input-table text-right input-descuento" value="${detalle.porcentaje_descuento || 0}" min="0" max="100" step="0.01"></td>
+      <td><input type="number" class="form-input-table text-right input-impuesto" value="${porcentajeImpuesto}" min="0" max="100" step="0.01"></td>
+      <td class="text-right total-linea">$0.00</td>
+      <td class="text-center">
+        <button class="button-icon-danger delete-item-btn"><i class="fas fa-trash-alt"></i></button>
+      </td>
+    </tr>
+  `;
+  carritoBody.prepend(nuevaFilaHtml);
+
+  // Si se deben mostrar detalles logísticos, actualizar switch/badges dinámicamente
+  if (mostrarDetallesLogisticos) {
+    const nuevaFila = carritoBody.find(`tr[data-id-producto="${idProducto}"]`);
+    actualizarSwitchReserva(nuevaFila);
+  }
+}
+
+/**
+ * Genera el HTML de los badges de estado de stock para mostrar debajo del nombre del producto
+ * Diseño compacto sin separadores verticales, mostrando stock real de bodega
+ * @param {number} reservada - Cantidad ya reservada
+ * @param {number} pendiente - Cantidad pendiente de reservar
+ * @param {number} stockDisponible - Stock libre en bodega actualmente
+ * @returns {string} HTML con los badges
+ */
+function generarBadgesEstadoStock(reservada, pendiente, stockDisponible) {
+  // Si no hay pendientes, mostrar solo reservado con check verde
+  if (pendiente <= 0) {
+    return `
+      <div class="stock-info-line">
+        <span class="stock-text stock-text-reservado">
+          <i class="fas fa-check-circle"></i> Res: <strong>${reservada}</strong>
+        </span>
+      </div>
+    `;
+  }
+
+  // Hay cantidades pendientes - determinar color del stock en bodega
+  const haySuficienteStock = stockDisponible >= pendiente;
+  const stockColor = haySuficienteStock ? "stock-text-disponible" : "stock-text-sin-stock";
+  const stockIcon = haySuficienteStock
+    ? '<i class="fas fa-check-circle"></i>'
+    : '<i class="fas fa-times-circle"></i>';
+
+  return `
+    <div class="stock-info-line">
+      <span class="stock-text stock-text-muted">
+        <i class="fas fa-box"></i> Res: <strong>${reservada}</strong>
+      </span>
+      <span class="stock-text stock-text-pendiente">
+        <i class="fas fa-clock"></i> Pend: <strong>${pendiente}</strong>
+      </span>
+      <span class="stock-text ${stockColor}">
+        ${stockIcon} Disp: <strong>${stockDisponible}</strong>
+      </span>
+    </div>
+  `;
 }
 
 // ========================================
@@ -353,6 +524,9 @@ function configurarEventListenersFormularioVenta() {
       textoBoton = "Finalizar y Guardar Venta";
     }
     $("#btn-guardar-venta").text(textoBoton);
+
+    // Actualizar switches de reserva en todas las filas del carrito
+    actualizarTodosSwitchesReserva();
   });
 
   // Listener para costo de envío
@@ -373,7 +547,7 @@ function configurarEventListenersFormularioVenta() {
   });
 
   // Listener para las interacciones dentro del carrito
-  $("#carrito-tbody").on("click input", function (event) {
+  $("#carrito-tbody").on("click input change", function (event) {
     const target = $(event.target);
 
     if (target.closest(".delete-item-btn").length) {
@@ -392,6 +566,19 @@ function configurarEventListenersFormularioVenta() {
       )
     ) {
       actualizarResumenGeneral();
+
+      // Si cambió la cantidad, actualizar switch de reserva
+      if (target.is(".input-cantidad")) {
+        const fila = target.closest("tr");
+        actualizarSwitchReserva(fila);
+      }
+    }
+
+    // Listener para switch de reservar stock
+    if (target.is(".switch-reservar-stock")) {
+      const fila = target.closest("tr");
+      const reservarDisponibles = target.prop("checked");
+      recalcularDistribucionFila(fila, reservarDisponibles);
     }
   });
 
@@ -829,10 +1016,12 @@ const buscarYRenderizarProductos = debounce(async function () {
 // ========================================
 /**
  * Agrega un producto al carrito
+ * Incluye lógica de switch para reservar stock cuando estado=Pendiente
  */
 function agregarProductoAlCarrito(producto, cantidadInicial = 1) {
   const carritoBody = $("#carrito-tbody");
   const idProducto = producto.id_producto;
+  const stockDisponible = producto.stock_disponible || 0;
 
   const filaExistente = carritoBody.find(
     `tr[data-id-producto="${idProducto}"]`
@@ -845,6 +1034,8 @@ function agregarProductoAlCarrito(producto, cantidadInicial = 1) {
     inputCantidad.val(cantidadActual + 1);
     inputCantidad.trigger("input");
     inputCantidad.focus().select();
+    // Actualizar switch de reserva si es necesario
+    actualizarSwitchReserva(filaExistente);
   } else {
     console.log("Producto nuevo, agregando al carrito...");
     carritoBody.find(".empty-cart-row").remove();
@@ -855,8 +1046,11 @@ function agregarProductoAlCarrito(producto, cantidadInicial = 1) {
     const nuevaFilaHtml = `
             <tr data-id-producto="${idProducto}" data-id-tipo-impuesto="${
       idTipoImpuesto || ""
-    }" data-costo-unitario="${producto.costo_promedio || 0}">
-                <td>${producto.nombre_producto}</td>
+    }" data-costo-unitario="${producto.costo_promedio || 0}" data-stock-disponible="${stockDisponible}">
+                <td>
+                  <div class="producto-nombre-carrito">${producto.nombre_producto}</div>
+                  <div class="reserva-control-container"></div>
+                </td>
                 <td><input type="number" class="form-input-table text-right input-cantidad" value="${cantidadInicial}" min="1"></td>
                 <td><input type="number" class="form-input-table text-right input-precio" value="${
                   producto.precio_venta_actual
@@ -874,12 +1068,140 @@ function agregarProductoAlCarrito(producto, cantidadInicial = 1) {
     const nuevaFila = carritoBody.find(`tr[data-id-producto="${idProducto}"]`);
     const inputCantidadNuevo = nuevaFila.find(".input-cantidad");
     inputCantidadNuevo.focus().select();
+
+    // Verificar si mostrar switch de reserva
+    actualizarSwitchReserva(nuevaFila);
   }
 
   $("#product-search-results").hide().empty();
   $("#buscar-producto").val("");
 
   actualizarResumenGeneral();
+}
+
+/**
+ * Actualiza el switch de reserva según estado de venta y cantidad vs stock
+ */
+function actualizarSwitchReserva(fila) {
+  const estadoVenta = $("#venta-estado").val();
+  const esEstadoPendiente = estadoVenta === "Pendiente";
+  const cantidad = parseInt(fila.find(".input-cantidad").val()) || 0;
+  const stockDisponible = parseInt(fila.attr("data-stock-disponible")) || 0;
+  const container = fila.find(".reserva-control-container");
+  const idProducto = fila.attr("data-id-producto");
+
+  // Obtener cantidad reservada guardada en BD (solo existe en modo edición)
+  const reservadaBDAttr = fila.attr("data-reservada-bd");
+  const esProductoDeEdicion = reservadaBDAttr !== undefined;
+  const cantidadReservadaBD = parseFloat(reservadaBDAttr) || 0;
+
+  // Limpiar contenedor
+  container.empty();
+
+  // Solo mostrar si estado=Pendiente y cantidad > stock
+  if (esEstadoPendiente && cantidad > stockDisponible) {
+
+    // CASO 1: Stock = 0, no mostrar switch, solo aviso
+    if (stockDisponible <= 0) {
+      container.html(`
+        <div class="stock-info-line">
+          <span class="stock-text stock-text-sin-stock">
+            <i class="fas fa-exclamation-circle"></i> Sin stock (Quedará pendiente)
+          </span>
+        </div>
+      `);
+      // Guardar valores: todo pendiente
+      fila.attr("data-cantidad-reservar", 0);
+      fila.attr("data-cantidad-pendiente", cantidad);
+      return;
+    }
+
+    // CASO 2: Hay stock parcial, mostrar switch solo y badges debajo
+    // Determinar estado inicial del switch:
+    // - Si es producto de edición: ON solo si cantidadReservadaBD > 0
+    // - Si es producto nuevo: ON por defecto (hay stock disponible)
+    let switchChecked = true;
+    if (esProductoDeEdicion) {
+      switchChecked = cantidadReservadaBD > 0;
+    }
+
+    const switchId = `switch-reservar-${idProducto}`;
+    const switchHtml = `
+      <div class="form-check form-switch reserva-switch-solo">
+        <input class="form-check-input switch-reservar-stock" type="checkbox" id="${switchId}" ${switchChecked ? 'checked' : ''}>
+      </div>
+      <div class="stock-badges-dinamicos"></div>
+    `;
+    container.html(switchHtml);
+
+    // Actualizar badges inicial según estado del switch
+    recalcularDistribucionFila(fila, switchChecked);
+
+  } else if (esEstadoPendiente && cantidad > 0 && stockDisponible >= cantidad) {
+    // Hay suficiente stock
+    container.html(`
+      <div class="stock-info-line">
+        <span class="stock-text stock-text-reservado">
+          <i class="fas fa-check-circle"></i> Res: <strong>${cantidad}</strong>
+        </span>
+      </div>
+    `);
+    // Guardar valores: todo reservado
+    fila.attr("data-cantidad-reservar", cantidad);
+    fila.attr("data-cantidad-pendiente", 0);
+  }
+}
+
+/**
+ * Recalcula la distribución de reserva para una fila específica
+ * Actualiza los badges dinámicos en lugar de texto largo
+ */
+function recalcularDistribucionFila(fila, reservarDisponibles) {
+  const cantidad = parseInt(fila.find(".input-cantidad").val()) || 0;
+  const stockDisponible = parseInt(fila.attr("data-stock-disponible")) || 0;
+  const badgesContainer = fila.find(".stock-badges-dinamicos");
+
+  let cantidadReservar, cantidadPendiente;
+
+  if (reservarDisponibles) {
+    // Switch ON: reservar lo disponible
+    cantidadReservar = Math.min(stockDisponible, cantidad);
+    cantidadPendiente = cantidad - cantidadReservar;
+  } else {
+    // Switch OFF: no reservar nada
+    cantidadReservar = 0;
+    cantidadPendiente = cantidad;
+  }
+
+  // Guardar valores en data attributes para usar al guardar
+  fila.attr("data-cantidad-reservar", cantidadReservar);
+  fila.attr("data-cantidad-pendiente", cantidadPendiente);
+
+  // Actualizar badges con Disp, Res y Pend
+  const badgesHtml = `
+    <div class="stock-info-line">
+      <span class="stock-text stock-text-disponible">
+        <i class="fas fa-warehouse"></i> Disp: <strong>${stockDisponible}</strong>
+      </span>
+      <span class="stock-text ${cantidadReservar > 0 ? 'stock-text-reservado' : 'stock-text-muted'}">
+        <i class="fas fa-box"></i> Res: <strong>${cantidadReservar}</strong>
+      </span>
+      <span class="stock-text stock-text-pendiente">
+        <i class="fas fa-clock"></i> Pend: <strong>${cantidadPendiente}</strong>
+      </span>
+    </div>
+  `;
+  badgesContainer.html(badgesHtml);
+}
+
+/**
+ * Actualiza todos los switches de reserva en el carrito
+ * Se llama cuando cambia el estado de la venta
+ */
+function actualizarTodosSwitchesReserva() {
+  $("#carrito-tbody tr").not(".empty-cart-row").each(function () {
+    actualizarSwitchReserva($(this));
+  });
 }
 
 // ========================================
@@ -1143,16 +1465,40 @@ function recopilarDatosDelFormulario() {
 
   // Recopilar productos del carrito
   const productos = [];
+  const estadoVenta = $("#venta-estado").val();
+  const esEstadoPendiente = estadoVenta === "Pendiente";
+
   $("#carrito-tbody tr").each(function () {
     const fila = $(this);
     if (fila.hasClass("empty-cart-row")) return;
 
     const idTipoImpuesto = fila.data("id-tipo-impuesto");
     const costoUnitario = parseFloat(fila.data("costo-unitario")) || 0;
+    const cantidad = parseFloat(fila.find(".input-cantidad").val()) || 0;
+    const stockDisponible = parseInt(fila.attr("data-stock-disponible")) || 0;
+
+    // Calcular cantidades de reserva
+    let cantidadAReservar = cantidad;
+    let cantidadPendiente = 0;
+
+    if (esEstadoPendiente) {
+      // Si hay switch activo, usar los valores calculados
+      const switchReserva = fila.find(".switch-reservar-stock");
+      if (switchReserva.length > 0) {
+        cantidadAReservar = parseInt(fila.attr("data-cantidad-reservar")) || 0;
+        cantidadPendiente = parseInt(fila.attr("data-cantidad-pendiente")) || 0;
+      } else if (cantidad > stockDisponible) {
+        // No hay switch pero falta stock (reservar todo lo disponible por defecto)
+        cantidadAReservar = stockDisponible;
+        cantidadPendiente = cantidad - stockDisponible;
+      }
+    }
 
     productos.push({
       id_producto: fila.data("id-producto"),
-      cantidad: parseFloat(fila.find(".input-cantidad").val()) || 0,
+      cantidad: cantidad,
+      cantidad_a_reservar: cantidadAReservar,
+      cantidad_pendiente: cantidadPendiente,
       precio_unitario_venta: parseFloat(fila.find(".input-precio").val()) || 0,
       costo_unitario_venta: costoUnitario,
       porcentaje_descuento:

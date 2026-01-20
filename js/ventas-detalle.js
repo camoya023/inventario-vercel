@@ -51,7 +51,7 @@ async function cargarVistaDetalleVenta(idVenta) {
 
         console.log("[Ventas] Datos de detalle recibidos:", data);
 
-        // Renderizar los datos
+        // Renderizar los datos (la RPC ya incluye cantidad_reservada y cantidad_pendiente)
         renderizarDatosDetalleVenta(data.datos);
 
         // Configurar event listeners
@@ -218,7 +218,6 @@ function renderizarDatosDetalleVenta(datos) {
 
             const producto = d.productos || {};
             const sku = producto.sku || 'N/A';
-            const nombreProducto = producto.nombre_producto || 'Producto no encontrado';
             const precioUnitario = d.precio_unitario_venta || 0;
             const subtotalLinea = d.subtotal_linea || (d.cantidad * precioUnitario);
             const porcDescuento = d.porcentaje_descuento || 0;
@@ -226,20 +225,20 @@ function renderizarDatosDetalleVenta(datos) {
             const montoDescuento = d.monto_descuento || 0;
             const montoImpuesto = d.monto_impuesto || 0;
             const totalLinea = d.total_linea || subtotalLinea;
-            const estadoItem = d.estado_item || '';
 
-            subtotalCalculado += subtotalLinea; // ✅ SUMAR subtotal de cada línea
+            subtotalCalculado += subtotalLinea;
             totalDescuentos += montoDescuento;
             totalImpuestos += montoImpuesto;
             totalGeneral += totalLinea;
 
-            // Agregar clase especial si el item está pendiente
-            const claseFilaPendiente = estadoItem === 'Pendiente' ? 'item-pendiente' : '';
+            // Generar contenido de celda Producto con indicador de stock minimalista
+            // Solo muestra indicador si la venta está en estado "Pendiente"
+            const contenidoProducto = renderContentProducto(d, venta.estado);
 
             const fila = `
-                <tr class="${claseFilaPendiente}">
+                <tr>
                     <td>${sku}</td>
-                    <td>${nombreProducto}</td>
+                    <td>${contenidoProducto}</td>
                     <td class="text-right">${d.cantidad}</td>
                     <td class="text-right">${formatCurrency(precioUnitario)}</td>
                     <td class="text-right">${formatCurrency(subtotalLinea)}</td>
@@ -311,6 +310,44 @@ function formatCurrency(valor) {
         currency: 'COP',
         minimumFractionDigits: 0
     }).format(valor || 0);
+}
+
+/**
+ * Genera el HTML para la celda de Producto con indicador de stock minimalista
+ * @param {object} item - El objeto del detalle del producto
+ * @param {string} estadoVentaGlobal - El estado de la cabecera de la venta (ej: 'Pendiente')
+ * @returns {string} HTML del contenido de la celda Producto
+ */
+function renderContentProducto(item, estadoVentaGlobal) {
+    const nombreProducto = item.productos?.nombre_producto || item.nombre_producto || 'Producto no encontrado';
+
+    // 1. Nombre del Producto (Siempre visible)
+    let html = `<div style="font-weight: 600; color: #333;">${nombreProducto}</div>`;
+
+    // 2. Lógica del Semáforo (Solo si la venta está PENDIENTE)
+    if (estadoVentaGlobal && estadoVentaGlobal.toUpperCase() === 'PENDIENTE') {
+
+        const reservado = parseFloat(item.cantidad_reservada) || 0;
+        const total = parseFloat(item.cantidad) || 0;
+
+        // A. SIN RESERVA (Caso Crítico -> Rojo)
+        if (reservado === 0) {
+            html += `
+                <div style="font-size: 0.85em; color: #dc3545; margin-top: 3px;">
+                    ● Sin Reserva (0/${total})
+                </div>`;
+        }
+        // B. PARCIAL (Caso Advertencia -> Naranja)
+        else if (reservado < total) {
+            html += `
+                <div style="font-size: 0.85em; color: #fd7e14; margin-top: 3px;">
+                    ● Parcial (${reservado}/${total})
+                </div>`;
+        }
+        // C. COMPLETO -> No mostrar nada (tabla limpia cuando está OK)
+    }
+
+    return html;
 }
 
 console.log('[Ventas Detalle] ✅ Módulo cargado');
