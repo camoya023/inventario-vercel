@@ -901,10 +901,10 @@
 .stock-info-line {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
+    flex-wrap: nowrap;
+    gap: 8px;
     margin-top: 4px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 /* Texto base de stock */

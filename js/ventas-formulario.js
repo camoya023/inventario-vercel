@@ -1138,17 +1138,25 @@ function actualizarSwitchReserva(fila) {
     recalcularDistribucionFila(fila, switchChecked);
 
   } else if (esEstadoPendiente && cantidad > 0 && stockDisponible >= cantidad) {
-    // Hay suficiente stock
-    container.html(`
-      <div class="stock-info-line">
-        <span class="stock-text stock-text-reservado">
-          <i class="fas fa-check-circle"></i> Res: <strong>${cantidad}</strong>
-        </span>
+    // CASO 3: Hay suficiente stock - mostrar switch ON por defecto
+    // El usuario puede decidir no reservar si lo desea
+    let switchChecked = true;
+    if (esProductoDeEdicion) {
+      // En edición: ON si ya tenía reserva, OFF si no
+      switchChecked = cantidadReservadaBD > 0;
+    }
+
+    const switchId = `switch-reservar-suficiente-${idProducto}`;
+    const switchHtml = `
+      <div class="form-check form-switch reserva-switch-solo">
+        <input class="form-check-input switch-reservar-stock" type="checkbox" id="${switchId}" ${switchChecked ? 'checked' : ''}>
       </div>
-    `);
-    // Guardar valores: todo reservado
-    fila.attr("data-cantidad-reservar", cantidad);
-    fila.attr("data-cantidad-pendiente", 0);
+      <div class="stock-badges-dinamicos"></div>
+    `;
+    container.html(switchHtml);
+
+    // Usar recalcularDistribucionFila para calcular y mostrar badges
+    recalcularDistribucionFila(fila, switchChecked);
   }
 }
 
@@ -1177,20 +1185,35 @@ function recalcularDistribucionFila(fila, reservarDisponibles) {
   fila.attr("data-cantidad-reservar", cantidadReservar);
   fila.attr("data-cantidad-pendiente", cantidadPendiente);
 
-  // Actualizar badges con Disp, Res y Pend
-  const badgesHtml = `
-    <div class="stock-info-line">
-      <span class="stock-text stock-text-disponible">
-        <i class="fas fa-warehouse"></i> Disp: <strong>${stockDisponible}</strong>
-      </span>
-      <span class="stock-text ${cantidadReservar > 0 ? 'stock-text-reservado' : 'stock-text-muted'}">
-        <i class="fas fa-box"></i> Res: <strong>${cantidadReservar}</strong>
-      </span>
-      <span class="stock-text stock-text-pendiente">
-        <i class="fas fa-clock"></i> Pend: <strong>${cantidadPendiente}</strong>
-      </span>
-    </div>
-  `;
+  // Determinar qué badges mostrar según el caso
+  let badgesHtml;
+
+  if (stockDisponible >= cantidad && reservarDisponibles) {
+    // CASO: Stock suficiente y switch ON - mostrar badge simple
+    badgesHtml = `
+      <div class="stock-info-line">
+        <span class="stock-text stock-text-reservado">
+          <i class="fas fa-check-circle"></i> Res: <strong>${cantidadReservar}</strong>
+        </span>
+      </div>
+    `;
+  } else {
+    // CASO: Stock parcial O switch OFF - mostrar Disp, Res y Pend
+    badgesHtml = `
+      <div class="stock-info-line">
+        <span class="stock-text stock-text-disponible">
+          <i class="fas fa-warehouse"></i> Disp: <strong>${stockDisponible}</strong>
+        </span>
+        <span class="stock-text ${cantidadReservar > 0 ? 'stock-text-reservado' : 'stock-text-muted'}">
+          <i class="fas fa-box"></i> Res: <strong>${cantidadReservar}</strong>
+        </span>
+        <span class="stock-text stock-text-pendiente">
+          <i class="fas fa-clock"></i> Pend: <strong>${cantidadPendiente}</strong>
+        </span>
+      </div>
+    `;
+  }
+
   badgesContainer.html(badgesHtml);
 }
 
