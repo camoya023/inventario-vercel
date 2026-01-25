@@ -423,6 +423,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #informe-ventas-link no encontrado');
   }
 
+  // Informe de Venta por Producto
+  const informeVentaProductoLink = document.getElementById('informe-venta-producto-link');
+  if (informeVentaProductoLink) {
+    informeVentaProductoLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a módulo de Informe de Venta por Producto...');
+      cargarVistaInformeVentaProducto();
+    });
+    console.log('[HOME] Event listener de Informe de Venta por Producto configurado');
+  } else {
+    console.warn('[HOME] Enlace #informe-venta-producto-link no encontrado');
+  }
+
   // TODO: Agregar más enlaces del menú aquí
 }
 
@@ -612,6 +625,15 @@ function desactivarTodosLosModulos() {
         // }
         kardexModuloActivo = false;
         console.log('[HOME]   ✓ Kardex desactivado');
+    }
+
+    // Desactivar módulo de Informe de Venta por Producto
+    if (typeof informeVentaProductoModuloActivo !== 'undefined' && informeVentaProductoModuloActivo) {
+        if (typeof limpiarModuloInformeVentaProducto === 'function') {
+            limpiarModuloInformeVentaProducto();
+        }
+        informeVentaProductoModuloActivo = false;
+        console.log('[HOME]   ✓ Informe Venta Producto desactivado');
     }
 
     // Aquí se pueden agregar más módulos en el futuro
@@ -1028,6 +1050,53 @@ async function cargarVistaDetalleCliente(clienteId) {
     } catch (error) {
         console.error('[HOME] Error al cargar vista de detalle:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Carga dinámicamente la vista de informe de venta por producto
+ */
+async function cargarVistaInformeVentaProducto() {
+    console.log('[HOME] Cargando vista de informe de venta por producto...');
+
+    // Desactivar todos los módulos antes de cargar nueva vista
+    desactivarTodosLosModulos();
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando informe de venta por producto...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/informe-venta-producto.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Cargar el script del módulo
+        await cargarScriptSiNoExiste('/js/informe-venta-producto.js', 'informe-venta-producto-script');
+
+        // Inicializar la vista
+        if (typeof cargarPaginaInformeVentaProducto === 'function') {
+            await cargarPaginaInformeVentaProducto();
+            console.log('[HOME] Vista de informe de venta por producto cargada e inicializada');
+        } else {
+            console.error('[HOME] Función cargarPaginaInformeVentaProducto no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de informe de venta por producto:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el informe: ${error.message}</div>`;
     }
 }
 

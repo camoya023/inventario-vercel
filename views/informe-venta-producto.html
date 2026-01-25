@@ -1,0 +1,124 @@
+<div class="page-content-wrapper">
+
+    <!-- Encabezado -->
+    <div class="page-header-controls">
+        <h2 class="page-section-title">Informe de Venta por Producto</h2>
+        <button id="btn-exportar-csv-venta-producto" class="button button-success">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+        </button>
+    </div>
+
+    <!-- Panel de Filtros -->
+    <div class="page-toolbar-container">
+        <div class="filtros-venta-producto">
+            <div class="filtros-row">
+                <!-- Selector de Producto con Select2 -->
+                <div class="filtro-grupo filtro-producto-grupo">
+                    <label for="select-producto-historial" class="form-label">Producto</label>
+                    <select id="select-producto-historial" class="form-input-select" style="width: 100%;">
+                        <option value="">Buscar producto...</option>
+                    </select>
+                </div>
+
+                <!-- Fecha Inicio -->
+                <div class="filtro-grupo">
+                    <label for="fecha-inicio-venta-producto" class="form-label">Fecha Inicio</label>
+                    <input type="text" id="fecha-inicio-venta-producto" class="form-input flatpickr-input" placeholder="YYYY-MM-DD" readonly>
+                </div>
+
+                <!-- Fecha Fin -->
+                <div class="filtro-grupo">
+                    <label for="fecha-fin-venta-producto" class="form-label">Fecha Fin</label>
+                    <input type="text" id="fecha-fin-venta-producto" class="form-input flatpickr-input" placeholder="YYYY-MM-DD" readonly>
+                </div>
+            </div>
+
+            <div class="filtros-row filtros-row-estados">
+                <!-- Filtro de Estados -->
+                <div class="filtro-grupo filtro-estados-grupo">
+                    <label class="form-label">Estados</label>
+                    <div class="estados-checkboxes">
+                        <label class="checkbox-estado">
+                            <input type="checkbox" id="estado-todos" value="TODOS" checked>
+                            <span class="checkbox-label">Todos</span>
+                        </label>
+                        <label class="checkbox-estado">
+                            <input type="checkbox" id="estado-borrador" value="Borrador">
+                            <span class="checkbox-label badge-borrador">Borrador</span>
+                        </label>
+                        <label class="checkbox-estado">
+                            <input type="checkbox" id="estado-pendiente" value="Pendiente">
+                            <span class="checkbox-label badge-pendiente">Pendiente</span>
+                        </label>
+                        <label class="checkbox-estado">
+                            <input type="checkbox" id="estado-en-proceso" value="En Proceso">
+                            <span class="checkbox-label badge-en-proceso">En Proceso</span>
+                        </label>
+                        <label class="checkbox-estado">
+                            <input type="checkbox" id="estado-completado" value="Completado">
+                            <span class="checkbox-label badge-completado">Completado</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Boton Buscar -->
+                <div class="filtro-grupo filtro-boton-grupo">
+                    <button id="btn-buscar-historial-producto" class="button button-primary">
+                        <i class="fas fa-search"></i> Consultar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de busqueda -->
+    <div id="resumen-busqueda-venta-producto" class="resumen-busqueda" style="display: none;">
+        <div class="resumen-item">
+            <i class="fas fa-box"></i>
+            <span id="resumen-producto-nombre">-</span>
+        </div>
+        <div class="resumen-item">
+            <i class="fas fa-calendar-alt"></i>
+            <span id="resumen-fechas">-</span>
+        </div>
+        <div class="resumen-item">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="resumen-total-registros">0 registros</span>
+        </div>
+    </div>
+
+    <!-- Tabla de Resultados -->
+    <div class="table-wrapper">
+        <table class="data-table-default">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cliente</th>
+                    <th>Contacto</th>
+                    <th class="text-center">Fecha</th>
+                    <th class="text-right">Cantidad</th>
+                    <th class="text-center">Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-venta-producto">
+                <tr>
+                    <td colspan="6" class="text-center" style="padding: 40px; font-style: italic; color: #888;">
+                        <i class="fas fa-info-circle"></i> Selecciona un producto y haz clic en "Consultar" para ver el historial de ventas.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Controles de Paginacion -->
+    <div id="pagination-controls-venta-producto" class="pagination-controls" style="display: none;">
+        <button id="btn-prev-page-venta-producto" class="button button-secondary" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+        </button>
+        <span id="page-info-venta-producto" class="page-info">Pagina 1 de 1</span>
+        <button id="btn-next-page-venta-producto" class="button button-secondary" disabled>
+            Siguiente <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+</div>
