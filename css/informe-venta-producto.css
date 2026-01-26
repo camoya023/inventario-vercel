@@ -1,0 +1,356 @@
+/* =========================================
+   ESTILOS INFORME DE VENTA POR PRODUCTO
+   ========================================= */
+
+/* --- FILTROS --- */
+.filtros-venta-producto {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.filtros-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.filtros-row + .filtros-row {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.filtro-producto-grupo {
+    flex: 1;
+    min-width: 280px;
+}
+
+.filtro-grupo .form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0;
+}
+
+.filtro-grupo .form-input,
+.filtro-grupo .form-input-select {
+    height: 38px;
+    font-size: 0.875rem;
+}
+
+/* Select2 personalizado */
+.filtros-venta-producto .select2-container--default .select2-selection--single {
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.filtros-venta-producto .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 38px;
+    padding-left: 12px;
+    color: #374151;
+}
+
+.filtros-venta-producto .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+.filtros-venta-producto .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #9ca3af;
+}
+
+/* --- FILTRO DE ESTADOS (Checkboxes) --- */
+.filtro-estados-grupo {
+    flex: 1;
+    min-width: 300px;
+}
+
+.estados-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.checkbox-estado {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    user-select: none;
+}
+
+.checkbox-estado input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+
+.checkbox-estado .checkbox-label {
+    padding: 0.25rem 0.625rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.8125rem;
+    transition: all 0.2s ease;
+}
+
+/* Badges de estado en checkboxes */
+.checkbox-estado .badge-borrador {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+.checkbox-estado .badge-pendiente {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.checkbox-estado .badge-en-proceso {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.checkbox-estado .badge-completado {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+/* Checkbox checked - resaltar el badge */
+.checkbox-estado input[type="checkbox"]:checked + .badge-borrador {
+    background-color: #9ca3af;
+    color: white;
+}
+
+.checkbox-estado input[type="checkbox"]:checked + .badge-pendiente {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.checkbox-estado input[type="checkbox"]:checked + .badge-en-proceso {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.checkbox-estado input[type="checkbox"]:checked + .badge-completado {
+    background-color: #10b981;
+    color: white;
+}
+
+/* Boton buscar */
+.filtro-boton-grupo {
+    flex-shrink: 0;
+}
+
+.filtro-boton-grupo .button {
+    height: 38px;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* --- RESUMEN DE BUSQUEDA --- */
+.resumen-busqueda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    padding: 0.875rem 1.25rem;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+    align-items: center;
+}
+
+.resumen-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #1e40af;
+}
+
+.resumen-item i {
+    color: #3b82f6;
+}
+
+/* --- BADGES DE ESTADO EN TABLA --- */
+.estado-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.estado-borrador {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+.estado-pendiente {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.estado-en-proceso {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.estado-completado {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+/* --- CELDA DE CONTACTO --- */
+.contacto-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.contacto-telefono {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contacto-telefono a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.contacto-telefono a.btn-llamar {
+    background-color: #dbeafe;
+    color: #2563eb;
+}
+
+.contacto-telefono a.btn-llamar:hover {
+    background-color: #2563eb;
+    color: white;
+}
+
+.contacto-telefono a.btn-whatsapp {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.contacto-telefono a.btn-whatsapp:hover {
+    background-color: #16a34a;
+    color: white;
+}
+
+/* --- TABLA --- */
+#tbody-venta-producto tr {
+    transition: background-color 0.2s ease;
+}
+
+#tbody-venta-producto tr:hover {
+    background-color: #f9fafb;
+}
+
+/* --- PAGINACION --- */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.page-info {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* --- LOADING STATE --- */
+.button-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .filtros-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filtro-producto-grupo,
+    .filtro-estados-grupo {
+        min-width: 100%;
+    }
+
+    .estados-checkboxes {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .resumen-busqueda {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .pagination-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+/* --- FLATPICKR CUSTOMIZATION --- */
+.filtros-venta-producto .flatpickr-input {
+    background-color: white;
+    cursor: pointer;
+}
+
+.filtros-venta-producto .flatpickr-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* --- EMPTY STATE --- */
+.empty-state-row td {
+    padding: 3rem 1rem !important;
+}
+
+.empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: #9ca3af;
+}
+
+.empty-state-content i {
+    font-size: 2.5rem;
+    color: #d1d5db;
+}
+
+.empty-state-content p {
+    margin: 0;
+    font-size: 0.9375rem;
+}
