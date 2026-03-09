@@ -33,39 +33,79 @@
   <link rel="stylesheet" href="/css/informe-venta-producto.css">
 
   <style>
-    /* Contenedores de vistas */
     .app-container {
       display: none;
       width: 100%;
       min-height: 100vh;
     }
-    .app-container.active {
-      display: block !important;
-    }
+    .app-container.active { display: block !important; }
+    body:not(.initialized) #login-container { display: block; }
+    body, html { margin: 0; padding: 0; height: 100%; width: 100%; }
 
-    /* Mostrar login por defecto hasta que JavaScript inicialice */
-    body:not(.initialized) #login-container {
-      display: block;
-    }
-
-    /* Asegurar que el body tenga altura completa */
-    body, html {
-      margin: 0;
+    /* ===== CAMBIO DE CONTRASEÑA ===== */
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--primary-color, #4f46e5);
+      cursor: pointer;
+      font-size: 0.875rem;
       padding: 0;
-      height: 100%;
-      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 1rem;
+      font-weight: 500;
     }
+    .btn-back:hover { text-decoration: underline; }
+    .section-divider { border: none; border-top: 1px solid #e5e7eb; margin: 1.25rem 0; }
+
+    /* Indicador de fortaleza */
+    .strength-wrapper { margin-top: 0.4rem; }
+    .strength-track {
+      height: 5px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.25rem;
+    }
+    .strength-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .strength-bar.weak   { background-color: #ef4444; }
+    .strength-bar.fair   { background-color: #f59e0b; }
+    .strength-bar.good   { background-color: #3b82f6; }
+    .strength-bar.strong { background-color: #10b981; }
+    .strength-label { font-size: 0.75rem; color: #6b7280; }
+
+    /* Botón 🔑 en barra superior */
+    .change-pwd-button {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-right: 4px;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+    .change-pwd-button:hover { opacity: 1; }
   </style>
 </head>
 <body>
-  <!-- CONTENEDOR DE LOGIN -->
+
+  <!-- ======================================== -->
+  <!-- LOGIN                                    -->
+  <!-- ======================================== -->
   <div id="login-container" class="app-container">
     <div class="login-container">
       <div class="login-card">
         <div class="login-header">
-          <div class="login-icon">
-            <i class="fas fa-boxes"></i>
-          </div>
+          <div class="login-icon"><i class="fas fa-boxes"></i></div>
           <h1 class="login-title">Bienvenido</h1>
           <p class="login-subtitle">Ingresa a tu cuenta</p>
         </div>
@@ -75,15 +115,8 @@
             <label for="email" class="form-label">Correo electrónico</label>
             <div class="input-wrapper">
               <i class="fas fa-envelope input-icon"></i>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="form-input"
-                placeholder="tu@email.com"
-                required
-                autocomplete="email"
-              >
+              <input type="email" id="email" name="email" class="form-input"
+                placeholder="tu@email.com" required autocomplete="email">
             </div>
             <span id="email-error" class="error-message"></span>
           </div>
@@ -92,15 +125,8 @@
             <label for="password" class="form-label">Contraseña</label>
             <div class="input-wrapper">
               <i class="fas fa-lock input-icon"></i>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                class="form-input"
-                placeholder="••••••••"
-                required
-                autocomplete="current-password"
-              >
+              <input type="password" id="password" name="password" class="form-input"
+                placeholder="••••••••" required autocomplete="current-password">
               <button type="button" id="toggle-password" class="toggle-password" aria-label="Mostrar contraseña">
                 <i class="fas fa-eye"></i>
               </button>
@@ -110,12 +136,7 @@
 
           <div class="form-group-checkbox">
             <label class="checkbox-label">
-              <input
-                type="checkbox"
-                id="remember-me"
-                name="remember-me"
-                class="checkbox-input"
-              >
+              <input type="checkbox" id="remember-me" name="remember-me" class="checkbox-input">
               <span class="checkbox-text">Recordarme</span>
             </label>
           </div>
@@ -139,7 +160,92 @@
     </div>
   </div>
 
-  <!-- CONTENEDOR DE HOME -->
+  <!-- ======================================== -->
+  <!-- CAMBIO DE CONTRASEÑA                     -->
+  <!-- ======================================== -->
+  <div id="change-password-container" class="app-container">
+    <div class="login-container">
+      <div class="login-card">
+        <button class="btn-back" id="btn-volver-home">
+          <i class="fas fa-arrow-left"></i> Volver al sistema
+        </button>
+
+        <div class="login-header">
+          <div class="login-icon"><i class="fas fa-key"></i></div>
+          <h1 class="login-title">Cambiar Contraseña</h1>
+          <p class="login-subtitle">Actualiza tu contraseña de acceso</p>
+        </div>
+
+        <form id="change-password-form" class="login-form">
+          <div class="form-group">
+            <label for="current-password" class="form-label">Contraseña actual</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="current-password" class="form-input"
+                placeholder="Tu contraseña actual" required>
+              <button type="button" id="toggle-current-password" class="toggle-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span id="current-password-error" class="error-message"></span>
+          </div>
+
+          <hr class="section-divider">
+
+          <div class="form-group">
+            <label for="cp-new-password" class="form-label">Nueva contraseña</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="cp-new-password" class="form-input"
+                placeholder="Mínimo 6 caracteres" required>
+              <button type="button" id="toggle-cp-new-password" class="toggle-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span id="cp-new-password-error" class="error-message"></span>
+            <div class="strength-wrapper">
+              <div class="strength-track">
+                <div id="strength-bar" class="strength-bar"></div>
+              </div>
+              <span id="strength-text" class="strength-label"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="cp-confirm-password" class="form-label">Confirmar nueva contraseña</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock input-icon"></i>
+              <input type="password" id="cp-confirm-password" class="form-input"
+                placeholder="Repite la nueva contraseña" required>
+              <button type="button" id="toggle-cp-confirm-password" class="toggle-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span id="cp-confirm-password-error" class="error-message"></span>
+          </div>
+
+          <button type="submit" id="change-password-button" class="button button-primary button-full">
+            <span id="cp-button-text">Actualizar Contraseña</span>
+            <span id="cp-button-spinner" class="spinner" style="display: none;"></span>
+          </button>
+
+          <div id="cp-alert" class="alert" style="display: none;">
+            <i class="fas fa-info-circle"></i>
+            <span id="cp-alert-message"></span>
+          </div>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        <p class="login-footer-text">Sistema de Gestión de Inventario</p>
+        <p class="login-footer-version">Versión 2.0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================== -->
+  <!-- HOME                                     -->
+  <!-- ======================================== -->
   <div id="home-container" class="app-container">
     <div class="container">
       <div class="top-container">
@@ -156,6 +262,10 @@
           <div class="user-info">
             <span id="currentDate"></span>
             <span id="loggedUser"></span>
+            <!-- BOTÓN CAMBIAR CONTRASEÑA -->
+            <button id="change-password-btn" class="change-pwd-button" title="Cambiar contraseña">
+              <i class="fas fa-key"></i>
+            </button>
             <button id="logout-button" class="logout-button" title="Cerrar sesión">
               <i class="fas fa-sign-out-alt"></i>
             </button>
@@ -176,7 +286,6 @@
             <div id="link-lista-productos" class="sidebar__submenu-item">Lista de productos</div>
             <div id="link-agregar-producto" class="sidebar__submenu-item">Agregar producto</div>
             <div id="ajustes-inventario-link" class="sidebar__submenu-item">Ajustes de Stock</div>
-            <!-- <div id="link-importar-stock" class="sidebar__submenu-item">Importar Stock Inicial</div> -->
             <div id="link-categorias" class="sidebar__submenu-item">Categorías</div>
             <div id="link-marcas" class="sidebar__submenu-item">Marcas</div>
           </div>
@@ -230,7 +339,6 @@
       </div>
     </div>
 
-    <!-- Modal de Confirmación Genérica -->
     <div id="modal-confirmacion-generica" class="modal-overlay" style="display: none;">
       <div class="modal-content modal-sm">
         <div class="modal-header">
@@ -249,7 +357,6 @@
       </div>
     </div>
 
-    <!-- Notification Container -->
     <div id="notification-container" aria-live="assertive" aria-atomic="true"></div>
   </div>
 
@@ -265,13 +372,15 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Application JavaScript -->
-  <!-- Config local debe cargarse ANTES de config.js -->
   <script src="/js/config.local.js"></script>
   <script src="/js/config.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/login.js"></script>
 
-  <!-- Módulos de funcionalidad (deben cargarse ANTES de home.js) -->
+  <!-- MÓDULO CAMBIO DE CONTRASEÑA -->
+  <script src="/js/change-password.js"></script>
+
+  <!-- Módulos de funcionalidad -->
   <script src="/js/clientes-lista.js"></script>
   <script src="/js/clientes-formulario.js"></script>
   <script src="/js/clientes-detalle.js"></script>
@@ -290,85 +399,64 @@
   <script src="/js/productos-lista.js"></script>
   <script src="/js/categorias-lista.js"></script>
   <script src="/js/marcas-lista.js"></script>
-
-  <!-- Home.js debe cargarse AL FINAL (configura los event listeners) -->
   <script src="/js/home.js"></script>
 
-  <!-- Application Logic -->
   <script>
     // ========================================
-    // NAVEGACIÓN ENTRE LOGIN Y HOME
+    // NAVEGACIÓN ENTRE VISTAS
     // ========================================
-
-    // Callback global cuando el login es exitoso
     window.onLoginSuccess = async function(user) {
-      console.log('[APP] Login exitoso, mostrando home para:', user.email);
+      console.log('[APP] Login exitoso:', user.email);
       await mostrarVista('home');
     };
 
-    // Función global para mostrar vistas
-    window.mostrarVista = async function mostrarVista(vistaId) {
-      // Ocultar todos los contenedores
-      document.querySelectorAll('.app-container').forEach(container => {
-        container.classList.remove('active');
-      });
-
-      // Mostrar el contenedor solicitado
+    window.mostrarVista = async function(vistaId) {
+      document.querySelectorAll('.app-container').forEach(c => c.classList.remove('active'));
       const container = document.getElementById(vistaId + '-container');
       if (container) {
         container.classList.add('active');
         console.log('[APP] Vista activada:', vistaId);
-
-        // Inicializar la vista según corresponda
-        if (vistaId === 'login') {
-          await inicializarLogin();
-        } else if (vistaId === 'home') {
-          await inicializarHome();
-        }
+        if (vistaId === 'login')               await inicializarLogin();
+        else if (vistaId === 'home')           await inicializarHome();
+        else if (vistaId === 'change-password') await inicializarCambioPassword();
       } else {
-        console.error('[APP] No se encontró el contenedor:', vistaId + '-container');
+        console.error('[APP] Contenedor no encontrado:', vistaId + '-container');
       }
-    }
+    };
 
-    // Inicialización de la aplicación
+    // Botón 🔑 → ir a cambiar contraseña
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('#change-password-btn')) mostrarVista('change-password');
+    });
+
+    // ========================================
+    // INICIALIZACIÓN
+    // ========================================
     document.addEventListener('DOMContentLoaded', async function() {
       console.log('[APP] ========== APLICACIÓN INICIADA ==========');
-
       try {
-        // Inicializar cliente de Supabase UNA SOLA VEZ
         await inicializarSupabaseClient();
         console.log('[APP] Cliente de Supabase inicializado');
 
-        // Verificar si hay sesión guardada
         const sessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
-
         if (sessionData) {
           try {
             const session = JSON.parse(sessionData);
-            const ahora = new Date().getTime();
-            const tiempoTranscurrido = ahora - session.timestamp;
-
-            // Si hay sesión válida (menos de 24 horas)
+            const tiempoTranscurrido = new Date().getTime() - session.timestamp;
             if (tiempoTranscurrido < 86400000 && session.user) {
-              console.log('[APP] Sesión válida encontrada, mostrando home');
               await mostrarVista('home');
             } else {
-              console.log('[APP] Sesión expirada, mostrando login');
               await mostrarVista('login');
             }
           } catch (e) {
-            console.error('[APP] Error parseando sesión:', e);
             await mostrarVista('login');
           }
         } else {
-          console.log('[APP] No hay sesión, mostrando login');
           await mostrarVista('login');
         }
-
-        // Marcar como inicializado
         document.body.classList.add('initialized');
       } catch (error) {
-        console.error('[APP] Error fatal inicializando aplicación:', error);
+        console.error('[APP] Error fatal:', error);
         alert('Error al inicializar la aplicación. Por favor, recarga la página.');
       }
     });
