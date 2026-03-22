@@ -1,13 +1,9 @@
 /**
  * =========================================================================
  * MÓDULO DE VENTAS - LISTA
- * Gestión de lista de ventas con filtros, paginación, análisis y acciones
  * =========================================================================
  */
 
-// ========================================
-// VARIABLES GLOBALES
-// ========================================
 const estadoPaginacionVentas = {
   paginaActual: 1,
   filasPorPagina: 10,
@@ -16,41 +12,20 @@ const estadoPaginacionVentas = {
   filtros: {},
 };
 
-// Referencias a componentes externos
-let flatpickrRangoFechasVentasVentas = null;
-let select2ClienteVentasVentas = null;
-
-// Flag para evitar sobrescritura durante restauración
+let flatpickrRangoFechasVentas = null;
+let select2ClienteVentas = null;
 let restaurandoFiltros = false;
 
-// ========================================
-// FUNCIÓN PRINCIPAL DE CARGA
-// ========================================
-/**
- * Función principal que carga la vista de lista de ventas
- * Se llama desde home.js al hacer click en el menú
- */
 async function cargarPaginaVentas() {
   console.log("[Ventas] ===== INICIALIZANDO MÓDULO DE VENTAS =====");
-
   try {
     const workArea = document.querySelector(".work-area");
-    if (!workArea) {
-      throw new Error("No se encontró el área de trabajo");
-    }
-
-    // Mostrar indicador de carga
+    if (!workArea) throw new Error("No se encontró el área de trabajo");
     workArea.innerHTML =
       '<div class="loading-spinner-container"><div class="loading-spinner"></div><p>Cargando módulo de ventas...</p></div>';
-
-    // Cargar HTML de la vista de lista
     const response = await fetch("/views/ventas-lista.html");
     if (!response.ok) throw new Error("Error al cargar la vista de ventas");
-
-    const html = await response.text();
-    workArea.innerHTML = html;
-
-    // Inicializar vista
+    workArea.innerHTML = await response.text();
     await inicializarVistaListaVentas();
     console.log("[Ventas] ✅ Módulo inicializado correctamente");
   } catch (error) {
@@ -59,74 +34,41 @@ async function cargarPaginaVentas() {
   }
 }
 
-/**
- * Inicializa la vista de lista de ventas
- */
 async function inicializarVistaListaVentas() {
-  console.log("[Ventas] Inicializando vista de Lista de Ventas...");
-
   try {
-    // 1. Configurar event listeners
     configurarEventListenersListaVentas();
-
-    // 2. Inicializar componentes de filtros (Select2, Flatpickr)
     inicializarComponentesFiltrosVentas();
-
-    // 3. Restaurar filtros guardados (si existen)
     setTimeout(() => {
       restaurarFiltrosGuardadosVentas();
-
-      // 5. Cargar datos iniciales
       ejecutarBusquedaDeVentas();
-
-      // 6. Actualizar efectos visuales
-      setTimeout(() => {
-        actualizarEfectosVisualesFiltros();
-        console.log(
-          "[Ventas] ✅ Vista de ventas inicializada con persistencia"
-        );
-      }, 100);
+      setTimeout(() => actualizarEfectosVisualesFiltros(), 100);
     }, 300);
-
-    console.log("[Ventas] Vista de Lista de Ventas inicializada correctamente");
   } catch (error) {
     console.error("[Ventas] Error al inicializar vista:", error);
     toastr.error(
       "Error al inicializar el módulo de ventas. Recarga la página.",
-      "Error"
+      "Error",
     );
   }
 }
 
-// ========================================
-// CONFIGURACIÓN DE EVENT LISTENERS
-// ========================================
 function configurarEventListenersListaVentas() {
-  console.log("[Ventas] Configurando event listeners...");
-
-  // Botón Nueva Venta
   const btnNuevaVenta = document.getElementById("btn-agregar-venta");
-  if (btnNuevaVenta) {
-    btnNuevaVenta.addEventListener("click", () => {
-      cargarVistaFormularioVenta("create");
-    });
-  }
+  if (btnNuevaVenta)
+    btnNuevaVenta.addEventListener("click", () =>
+      cargarVistaFormularioVenta("create"),
+    );
 
-  // Botón Limpiar Filtros
   const btnLimpiarFiltros = document.getElementById(
-    "btn-limpiar-filtros-ventas"
+    "btn-limpiar-filtros-ventas",
   );
-  if (btnLimpiarFiltros) {
+  if (btnLimpiarFiltros)
     btnLimpiarFiltros.addEventListener("click", limpiarFiltrosVentas);
-  }
 
-  // Toggle Filtros (Collapse/Expand)
   const btnToggleFiltros = document.getElementById("btn-toggle-filtros-ventas");
-  if (btnToggleFiltros) {
+  if (btnToggleFiltros)
     btnToggleFiltros.addEventListener("click", toggleFiltrosVentas);
-  }
 
-  // Input de búsqueda con debounce
   const inputBuscar = document.getElementById("input-buscar-ventas");
   if (inputBuscar) {
     inputBuscar.addEventListener(
@@ -136,46 +78,32 @@ function configurarEventListenersListaVentas() {
         estadoPaginacionVentas.paginaActual = 1;
         guardarFiltrosEnStorage();
         ejecutarBusquedaDeVentas();
-      }, 400)
+      }, 400),
     );
   }
 
-  // Select de Estado Venta
-  const filtroEstadoVenta = document.getElementById("filtro-estado-venta");
-  if (filtroEstadoVenta) {
-    filtroEstadoVenta.addEventListener("change", () => {
-      estadoPaginacionVentas.filtros.estadoVenta = filtroEstadoVenta.value;
-      estadoPaginacionVentas.paginaActual = 1;
-      guardarFiltrosEnStorage();
-      ejecutarBusquedaDeVentas();
-    });
-  }
+  [
+    "filtro-estado-venta",
+    "filtro-tipo-entrega",
+    "filtro-estado-pago-ventas",
+  ].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("change", () => {
+        if (id === "filtro-estado-venta")
+          estadoPaginacionVentas.filtros.estadoVenta = el.value;
+        else if (id === "filtro-tipo-entrega")
+          estadoPaginacionVentas.filtros.tipoEntrega = el.value;
+        else estadoPaginacionVentas.filtros.estadoPago = el.value;
+        estadoPaginacionVentas.paginaActual = 1;
+        guardarFiltrosEnStorage();
+        ejecutarBusquedaDeVentas();
+      });
+    }
+  });
 
-  // Select de Tipo de Entrega
-  const filtroTipoEntrega = document.getElementById("filtro-tipo-entrega");
-  if (filtroTipoEntrega) {
-    filtroTipoEntrega.addEventListener("change", () => {
-      estadoPaginacionVentas.filtros.tipoEntrega = filtroTipoEntrega.value;
-      estadoPaginacionVentas.paginaActual = 1;
-      guardarFiltrosEnStorage();
-      ejecutarBusquedaDeVentas();
-    });
-  }
-
-  // Select de Estado Pago
-  const filtroEstadoPago = document.getElementById("filtro-estado-pago-ventas");
-  if (filtroEstadoPago) {
-    filtroEstadoPago.addEventListener("change", () => {
-      estadoPaginacionVentas.filtros.estadoPago = filtroEstadoPago.value;
-      estadoPaginacionVentas.paginaActual = 1;
-      guardarFiltrosEnStorage();
-      ejecutarBusquedaDeVentas();
-    });
-  }
-
-  // Botones de rango rápido de fechas
   const btnRangoHoy = document.getElementById("btn-rango-hoy");
-  if (btnRangoHoy) {
+  if (btnRangoHoy)
     btnRangoHoy.addEventListener("click", () => {
       const hoy = new Date();
       if (flatpickrRangoFechasVentas) {
@@ -185,91 +113,74 @@ function configurarEventListenersListaVentas() {
         ejecutarBusquedaDeVentas();
       }
     });
-  }
 
   const btnRango7Dias = document.getElementById("btn-rango-7dias");
-  if (btnRango7Dias) {
+  if (btnRango7Dias)
     btnRango7Dias.addEventListener("click", () => {
       const hoy = new Date();
-      const hace7Dias = new Date();
-      hace7Dias.setDate(hoy.getDate() - 7);
+      const hace7 = new Date();
+      hace7.setDate(hoy.getDate() - 7);
       if (flatpickrRangoFechasVentas) {
-        flatpickrRangoFechasVentas.setDate([hace7Dias, hoy]);
+        flatpickrRangoFechasVentas.setDate([hace7, hoy]);
         marcarBotonRangoActivo(btnRango7Dias);
         guardarFiltrosEnStorage();
         ejecutarBusquedaDeVentas();
       }
     });
-  }
 
   const btnRangoMes = document.getElementById("btn-rango-mes");
-  if (btnRangoMes) {
+  if (btnRangoMes)
     btnRangoMes.addEventListener("click", () => {
       const hoy = new Date();
-      const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      const primer = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
       if (flatpickrRangoFechasVentas) {
-        flatpickrRangoFechasVentas.setDate([primerDiaMes, hoy]);
+        flatpickrRangoFechasVentas.setDate([primer, hoy]);
         marcarBotonRangoActivo(btnRangoMes);
         guardarFiltrosEnStorage();
         ejecutarBusquedaDeVentas();
       }
     });
-  }
 
-  // Botones de paginación
-  const btnPrevPage = document.getElementById("btn-anterior");
-  const btnNextPage = document.getElementById("btn-siguiente");
-
-  if (btnPrevPage) {
-    btnPrevPage.addEventListener("click", () => {
+  const btnPrev = document.getElementById("btn-anterior");
+  const btnNext = document.getElementById("btn-siguiente");
+  if (btnPrev)
+    btnPrev.addEventListener("click", () => {
       if (estadoPaginacionVentas.paginaActual > 1) {
         estadoPaginacionVentas.paginaActual--;
         ejecutarBusquedaDeVentas();
       }
     });
-  }
-
-  if (btnNextPage) {
-    btnNextPage.addEventListener("click", () => {
-      const totalPages = Math.ceil(
+  if (btnNext)
+    btnNext.addEventListener("click", () => {
+      const tp = Math.ceil(
         estadoPaginacionVentas.totalRegistros /
-          estadoPaginacionVentas.filasPorPagina
+          estadoPaginacionVentas.filasPorPagina,
       );
-      if (estadoPaginacionVentas.paginaActual < totalPages) {
+      if (estadoPaginacionVentas.paginaActual < tp) {
         estadoPaginacionVentas.paginaActual++;
         ejecutarBusquedaDeVentas();
       }
     });
-  }
 
-  // Delegación de eventos para botones de acción en la tabla
   const tbodyVentas = document.getElementById("tbody-ventas");
   if (tbodyVentas) {
     tbodyVentas.addEventListener("click", async (e) => {
-      // Menú de acciones
       const btnAcciones = e.target.closest(".actions-menu-container .button");
       if (btnAcciones) {
         e.preventDefault();
         e.stopPropagation();
-
-        const container = btnAcciones.closest(".actions-menu-container");
-        const menu = container.querySelector(".actions-menu");
-
-        // Cerrar todos los otros menús
+        const menu = btnAcciones
+          .closest(".actions-menu-container")
+          .querySelector(".actions-menu");
         document.querySelectorAll(".actions-menu").forEach((m) => {
           if (m !== menu) m.classList.remove("show");
         });
-
-        // Toggle del menú actual
         menu.classList.toggle("show");
         return;
       }
-
-      // Opciones del menú
       const opcionMenu = e.target.closest(".actions-menu-item");
       if (opcionMenu) {
         e.preventDefault();
-
         const accion = opcionMenu.dataset.action;
         const fila = opcionMenu.closest("tr");
         const idVenta = fila.dataset.idVenta;
@@ -277,40 +188,28 @@ function configurarEventListenersListaVentas() {
         const nombreCliente = fila.dataset.nombreCliente;
         const saldoPendiente = parseFloat(fila.dataset.saldoPendiente) || 0;
         const estado = fila.dataset.estado;
-        const estadoPago = fila.dataset.estadoPago;
-
-        console.log(`[Ventas] Acción: "${accion}" en Venta ID: ${idVenta}`);
-
-        // Cerrar menú
         opcionMenu.closest(".actions-menu").classList.remove("show");
-
-        // Ejecutar acción
         switch (accion) {
           case "ver_detalles":
             await cargarVistaDetalleVenta(idVenta);
             break;
-
           case "imprimir_factura":
             await imprimirFacturaVenta(idVenta, codigoVenta);
             break;
-
           case "editar_venta":
             await cargarVistaFormularioVenta("edit", idVenta);
             break;
-
           case "editar_estado":
             await mostrarDialogoCambiarEstado(
               idVenta,
               codigoVenta,
               nombreCliente,
-              saldoPendiente
+              saldoPendiente,
             );
             break;
-
           case "anular_venta":
             await confirmarAnularVenta(idVenta, codigoVenta, nombreCliente);
             break;
-
           case "agregar_pago":
             if (saldoPendiente <= 0) {
               toastr.info("Esta venta ya está completamente pagada.");
@@ -320,65 +219,46 @@ function configurarEventListenersListaVentas() {
               idVenta,
               codigoVenta,
               nombreCliente,
-              saldoPendiente
+              saldoPendiente,
             );
             break;
-
           case "ver_pagos":
             await mostrarDialogoGestionarPagos(
               idVenta,
               codigoVenta,
               nombreCliente,
-              estado
+              estado,
             );
             break;
-
           case "borrar_venta":
             await confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente);
             break;
-
           default:
-            console.warn("[Ventas] Acción no implementada:", accion);
             toastr.info("Función en desarrollo");
         }
       }
     });
   }
 
-  // Cerrar menús al hacer clic fuera
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".actions-menu-container")) {
-      document.querySelectorAll(".actions-menu").forEach((menu) => {
-        menu.classList.remove("show");
-      });
+      document
+        .querySelectorAll(".actions-menu")
+        .forEach((m) => m.classList.remove("show"));
     }
   });
-
-  console.log("[Ventas] Event listeners configurados");
 }
 
-// ========================================
-// INICIALIZACIÓN DE COMPONENTES (Select2, Flatpickr)
-// ========================================
 function inicializarComponentesFiltrosVentas() {
-  console.log(
-    "[Ventas] Inicializando componentes de filtros (Select2, Flatpickr)..."
-  );
-
-  // Flatpickr para el rango de fechas
   const inputRangoFechas = document.getElementById(
-    "filtro-rango-fechas-ventas"
+    "filtro-rango-fechas-ventas",
   );
   if (inputRangoFechas && typeof flatpickr !== "undefined") {
     flatpickrRangoFechasVentas = flatpickr(inputRangoFechas, {
       mode: "range",
       dateFormat: "d/m/Y",
       locale: "es",
-      onClose: function (selectedDates) {
-        console.log(
-          "[Ventas] Flatpickr onClose - fechas seleccionadas:",
-          selectedDates
-        );
+      onClose: () => {
         if (!restaurandoFiltros) {
           guardarFiltrosEnStorage();
           ejecutarBusquedaDeVentas();
@@ -387,7 +267,6 @@ function inicializarComponentesFiltrosVentas() {
     });
   }
 
-  // Select2 para el filtro de clientes con búsqueda AJAX
   const selectCliente = $("#filtro-cliente-ventas");
   if (selectCliente.length && typeof $.fn.select2 !== "undefined") {
     select2ClienteVentas = selectCliente.select2({
@@ -399,129 +278,97 @@ function inicializarComponentesFiltrosVentas() {
         transport: async function (params, success, failure) {
           try {
             const termino = params.data.term || "";
-
             if (termino.length < 3) {
               success({ results: [{ id: "", text: "Todos los clientes" }] });
               return { abort: () => {} };
             }
-
-            console.log("[Ventas Filtros] Buscando clientes:", termino);
             const client = getSupabaseClient();
-
             const { data, error } = await client
               .from("clientes")
               .select("id, codigo_cliente, nombres, apellidos, razon_social")
               .eq("estado", "Activo")
               .or(
-                `nombres.ilike.%${termino}%,apellidos.ilike.%${termino}%,razon_social.ilike.%${termino}%,codigo_cliente.ilike.%${termino}%`
+                `nombres.ilike.%${termino}%,apellidos.ilike.%${termino}%,razon_social.ilike.%${termino}%,codigo_cliente.ilike.%${termino}%`,
               )
               .order("nombres")
               .limit(20);
-
             if (error) throw error;
-
-            const resultados = (data || []).map((c) => ({
-              id: c.id,
-              text:
-                c.razon_social ||
-                `${c.nombres || ""} ${c.apellidos || ""}`.trim(),
-            }));
-
-            const todos = { id: "", text: "Todos los clientes" };
-            success({ results: [todos, ...resultados] });
-          } catch (error) {
-            console.error("[Ventas Filtros] Error al buscar clientes:", error);
-            failure(error);
+            success({
+              results: [
+                { id: "", text: "Todos los clientes" },
+                ...(data || []).map((c) => ({
+                  id: c.id,
+                  text:
+                    c.razon_social ||
+                    `${c.nombres || ""} ${c.apellidos || ""}`.trim(),
+                })),
+              ],
+            });
+          } catch (e) {
+            failure(e);
           }
           return { abort: () => {} };
         },
       },
     });
-
-    // Auto-focus en el campo de búsqueda cuando se abre
-    selectCliente.on("select2:open", function () {
-      setTimeout(function () {
-        const searchField = document.querySelector(".select2-search__field");
-        if (searchField) searchField.focus();
-      }, 100);
-    });
-
-    // Al seleccionar un cliente, ejecutar búsqueda
-    selectCliente.on("select2:select select2:clear", function (e) {
+    selectCliente.on("select2:open", () =>
+      setTimeout(() => {
+        const sf = document.querySelector(".select2-search__field");
+        if (sf) sf.focus();
+      }, 100),
+    );
+    selectCliente.on("select2:select select2:clear", function () {
       if (!restaurandoFiltros) {
-        const clienteId = $(this).val();
-        estadoPaginacionVentas.filtros.clienteId = clienteId || null;
+        estadoPaginacionVentas.filtros.clienteId = $(this).val() || null;
         estadoPaginacionVentas.paginaActual = 1;
         guardarFiltrosEnStorage();
         ejecutarBusquedaDeVentas();
       }
     });
   }
-
-  console.log("[Ventas] Componentes de filtros inicializados");
 }
 
-// ========================================
-// FUNCIONES AUXILIARES
-// ========================================
-
-/**
- * Formatea una fecha al formato local YYYY-MM-DD sin conversión a UTC
- * Esto evita problemas de timezone cuando se usa toISOString()
- */
 function formatearFechaLocal(fecha) {
-  const año = fecha.getFullYear();
-  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-  const dia = String(fecha.getDate()).padStart(2, "0");
-  return `${año}-${mes}-${dia}`;
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`;
 }
 
-// ========================================
-// CARGA DE DATOS (RPC fn_obtener_lista_ventas)
-// ========================================
+function debounce(func, delay) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), delay);
+  };
+}
+
+function formatCurrency(valor) {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0,
+  }).format(valor || 0);
+}
+
 async function ejecutarBusquedaDeVentas() {
-  console.log(
-    "[Ventas] Ejecutando búsqueda con filtros:",
-    estadoPaginacionVentas.filtros
-  );
-
   const tbody = document.getElementById("tbody-ventas");
-  if (!tbody) {
-    console.error("[Ventas] No se encontró el tbody-ventas");
-    return;
-  }
-
+  if (!tbody) return;
   try {
-    // Mostrar indicador de carga
     tbody.innerHTML =
       '<tr><td colspan="8" style="text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando ventas...</td></tr>';
-
     const client = getSupabaseClient();
-
-    // Parsear rango de fechas
-    let fechaInicio = null;
-    let fechaFin = null;
+    let fechaInicio = null,
+      fechaFin = null;
     if (
       flatpickrRangoFechasVentas &&
       flatpickrRangoFechasVentas.selectedDates.length > 0
     ) {
       fechaInicio = formatearFechaLocal(
-        flatpickrRangoFechasVentas.selectedDates[0]
+        flatpickrRangoFechasVentas.selectedDates[0],
       );
-      if (flatpickrRangoFechasVentas.selectedDates.length > 1) {
-        fechaFin = formatearFechaLocal(
-          flatpickrRangoFechasVentas.selectedDates[1]
-        );
-      } else {
-        fechaFin = fechaInicio;
-      }
+      fechaFin =
+        flatpickrRangoFechasVentas.selectedDates.length > 1
+          ? formatearFechaLocal(flatpickrRangoFechasVentas.selectedDates[1])
+          : fechaInicio;
     }
-
-    const offset =
-      (estadoPaginacionVentas.paginaActual - 1) *
-      estadoPaginacionVentas.filasPorPagina;
-
-    // Llamada RPC
     const { data, error } = await client.rpc("fn_obtener_lista_ventas", {
       p_page: estadoPaginacionVentas.paginaActual,
       p_limit: estadoPaginacionVentas.filasPorPagina,
@@ -533,75 +380,42 @@ async function ejecutarBusquedaDeVentas() {
       p_fecha_inicio: fechaInicio,
       p_fecha_fin: fechaFin,
     });
-
-    if (error) {
-      console.error("[Ventas] Error al cargar ventas:", error);
-      throw error;
-    }
-
-    console.log("[Ventas] Datos recibidos:", data);
-
-    // Validar respuesta de RPC
-    if (data && data.exito === false) {
-      console.warn("[Ventas] RPC retornó error:", data);
-
+    if (error) throw error;
+    if (data?.exito === false) {
       if (data.codigo_error === "PERMISO_DENEGADO") {
         tbody.innerHTML =
-          '<tr><td colspan="8" style="text-align:center; color: red;">No tienes permisos para ver ventas. Contacta al administrador.</td></tr>';
+          '<tr><td colspan="8" style="text-align:center;color:red;">No tienes permisos para ver ventas.</td></tr>';
         return;
-      } else if (data.codigo_error === "SIN_EMPRESA") {
-        tbody.innerHTML =
-          '<tr><td colspan="8" style="text-align:center; color: red;">Usuario no asociado a una empresa.</td></tr>';
-        return;
-      } else {
-        throw new Error(data.mensaje || "Error desconocido al cargar ventas");
       }
+      if (data.codigo_error === "SIN_EMPRESA") {
+        tbody.innerHTML =
+          '<tr><td colspan="8" style="text-align:center;color:red;">Usuario no asociado a una empresa.</td></tr>';
+        return;
+      }
+      throw new Error(data.mensaje || "Error al cargar ventas");
     }
-
-    // Actualizar total de registros
     estadoPaginacionVentas.totalRegistros = data.total || 0;
-
-    // Renderizar tabla y paginación
     renderizarTablaVentas(data.datos || []);
     renderizarPaginacionVentas();
   } catch (error) {
-    console.error("[Ventas] Error al cargar datos:", error);
-
-    if (error.message && error.message.includes("permiso")) {
-      tbody.innerHTML =
-        '<tr><td colspan="8" style="text-align:center; color: red;">No tienes permisos para ver ventas. Contacta al administrador.</td></tr>';
-    } else if (error.message && error.message.includes("sesión")) {
-      tbody.innerHTML =
-        '<tr><td colspan="8" style="text-align:center; color: red;">Sesión expirada. Recargando...</td></tr>';
+    console.error("[Ventas] Error:", error);
+    if (error.message?.includes("sesión")) {
       setTimeout(() => location.reload(), 2000);
     } else {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: red;">Error: ${error.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red;">Error: ${error.message}</td></tr>`;
     }
   }
 }
 
-// ========================================
-// RENDERIZADO DE TABLA
-// ========================================
 function renderizarTablaVentas(ventas) {
   const tbody = document.getElementById("tbody-ventas");
-
-  // ✅ Verificar que el elemento existe (puede no existir si cambiamos de vista)
-  if (!tbody) {
-    console.warn(
-      "[Ventas] Tabla no encontrada - probablemente cambiamos de vista"
-    );
-    return;
-  }
-
+  if (!tbody) return;
   tbody.innerHTML = "";
-
   if (!ventas || ventas.length === 0) {
     tbody.innerHTML =
       '<tr><td colspan="8" style="text-align:center;">No se encontraron ventas con los filtros aplicados.</td></tr>';
     return;
   }
-
   ventas.forEach((venta) => {
     const row = document.createElement("tr");
     row.dataset.idVenta = venta.id;
@@ -611,92 +425,44 @@ function renderizarTablaVentas(ventas) {
     row.dataset.estado = venta.estado;
     row.dataset.estadoPago = venta.estado_pago;
 
-    // Formatear fecha
-    const fecha = moment(venta.fecha_venta).format("DD/MM/YYYY");
-
-    // Badges de estado
-    const badgeEstado = obtenerBadgeEstadoVenta(venta.estado);
-    const badgeEstadoPago = obtenerBadgeEstadoPagoVenta(venta.estado_pago);
-
-    // Formatear moneda
-    const totalFormateado = formatCurrency(venta.monto_total);
+    // ✅ FIX: usar moment.utc para fecha de la lista
+    const fecha = moment.utc(venta.fecha_venta).format("DD/MM/YYYY");
     const nombreCliente = venta.nombre_cliente || "Ventas Mostrador";
 
-    // Menú de acciones dinámico
     let opcionesMenu = `
-            <a href="#" class="actions-menu-item" data-action="ver_detalles">
-                <i class="fas fa-eye"></i> Ver Detalles
-            </a>
-            <a href="#" class="actions-menu-item" data-action="imprimir_factura">
-                <i class="fas fa-print"></i> Imprimir Factura
-            </a>
-        `;
-
+      <a href="#" class="actions-menu-item" data-action="ver_detalles"><i class="fas fa-eye"></i> Ver Detalles</a>
+      <a href="#" class="actions-menu-item" data-action="imprimir_factura"><i class="fas fa-print"></i> Imprimir Factura</a>
+    `;
     if (venta.estado !== "Completado" && venta.estado !== "Anulada") {
       opcionesMenu += `
-                <a href="#" class="actions-menu-item" data-action="editar_venta">
-                    <i class="fas fa-pencil-alt"></i> Editar
-                </a>
-                <a href="#" class="actions-menu-item" data-action="editar_estado">
-                    <i class="fas fa-sync-alt"></i> Cambiar Estado
-                </a>
-            `;
+        <a href="#" class="actions-menu-item" data-action="editar_venta"><i class="fas fa-pencil-alt"></i> Editar</a>
+        <a href="#" class="actions-menu-item" data-action="editar_estado"><i class="fas fa-sync-alt"></i> Cambiar Estado</a>
+      `;
     }
-
     if (venta.estado === "Completado") {
-      opcionesMenu += `
-                <div class="divider"></div>
-                <a href="#" class="actions-menu-item text-warning" data-action="anular_venta">
-                    <i class="fas fa-ban"></i> Anular Venta
-                </a>
-            `;
+      opcionesMenu += `<div class="divider"></div><a href="#" class="actions-menu-item text-warning" data-action="anular_venta"><i class="fas fa-ban"></i> Anular Venta</a>`;
     }
-
-    // Opciones de pagos (solo mostrar "Agregar Pago" si NO está pagada Y NO está anulada)
     opcionesMenu += `<div class="divider"></div>`;
-
     if (venta.estado_pago !== "Pagada" && venta.estado !== "Anulada") {
-      opcionesMenu += `
-            <a href="#" class="actions-menu-item" data-action="agregar_pago">
-                <i class="fas fa-dollar-sign"></i> Agregar Pago
-            </a>`;
+      opcionesMenu += `<a href="#" class="actions-menu-item" data-action="agregar_pago"><i class="fas fa-dollar-sign"></i> Agregar Pago</a>`;
     }
-
-    opcionesMenu += `
-            <a href="#" class="actions-menu-item" data-action="ver_pagos">
-                <i class="fas fa-list-ul"></i> Ver Pagos
-            </a>
-        `;
-
+    opcionesMenu += `<a href="#" class="actions-menu-item" data-action="ver_pagos"><i class="fas fa-list-ul"></i> Ver Pagos</a>`;
     if (venta.estado !== "Completado" && venta.estado !== "Anulada") {
-      opcionesMenu += `
-                <div class="divider"></div>
-                <a href="#" class="actions-menu-item text-danger" data-action="borrar_venta">
-                    <i class="fas fa-trash-alt"></i> Borrar
-                </a>
-            `;
+      opcionesMenu += `<div class="divider"></div><a href="#" class="actions-menu-item text-danger" data-action="borrar_venta"><i class="fas fa-trash-alt"></i> Borrar</a>`;
     }
 
     row.innerHTML = `
-            <td class="text-center" data-column="acciones">
-                <div class="actions-menu-container">
-                    <button class="button button-secondary">Acciones</button>
-                    <div class="actions-menu">${opcionesMenu}</div>
-                </div>
-            </td>
-            <td data-column="codigo"><strong>${venta.codigo_venta}</strong></td>
-            <td data-column="cliente">${nombreCliente}</td>
-            <td data-column="fecha">${fecha}</td>
-            <td data-column="estado">${badgeEstado}</td>
-            <td data-column="estado_pago">${badgeEstadoPago}</td>
-            <td data-column="tipo_envio">${venta.tipo_envio || "N/A"}</td>
-            <td data-column="total" class="text-right">${totalFormateado}</td>
-        `;
-
+      <td class="text-center"><div class="actions-menu-container"><button class="button button-secondary">Acciones</button><div class="actions-menu">${opcionesMenu}</div></div></td>
+      <td><strong>${venta.codigo_venta}</strong></td>
+      <td>${nombreCliente}</td>
+      <td>${fecha}</td>
+      <td>${obtenerBadgeEstadoVenta(venta.estado)}</td>
+      <td>${obtenerBadgeEstadoPagoVenta(venta.estado_pago)}</td>
+      <td>${venta.tipo_envio || "N/A"}</td>
+      <td class="text-right">${formatCurrency(venta.monto_total)}</td>
+    `;
     tbody.appendChild(row);
   });
-
-  // Aplicar preferencias de columnas
 }
 
 function obtenerBadgeEstadoVenta(estado) {
@@ -720,286 +486,56 @@ function obtenerBadgeEstadoPagoVenta(estadoPago) {
   return badges[estadoPago] || `<span class="badge">${estadoPago}</span>`;
 }
 
-// ========================================
-// PAGINACIÓN
-// ========================================
 function renderizarPaginacionVentas() {
   const totalPages = Math.ceil(
     estadoPaginacionVentas.totalRegistros /
-      estadoPaginacionVentas.filasPorPagina
+      estadoPaginacionVentas.filasPorPagina,
   );
   const pageInfo = document.getElementById("info-pagina");
   const btnPrev = document.getElementById("btn-anterior");
   const btnNext = document.getElementById("btn-siguiente");
-
-  if (pageInfo) {
-    pageInfo.textContent = `Página ${estadoPaginacionVentas.paginaActual} de ${
-      totalPages || 1
-    } (Total: ${estadoPaginacionVentas.totalRegistros} ventas)`;
-  }
-
-  if (btnPrev) {
-    btnPrev.disabled = estadoPaginacionVentas.paginaActual <= 1;
-  }
-
-  if (btnNext) {
+  if (pageInfo)
+    pageInfo.textContent = `Página ${estadoPaginacionVentas.paginaActual} de ${totalPages || 1} (Total: ${estadoPaginacionVentas.totalRegistros} ventas)`;
+  if (btnPrev) btnPrev.disabled = estadoPaginacionVentas.paginaActual <= 1;
+  if (btnNext)
     btnNext.disabled = estadoPaginacionVentas.paginaActual >= totalPages;
-  }
 }
 
-// ========================================
-// ACCIONES
-// ========================================
-
-/**
- * Confirmar anulación de venta
- */
-async function confirmarAnularVenta(idVenta, codigoVenta, nombreCliente) {
-  const result = await Swal.fire({
-    title: "¡ACCIÓN CRÍTICA! - Anular Venta",
-    html: `
-            <p>Estás a punto de ANULAR la venta <strong>${codigoVenta}</strong>.</p>
-            <p>Cliente: <strong>${nombreCliente}</strong></p>
-            <p>Esta acción es irreversible y devolverá los productos al stock físico. ¿Deseas continuar?</p>
-        `,
-    icon: "warning",
-    input: "text",
-    inputPlaceholder: "Ej: Cliente desistió de la compra...",
-    inputAttributes: {
-      autocapitalize: "off",
-      autocomplete: "off"
-    },
-    showCancelButton: true,
-    confirmButtonText: "Sí, Anular",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#d33",
-    inputValidator: (value) => {
-      if (!value || value.trim().length === 0) {
-        return "Debes ingresar un motivo para anular la venta";
-      }
-      if (value.trim().length < 5) {
-        return "Por favor ingresa un motivo descriptivo (mínimo 5 caracteres)";
-      }
-    }
-  });
-
-  if (result.isConfirmed) {
-    try {
-      Swal.fire({
-        title: "Procesando...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
-
-      const client = getSupabaseClient();
-      const motivo = result.value.trim();
-      const { data, error } = await client.rpc("fn_anular_venta", {
-        p_id_venta: idVenta,
-        p_motivo: motivo
-      });
-
-      if (error) {
-        console.error("[Ventas] Error al anular venta:", error);
-        throw new Error(error.message);
-      }
-
-      if (data?.exito === false) {
-        console.warn("[Ventas] RPC retornó error:", data);
-
-        if (data.codigo_error === "PERMISO_DENEGADO") {
-          Swal.fire({
-            icon: "error",
-            title: "Permiso Denegado",
-            text: data.mensaje || "No tienes permisos para anular ventas",
-            confirmButtonText: "Entendido",
-          });
-          return;
-        } else {
-          throw new Error(
-            data.mensaje || "Error desconocido al anular la venta"
-          );
-        }
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Venta Anulada",
-        text: data.mensaje || "La venta se anuló exitosamente.",
-        confirmButtonText: "OK",
-      });
-
-      await ejecutarBusquedaDeVentas();
-    } catch (error) {
-      console.error("[Ventas] Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-        confirmButtonText: "Cerrar",
-      });
-    }
-  }
-}
-
-/**
- * Confirmar eliminación de venta
- */
-async function confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente) {
-  const result = await Swal.fire({
-    title: `¿Borrar la venta ${codigoVenta}?`,
-    html: `
-            <p>Cliente: <strong>${nombreCliente}</strong></p>
-            <p>¡Esta acción no se puede deshacer! El registro desaparecerá por completo.</p>
-        `,
-    icon: "error",
-    showCancelButton: true,
-    confirmButtonText: "Sí, ¡bórrala!",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#d33",
-  });
-
-  if (result.isConfirmed) {
-    try {
-      Swal.fire({
-        title: "Procesando...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
-
-      const client = getSupabaseClient();
-
-      // Obtener el ID del usuario actual de la sesión
-      const {
-        data: { session },
-        error: sessionError,
-      } = await client.auth.getSession();
-      if (sessionError || !session?.user?.id) {
-        throw new Error("No se pudo obtener la sesión del usuario");
-      }
-
-      const { data, error } = await client.rpc("fn_eliminar_venta", {
-        id_venta_a_eliminar: idVenta,
-        id_usuario_responsable: session.user.id,
-      });
-
-      if (error) {
-        console.error("[Ventas] Error al borrar venta:", error);
-        throw new Error(error.message);
-      }
-
-      if (data?.exito === false) {
-        console.warn("[Ventas] RPC retornó error:", data);
-
-        if (data.codigo_error === "PERMISO_DENEGADO") {
-          Swal.fire({
-            icon: "error",
-            title: "Permiso Denegado",
-            text: data.mensaje || "No tienes permisos para borrar ventas",
-            confirmButtonText: "Entendido",
-          });
-          return;
-        } else {
-          throw new Error(
-            data.mensaje || "Error desconocido al borrar la venta"
-          );
-        }
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Venta Borrada",
-        text: data.mensaje || "La venta se borró correctamente.",
-        confirmButtonText: "OK",
-      });
-
-      await ejecutarBusquedaDeVentas();
-    } catch (error) {
-      console.error("[Ventas] Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-        confirmButtonText: "Cerrar",
-      });
-    }
-  }
-}
-
-// ========================================
-// GESTOR DE COLUMNAS
-// ========================================
-// ========================================
-
-/**
- * Toggle de filtros (collapse/expand)
- */
 function toggleFiltrosVentas() {
   const filtrosContent = document.getElementById("filtros-ventas-content");
   const btnToggle = document.getElementById("btn-toggle-filtros-ventas");
-  const chevronIcon = btnToggle.querySelector(".filter-chevron");
-
+  const chevronIcon = btnToggle?.querySelector(".filter-chevron");
   if (filtrosContent.classList.contains("is-visible")) {
-    // Contraer filtros
     filtrosContent.classList.remove("is-visible");
-    btnToggle.setAttribute("aria-expanded", "false");
-    if (chevronIcon) {
-      chevronIcon.classList.remove("rotated");
-    }
+    btnToggle?.setAttribute("aria-expanded", "false");
+    chevronIcon?.classList.remove("rotated");
   } else {
-    // Expandir filtros
     filtrosContent.classList.add("is-visible");
-    btnToggle.setAttribute("aria-expanded", "true");
-    if (chevronIcon) {
-      chevronIcon.classList.add("rotated");
-    }
+    btnToggle?.setAttribute("aria-expanded", "true");
+    chevronIcon?.classList.add("rotated");
   }
 }
 
-/**
- * Limpiar todos los filtros
- */
 function limpiarFiltrosVentas() {
-  console.log("[Ventas] Limpiando filtros...");
-
-  // Activar flag para evitar guardado durante limpieza
   restaurandoFiltros = true;
-
-  // Limpiar objeto de filtros
   estadoPaginacionVentas.filtros = {};
   estadoPaginacionVentas.paginaActual = 1;
-
-  // Limpiar campos del formulario
-  const inputBuscar = document.getElementById("input-buscar-ventas");
-  if (inputBuscar) inputBuscar.value = "";
-
-  const filtroEstado = document.getElementById("filtro-estado-venta");
-  if (filtroEstado) filtroEstado.value = "";
-
-  const filtroTipoEntrega = document.getElementById("filtro-tipo-entrega");
-  if (filtroTipoEntrega) filtroTipoEntrega.value = "";
-
-  const filtroEstadoPago = document.getElementById("filtro-estado-pago-ventas");
-  if (filtroEstadoPago) filtroEstadoPago.value = "";
-
-  // Limpiar Select2 de cliente
-  if (select2ClienteVentas) {
-    select2ClienteVentas.val("").trigger("change");
-  }
-
-  // Limpiar Flatpickr de fechas
-  if (flatpickrRangoFechasVentas) {
-    flatpickrRangoFechasVentas.clear();
-  }
-
-  // Limpiar botones de rango
-  document.querySelectorAll(".filter-quick-actions .button").forEach((btn) => {
-    btn.classList.remove("active");
+  const ids = [
+    "input-buscar-ventas",
+    "filtro-estado-venta",
+    "filtro-tipo-entrega",
+    "filtro-estado-pago-ventas",
+  ];
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
   });
-
-  // Limpiar localStorage
+  if (select2ClienteVentas) select2ClienteVentas.val("").trigger("change");
+  if (flatpickrRangoFechasVentas) flatpickrRangoFechasVentas.clear();
+  document
+    .querySelectorAll(".filter-quick-actions .button")
+    .forEach((btn) => btn.classList.remove("active"));
   localStorage.removeItem("ventas_filtros");
-
-  // Ejecutar búsqueda
   setTimeout(() => {
     restaurandoFiltros = false;
     ejecutarBusquedaDeVentas();
@@ -1007,24 +543,15 @@ function limpiarFiltrosVentas() {
   }, 100);
 }
 
-/**
- * Marcar botón de rango como activo
- */
 function marcarBotonRangoActivo(boton) {
-  document.querySelectorAll(".filter-quick-actions .button").forEach((btn) => {
-    btn.classList.remove("active");
-  });
-  if (boton) {
-    boton.classList.add("active");
-  }
+  document
+    .querySelectorAll(".filter-quick-actions .button")
+    .forEach((btn) => btn.classList.remove("active"));
+  if (boton) boton.classList.add("active");
 }
 
-/**
- * Guardar filtros en localStorage
- */
 function guardarFiltrosEnStorage() {
   if (restaurandoFiltros) return;
-
   const filtros = {
     busqueda: document.getElementById("input-buscar-ventas")?.value || "",
     clienteId: estadoPaginacionVentas.filtros.clienteId || null,
@@ -1035,418 +562,276 @@ function guardarFiltrosEnStorage() {
     fechaInicio: null,
     fechaFin: null,
   };
-
-  if (
-    flatpickrRangoFechasVentas &&
-    flatpickrRangoFechasVentas.selectedDates.length > 0
-  ) {
+  if (flatpickrRangoFechasVentas?.selectedDates.length > 0) {
     filtros.fechaInicio = flatpickrRangoFechasVentas.selectedDates[0]
       .toISOString()
       .split("T")[0];
-    if (flatpickrRangoFechasVentas.selectedDates.length > 1) {
-      filtros.fechaFin = flatpickrRangoFechasVentas.selectedDates[1]
-        .toISOString()
-        .split("T")[0];
-    } else {
-      filtros.fechaFin = filtros.fechaInicio;
-    }
+    filtros.fechaFin =
+      flatpickrRangoFechasVentas.selectedDates.length > 1
+        ? flatpickrRangoFechasVentas.selectedDates[1]
+            .toISOString()
+            .split("T")[0]
+        : filtros.fechaInicio;
   }
-
   localStorage.setItem("ventas_filtros", JSON.stringify(filtros));
-  console.log("[Ventas] Filtros guardados en localStorage:", filtros);
 }
 
-/**
- * Restaurar filtros desde localStorage
- */
 function restaurarFiltrosGuardadosVentas() {
   const filtrosStr = localStorage.getItem("ventas_filtros");
-  if (!filtrosStr) {
-    console.log("[Ventas] No hay filtros guardados para restaurar");
-    return false;
-  }
-
+  if (!filtrosStr) return false;
   try {
     restaurandoFiltros = true;
-    const filtros = JSON.parse(filtrosStr);
-    console.log("[Ventas] Restaurando filtros:", filtros);
-
-    // Restaurar campos de texto
-    if (filtros.busqueda) {
-      const inputBuscar = document.getElementById("input-buscar-ventas");
-      if (inputBuscar) inputBuscar.value = filtros.busqueda;
+    const f = JSON.parse(filtrosStr);
+    if (f.busqueda) {
+      const el = document.getElementById("input-buscar-ventas");
+      if (el) el.value = f.busqueda;
     }
-
-    // Restaurar selects
-    if (filtros.estadoVenta) {
-      const filtroEstado = document.getElementById("filtro-estado-venta");
-      if (filtroEstado) filtroEstado.value = filtros.estadoVenta;
+    if (f.estadoVenta) {
+      const el = document.getElementById("filtro-estado-venta");
+      if (el) el.value = f.estadoVenta;
     }
-
-    if (filtros.tipoEntrega) {
-      const filtroTipoEntrega = document.getElementById("filtro-tipo-entrega");
-      if (filtroTipoEntrega) filtroTipoEntrega.value = filtros.tipoEntrega;
+    if (f.tipoEntrega) {
+      const el = document.getElementById("filtro-tipo-entrega");
+      if (el) el.value = f.tipoEntrega;
     }
-
-    if (filtros.estadoPago) {
-      const filtroEstadoPago = document.getElementById(
-        "filtro-estado-pago-ventas"
-      );
-      if (filtroEstadoPago) filtroEstadoPago.value = filtros.estadoPago;
+    if (f.estadoPago) {
+      const el = document.getElementById("filtro-estado-pago-ventas");
+      if (el) el.value = f.estadoPago;
     }
-
-    // Restaurar cliente en Select2
-    if (filtros.clienteId && select2ClienteVentas) {
-      select2ClienteVentas.val(filtros.clienteId).trigger("change");
+    if (f.clienteId && select2ClienteVentas)
+      select2ClienteVentas.val(f.clienteId).trigger("change");
+    if (f.fechaInicio && f.fechaFin && flatpickrRangoFechasVentas) {
+      const fi = new Date(f.fechaInicio + "T00:00:00"),
+        ff = new Date(f.fechaFin + "T00:00:00");
+      if (!isNaN(fi.getTime()) && !isNaN(ff.getTime()))
+        flatpickrRangoFechasVentas.setDate([fi, ff], false);
     }
-
-    // Restaurar fechas
-    if (filtros.fechaInicio && filtros.fechaFin && flatpickrRangoFechasVentas) {
-      const fechaInicio = new Date(filtros.fechaInicio + "T00:00:00");
-      const fechaFin = new Date(filtros.fechaFin + "T00:00:00");
-
-      if (!isNaN(fechaInicio.getTime()) && !isNaN(fechaFin.getTime())) {
-        flatpickrRangoFechasVentas.setDate([fechaInicio, fechaFin], false);
-      }
-    }
-
-    // Actualizar objeto de filtros
     estadoPaginacionVentas.filtros = {
-      busqueda: filtros.busqueda || null,
-      clienteId: filtros.clienteId || null,
-      estadoVenta: filtros.estadoVenta || null,
-      tipoEntrega: filtros.tipoEntrega || null,
-      estadoPago: filtros.estadoPago || null,
+      busqueda: f.busqueda || null,
+      clienteId: f.clienteId || null,
+      estadoVenta: f.estadoVenta || null,
+      tipoEntrega: f.tipoEntrega || null,
+      estadoPago: f.estadoPago || null,
     };
-
     setTimeout(() => {
       restaurandoFiltros = false;
     }, 500);
-
     return true;
-  } catch (error) {
-    console.error("[Ventas] Error al restaurar filtros:", error);
+  } catch (e) {
     localStorage.removeItem("ventas_filtros");
     restaurandoFiltros = false;
     return false;
   }
 }
 
-/**
- * Actualizar efectos visuales de filtros
- */
-function actualizarEfectosVisualesFiltros() {
-  const hayFiltrosActivos =
-    estadoPaginacionVentas.filtros.busqueda ||
-    estadoPaginacionVentas.filtros.clienteId ||
-    estadoPaginacionVentas.filtros.estadoVenta ||
-    estadoPaginacionVentas.filtros.tipoEntrega ||
-    estadoPaginacionVentas.filtros.estadoPago ||
-    (flatpickrRangoFechasVentas &&
-      flatpickrRangoFechasVentas.selectedDates.length > 0);
+function actualizarEfectosVisualesFiltros() {}
 
-  // El botón "Limpiar Filtros" siempre está visible y habilitado
-  // No necesita lógica especial aquí
+async function confirmarAnularVenta(idVenta, codigoVenta, nombreCliente) {
+  const result = await Swal.fire({
+    title: "¡ACCIÓN CRÍTICA! - Anular Venta",
+    html: `<p>Venta: <strong>${codigoVenta}</strong> | Cliente: <strong>${nombreCliente}</strong></p><p>Esta acción es irreversible y devolverá los productos al stock.</p>`,
+    icon: "warning",
+    input: "text",
+    inputPlaceholder: "Motivo de anulación...",
+    inputAttributes: { autocapitalize: "off", autocomplete: "off" },
+    showCancelButton: true,
+    confirmButtonText: "Sí, Anular",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#d33",
+    inputValidator: (v) => {
+      if (!v || v.trim().length < 5)
+        return "Ingresa un motivo descriptivo (mínimo 5 caracteres)";
+    },
+  });
+  if (result.isConfirmed) {
+    try {
+      Swal.fire({
+        title: "Procesando...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      const client = getSupabaseClient();
+      const { data, error } = await client.rpc("fn_anular_venta", {
+        p_id_venta: idVenta,
+        p_motivo: result.value.trim(),
+      });
+      if (error) throw new Error(error.message);
+      if (data?.exito === false) {
+        Swal.fire({ icon: "error", title: "Error", text: data.mensaje });
+        return;
+      }
+      Swal.fire({
+        icon: "success",
+        title: "Venta Anulada",
+        text: data.mensaje || "La venta se anuló exitosamente.",
+      });
+      await ejecutarBusquedaDeVentas();
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: e.message });
+    }
+  }
 }
 
-/**
- * Debounce - Evita que una función se ejecute demasiadas veces seguidas
- */
-function debounce(func, delay) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), delay);
-  };
+async function confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente) {
+  const result = await Swal.fire({
+    title: `¿Borrar la venta ${codigoVenta}?`,
+    html: `<p>Cliente: <strong>${nombreCliente}</strong></p><p>¡Esta acción no se puede deshacer!</p>`,
+    icon: "error",
+    showCancelButton: true,
+    confirmButtonText: "Sí, ¡bórrala!",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#d33",
+  });
+  if (result.isConfirmed) {
+    try {
+      Swal.fire({
+        title: "Procesando...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+      const client = getSupabaseClient();
+      const {
+        data: { session },
+      } = await client.auth.getSession();
+      if (!session?.user?.id) throw new Error("No se pudo obtener la sesión");
+      const { data, error } = await client.rpc("fn_eliminar_venta", {
+        id_venta_a_eliminar: idVenta,
+        id_usuario_responsable: session.user.id,
+      });
+      if (error) throw new Error(error.message);
+      if (data?.exito === false)
+        throw new Error(data.mensaje || "Error al borrar");
+      Swal.fire({
+        icon: "success",
+        title: "Venta Borrada",
+        text: data.mensaje || "La venta se borró correctamente.",
+      });
+      await ejecutarBusquedaDeVentas();
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: e.message });
+    }
+  }
 }
 
-/**
- * Formatear moneda
- */
-function formatCurrency(valor) {
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: "COP",
-    minimumFractionDigits: 0,
-  }).format(valor || 0);
-}
-
-// ========================================
-// NUEVAS FUNCIONES PARA ACCIONES DEL MENÚ
-// ========================================
-
-/**
- * Imprimir factura de una venta
- */
 async function imprimirFacturaVenta(idVenta, codigoVenta) {
-  console.log(
-    "[Ventas] Imprimiendo factura para venta:",
-    codigoVenta || idVenta
-  );
-
   try {
     toastr.info("Generando factura...");
-
-    // Obtener datos de la venta
     const client = getSupabaseClient();
     const { data, error } = await client.rpc("fn_obtener_venta_detalle", {
       p_id_venta: idVenta,
     });
-
-    if (error) {
-      console.error("[Ventas] Error al obtener venta para factura:", error);
-      throw new Error(error.message);
-    }
-
-    if (!data || !data.exito) {
-      const mensaje = data?.mensaje || "No se pudo obtener la venta";
-      throw new Error(mensaje);
-    }
-
-    // Generar contenido de la factura
-    const ventaData = data.datos;
-    const contenidoFactura = generarContenidoFacturaPOS(ventaData);
-
-    // Imprimir
-    imprimirFacturaPOSVer(contenidoFactura);
-
+    if (error) throw new Error(error.message);
+    if (!data?.exito)
+      throw new Error(data?.mensaje || "No se pudo obtener la venta");
+    imprimirFacturaPOSVer(generarContenidoFacturaPOS(data.datos));
     toastr.success("Factura generada exitosamente");
-  } catch (error) {
-    console.error("[Ventas] Error al imprimir factura:", error);
-    toastr.error("Error al generar la factura: " + error.message);
+  } catch (e) {
+    toastr.error("Error al generar la factura: " + e.message);
   }
 }
 
-/**
- * Genera el contenido de texto para la factura POS
- */
 function generarContenidoFacturaPOS(venta) {
-  const ANCHO_TICKET = 36; // Ancho para impresoras de 80mm
-  const SEPARADOR = "=".repeat(ANCHO_TICKET);
-
-  const centrar = (texto) =>
-    texto
-      .padStart(Math.floor((ANCHO_TICKET + texto.length) / 2), " ")
-      .padEnd(ANCHO_TICKET, " ");
-  const alinearExtremos = (izq, der) =>
-    izq + der.padStart(ANCHO_TICKET - izq.length, " ");
-
-  // Función auxiliar para dividir nombres largos en varias líneas
-  const envolverTexto = (texto, maxAncho) => {
+  const W = 36,
+    SEP = "=".repeat(W);
+  const centrar = (t) =>
+    t.padStart(Math.floor((W + t.length) / 2), " ").padEnd(W, " ");
+  const alinear = (i, d) => i + d.padStart(W - i.length, " ");
+  const envolver = (texto, max) => {
     const lineas = [];
     const palabras = texto.split(" ");
-    let lineaActual = "";
-    palabras.forEach((palabra) => {
-      if ((lineaActual + palabra).length > maxAncho) {
-        lineas.push(lineaActual.trim());
-        lineaActual = "";
+    let actual = "";
+    palabras.forEach((p) => {
+      if ((actual + p).length > max) {
+        lineas.push(actual.trim());
+        actual = "";
       }
-      lineaActual += palabra + " ";
+      actual += p + " ";
     });
-    lineas.push(lineaActual.trim());
+    lineas.push(actual.trim());
     return lineas;
   };
-
-  let contenido = "";
-
-  // Datos de la venta y cliente
+  let c = "";
   const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString("es-CO", {
     timeZone: "UTC",
   });
-  contenido +=
-    alinearExtremos(`Remisión: ${venta.codigo_venta}`, `Fecha: ${fechaVenta}`) +
-    "\n";
-
-  const nombreCliente = venta.clientes
+  c +=
+    alinear(`Remisión: ${venta.codigo_venta}`, `Fecha: ${fechaVenta}`) + "\n";
+  const nc = venta.clientes
     ? venta.clientes.razon_social ||
       `${venta.clientes.nombres} ${venta.clientes.apellidos}`
     : "Ventas Mostrador";
-  contenido += `Cliente: ${nombreCliente}\n`;
-
-  if (venta.clientes) {
-    contenido += `ID: ${venta.clientes.codigo_cliente}\n`;
-  }
-
+  c += `Cliente: ${nc}\n`;
+  if (venta.clientes) c += `ID: ${venta.clientes.codigo_cliente}\n`;
   if (venta.tipo_envio === "Domicilio" && venta.direccion_entrega) {
-    contenido += `Tel Cliente: ${venta.clientes?.telefono_principal || ""}\n`;
-
-    const direccionCompleta = venta.direccion_entrega.direccion_completa || "";
-    if (direccionCompleta) {
-      const lineasDireccion = envolverTexto(
-        `Dirección: ${direccionCompleta}`,
-        ANCHO_TICKET
+    c += `Tel: ${venta.clientes?.telefono_principal || ""}\n`;
+    if (venta.direccion_entrega.direccion_completa) {
+      const l = envolver(
+        `Dirección: ${venta.direccion_entrega.direccion_completa}`,
+        W,
       );
-      contenido += lineasDireccion[0] + "\n";
-      for (let i = 1; i < lineasDireccion.length; i++) {
-        contenido += `           ${lineasDireccion[i]}\n`;
-      }
+      c += l[0] + "\n";
+      for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
     }
-
     if (venta.direccion_entrega.barrio) {
-      const barrioYCiudad = `${venta.direccion_entrega.barrio}, ${venta.direccion_entrega.ciudad_municipio}`;
-      const lineasBarrio = envolverTexto(barrioYCiudad, ANCHO_TICKET - 11);
-      contenido += `           ${lineasBarrio[0]}\n`;
-      for (let i = 1; i < lineasBarrio.length; i++) {
-        contenido += `           ${lineasBarrio[i]}\n`;
-      }
-    }
-
-    if (venta.direccion_entrega.indicaciones_adicionales) {
-      const indicaciones = venta.direccion_entrega.indicaciones_adicionales;
-      const lineasIndicaciones = envolverTexto(
-        `Indic: ${indicaciones}`,
-        ANCHO_TICKET - 11
+      const l = envolver(
+        `${venta.direccion_entrega.barrio}, ${venta.direccion_entrega.ciudad_municipio}`,
+        W - 11,
       );
-      contenido += `           ${lineasIndicaciones[0]}\n`;
-      for (let i = 1; i < lineasIndicaciones.length; i++) {
-        contenido += `           ${lineasIndicaciones[i]}\n`;
-      }
+      c += `           ${l[0]}\n`;
+      for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
     }
   }
-
-  // Sección de productos
-  contenido += SEPARADOR + "\n";
-  contenido += "Producto        Cant Precio Subtotal\n";
-  contenido += "-".repeat(ANCHO_TICKET) + "\n";
-
-  let totalArticulos = 0;
-  venta.detalles_venta.forEach((detalle) => {
-    totalArticulos += detalle.cantidad;
-
-    const producto = detalle.productos || {};
-    const nombreProducto = producto.nombre_producto || "Producto";
-    const precioUnitario = detalle.precio_unitario_venta || 0;
-    const totalLinea = detalle.total_linea || detalle.cantidad * precioUnitario;
-
-    const cantidadStr = detalle.cantidad.toString();
-    const precioStr = Math.round(precioUnitario).toLocaleString("es-CO");
-    const totalStr = Math.round(totalLinea).toLocaleString("es-CO");
-
-    // Envolver el nombre del producto si es muy largo
-    const lineasNombre = envolverTexto(nombreProducto, 15);
-
-    // Primera línea con cantidad, precio y total
-    const primeraLinea = `${lineasNombre[0].padEnd(15)} ${cantidadStr.padStart(
-      4
-    )} ${precioStr.padStart(6)} ${totalStr.padStart(9)}\n`;
-    contenido += primeraLinea;
-
-    // Líneas adicionales del nombre (si las hay)
-    for (let i = 1; i < lineasNombre.length; i++) {
-      contenido += `${lineasNombre[i].padEnd(15)}\n`;
-    }
+  c += SEP + "\nProducto        Cant Precio Subtotal\n" + "-".repeat(W) + "\n";
+  let ta = 0;
+  venta.detalles_venta.forEach((d) => {
+    ta += d.cantidad;
+    const np = d.productos?.nombre_producto || "Producto",
+      pu = d.precio_unitario_venta || 0,
+      tl = d.total_linea || d.cantidad * pu;
+    const l = envolver(np, 15);
+    c += `${l[0].padEnd(15)} ${d.cantidad.toString().padStart(4)} ${Math.round(pu).toLocaleString("es-CO").padStart(6)} ${Math.round(tl).toLocaleString("es-CO").padStart(9)}\n`;
+    for (let i = 1; i < l.length; i++) c += `${l[i].padEnd(15)}\n`;
   });
-
-  contenido += SEPARADOR + "\n";
-  contenido += alinearExtremos(`Total Artículos: ${totalArticulos}`, "") + "\n";
-  contenido += "\n";
-
-  // Resumen de totales
-  const formatearMoneda = (valor) =>
-    `$${Math.round(valor || 0).toLocaleString("es-CO")}`;
-  contenido +=
-    alinearExtremos("Subtotal:", formatearMoneda(venta.subtotal)) + "\n";
-  contenido +=
-    alinearExtremos(
-      "Descuentos:",
-      `-${formatearMoneda(venta.total_descuentos)}`
+  const fm = (v) => `$${Math.round(v || 0).toLocaleString("es-CO")}`;
+  c += SEP + "\n" + alinear(`Total Artículos: ${ta}`, "") + "\n\n";
+  c += alinear("Subtotal:", fm(venta.subtotal)) + "\n";
+  c += alinear("Descuentos:", `-${fm(venta.total_descuentos)}`) + "\n";
+  c += alinear("Impuestos:", fm(venta.total_impuestos)) + "\n";
+  c += alinear("Envío:", fm(venta.costo_envio)) + "\n";
+  c +=
+    SEP + "\n" + alinear("TOTAL:", fm(venta.monto_total)) + "\n" + SEP + "\n\n";
+  c +=
+    alinear(
+      "Total Pagado:",
+      fm((venta.monto_total || 0) - (venta.saldo_pendiente || 0)),
     ) + "\n";
-  contenido +=
-    alinearExtremos("Impuestos:", formatearMoneda(venta.total_impuestos)) +
-    "\n";
-  contenido +=
-    alinearExtremos("Envío:", formatearMoneda(venta.costo_envio)) + "\n";
-  contenido += SEPARADOR + "\n";
-  contenido +=
-    alinearExtremos("TOTAL:", formatearMoneda(venta.monto_total)) + "\n";
-  contenido += SEPARADOR + "\n";
-
-  // Información de pagos
-  contenido += "\n";
-  const totalPagado = (venta.monto_total || 0) - (venta.saldo_pendiente || 0);
-  contenido +=
-    alinearExtremos("Total Pagado:", formatearMoneda(totalPagado)) + "\n";
-  contenido +=
-    alinearExtremos(
-      "Saldo Pendiente:",
-      formatearMoneda(venta.saldo_pendiente)
-    ) + "\n";
-
-  if (venta.observaciones) {
-    contenido += "\n";
-    contenido += `Observaciones: ${venta.observaciones}\n`;
-  }
-
-  contenido += "\n";
-  contenido += centrar("Gracias por su compra") + "\n";
-
-  return contenido;
+  c += alinear("Saldo Pendiente:", fm(venta.saldo_pendiente)) + "\n";
+  if (venta.observaciones) c += `\nObservaciones: ${venta.observaciones}\n`;
+  c += "\n" + centrar("Gracias por su compra") + "\n";
+  return c;
 }
 
-/**
- * Abre una ventana nueva e imprime el contenido de la factura
- */
 function imprimirFacturaPOSVer(factura) {
-  if (!factura) {
-    console.error("Error: No se recibió la factura para imprimir.");
+  if (!factura) return;
+  const w = window.open("", "_blank");
+  if (!w) {
+    toastr.error("Permita las ventanas emergentes para imprimir.");
     return;
   }
-
-  const ventanaImpresion = window.open("", "_blank");
-  if (!ventanaImpresion) {
-    toastr.error("Permita las ventanas emergentes para imprimir la factura.");
-    return;
-  }
-
-  const estilos = `
-        <style>
-            body { font-family: 'Source Sans Pro', monospace; font-size: 26px; }
-            .titulo { font-size: 30px; font-weight: bold; text-align: center; }
-            .contenido { font-size: 26px; font-weight: 700; }
-            .negrita { font-weight: bold; }
-            .centrado { text-align: center; }
-        </style>
-    `;
-
-  const contenido = `
-        <html>
-            <head>
-                <title>Factura de Venta</title>
-                ${estilos}
-            </head>
-            <body>
-                <div class="titulo">REMISION</div>
-                <pre>${factura}</pre>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        window.onafterprint = function() {
-                            window.close();
-                        };
-                    };
-                <\/script>
-            </body>
-        </html>
-    `;
-
-  ventanaImpresion.document.open();
-  ventanaImpresion.document.write(contenido);
-  ventanaImpresion.document.close();
+  w.document.write(
+    `<html><head><title>Factura</title><style>body{font-family:monospace;font-size:26px;}.titulo{font-size:30px;font-weight:bold;text-align:center;}</style></head><body><div class="titulo">REMISION</div><pre>${factura}</pre><script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script></body></html>`,
+  );
+  w.document.close();
 }
 
-/**
- * Mostrar diálogo para cambiar estado de una venta
- */
 async function mostrarDialogoCambiarEstado(
   idVenta,
   codigoVenta,
   nombreCliente,
-  saldoPendiente
+  saldoPendiente,
 ) {
-  console.log("[Ventas] Cambiando estado de venta:", codigoVenta);
-
   const result = await Swal.fire({
-    title: `Cambiar estado de la Venta ${codigoVenta}`,
+    title: `Cambiar estado de ${codigoVenta}`,
     html: `<p>Cliente: <strong>${nombreCliente}</strong></p>`,
     input: "select",
     inputOptions: {
@@ -1459,379 +844,213 @@ async function mostrarDialogoCambiarEstado(
     showCancelButton: true,
     confirmButtonText: "Actualizar Estado",
     cancelButtonText: "Cancelar",
-    inputValidator: (value) => {
-      if (!value) {
-        return "¡Necesitas seleccionar un estado!";
-      }
+    inputValidator: (v) => {
+      if (!v) return "¡Necesitas seleccionar un estado!";
     },
   });
-
   if (result.isConfirmed) {
     const nuevoEstado = result.value;
-
     try {
       Swal.fire({
         title: "Procesando...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
       const client = getSupabaseClient();
-
-      // Obtener el ID del usuario actual
       const {
         data: { session },
-        error: sessionError,
       } = await client.auth.getSession();
-      if (sessionError || !session?.user?.id) {
-        throw new Error("No se pudo obtener la sesión del usuario");
-      }
-
+      if (!session?.user?.id) throw new Error("No se pudo obtener la sesión");
       const { data, error } = await client.rpc("fn_cambiar_estado_venta", {
         id_venta_a_cambiar: idVenta,
         nuevo_estado: nuevoEstado,
         id_usuario_responsable: session.user.id,
       });
-
-      if (error) {
-        console.error("[Ventas] Error al cambiar estado:", error);
-        throw new Error(error.message);
-      }
-
-      if (data?.exito === false) {
+      if (error) throw new Error(error.message);
+      if (data?.exito === false)
         throw new Error(data.mensaje || "Error al cambiar estado");
-      }
-
       Swal.fire({
         icon: "success",
         title: "Estado Actualizado",
-        text: `El estado de la venta se cambió a "${nuevoEstado}" exitosamente.`,
-        confirmButtonText: "OK",
+        text: `Estado cambiado a "${nuevoEstado}" exitosamente.`,
       });
-
-      // Si cambió a Completado y hay saldo pendiente, preguntar si quiere agregar un pago
       if (nuevoEstado === "Completado" && saldoPendiente > 0) {
-        const resultPago = await Swal.fire({
+        const rp = await Swal.fire({
           title: `Venta ${codigoVenta} Completada`,
-          html: `<p>Cliente: <strong>${nombreCliente}</strong></p><p>¿Deseas registrar un pago ahora?</p>`,
+          html: `<p>¿Deseas registrar un pago ahora?</p>`,
           icon: "success",
           showCancelButton: true,
           confirmButtonText: "Sí, registrar pago",
           cancelButtonText: "No, más tarde",
         });
-
-        if (resultPago.isConfirmed) {
+        if (rp.isConfirmed)
           await mostrarDialogoAgregarPago(
             idVenta,
             codigoVenta,
             nombreCliente,
-            saldoPendiente
+            saldoPendiente,
           );
-        }
       }
-
       await ejecutarBusquedaDeVentas();
-    } catch (error) {
-      console.error("[Ventas] Error:", error);
-
-      // Detectar si es error de stock
-      const mensaje = error.message || "Error desconocido";
-      const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
-
+    } catch (e) {
+      const esStock = /stock|inventario|insuficiente|disponible/i.test(
+        e.message,
+      );
       Swal.fire({
-        icon: esErrorStock ? "warning" : "error",
-        title: esErrorStock ? "Stock Insuficiente" : "Error",
-        text: mensaje,
-        confirmButtonText: esErrorStock ? "Entendido" : "Cerrar",
-        confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+        icon: esStock ? "warning" : "error",
+        title: esStock ? "Stock Insuficiente" : "Error",
+        text: e.message,
+        confirmButtonColor: esStock ? "#f39c12" : "#d33",
       });
     }
   }
 }
 
-/**
- * Mostrar diálogo para agregar un pago
- */
 async function mostrarDialogoAgregarPago(
   idVenta,
   codigoVenta,
   nombreCliente,
-  saldoPendiente
+  saldoPendiente,
 ) {
-  console.log("[Ventas] Agregando pago a venta:", codigoVenta);
-
-  // Cargar cuentas bancarias
   const client = getSupabaseClient();
   let cuentasBancarias = [];
-
   try {
-    const { data: cuentas, error } = await client
+    const { data: cuentas } = await client
       .from("cuentas_bancarias_empresa")
       .select("id, nombre_cuenta, numero_cuenta")
       .order("nombre_cuenta");
+    if (cuentas) cuentasBancarias = cuentas;
+  } catch (e) {}
 
-    if (!error && cuentas) {
-      cuentasBancarias = cuentas;
-    }
-  } catch (error) {
-    console.error("[Ventas] Error al cargar cuentas:", error);
-  }
-
-  // Generar opciones de cuentas bancarias
   const opcionesCuentas = cuentasBancarias
     .map(
-      (cuenta) =>
-        `<option value="${cuenta.id}">${cuenta.nombre_cuenta} - ${
-          cuenta.numero_cuenta || ""
-        }</option>`
+      (c) =>
+        `<option value="${c.id}">${c.nombre_cuenta} - ${c.numero_cuenta || ""}</option>`,
     )
     .join("");
 
   const result = await Swal.fire({
-    title: `Registrar Pago para Venta ${codigoVenta}`,
+    title: `Registrar Pago - ${codigoVenta}`,
     width: "600px",
     html: `
-            <div style="max-width: 500px; margin: 0 auto; padding: 10px;">
-                <!-- Información de Cliente y Saldo -->
-                <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div style="text-align: left;">
-                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 3px;">Cliente</div>
-                            <div style="font-size: 15px; font-weight: 600; color: #495057;">${nombreCliente}</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 12px; color: #6c757d; margin-bottom: 3px;">Saldo Pendiente</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #dc3545;">${formatCurrency(saldoPendiente)}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fecha del Pago -->
-                <div style="margin-bottom: 20px;">
-                    <label for="swal-fecha-pago" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                        Fecha del Pago <span style="color: #dc3545;">*</span>
-                    </label>
-                    <input type="text" id="swal-fecha-pago" class="swal2-input"
-                           placeholder="Seleccione fecha"
-                           style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                </div>
-
-                <!-- Método de Pago -->
-                <div style="margin-bottom: 20px;">
-                    <label for="swal-metodo" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                        Método de Pago <span style="color: #dc3545;">*</span>
-                    </label>
-                    <select id="swal-metodo" class="swal2-input"
-                            style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                        <option value="Efectivo" selected>Efectivo</option>
-                        <option value="Transferencia">Transferencia</option>
-                        <option value="Pago Mixto">Pago Mixto</option>
-                    </select>
-                </div>
-
-                <!-- Campos para Efectivo y Transferencia simple -->
-                <div id="campos-simple" style="display: block;">
-                    <div style="margin-bottom: 20px;">
-                        <label for="swal-monto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                            Monto a Pagar <span style="color: #dc3545;">*</span>
-                        </label>
-                        <input type="number" id="swal-monto" class="swal2-input"
-                               placeholder="Ingrese el monto" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}"
-                               style="width: 100%; margin: 0; padding: 12px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                    </div>
-
-                    <div id="campo-cuenta" style="display: none;">
-                        <div style="margin-bottom: 20px;">
-                            <label for="swal-cuenta" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                                Cuenta Destino <span style="color: #dc3545;">*</span>
-                            </label>
-                            <select id="swal-cuenta" class="swal2-input"
-                                    style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                                <option value="">Seleccione Cuenta...</option>
-                                ${opcionesCuentas}
-                            </select>
-                        </div>
-
-                        <div style="margin-bottom: 20px;">
-                            <label for="swal-referencia" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                                Referencia <span style="font-size: 12px; color: #6c757d;">(opcional)</span>
-                            </label>
-                            <input type="text" id="swal-referencia" class="swal2-input"
-                                   placeholder="Ej: # de transacción"
-                                   style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Campos para Pago Mixto -->
-                <div id="campos-mixto" style="display: none;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div>
-                            <label for="swal-monto-efectivo" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057; font-size: 13px;">
-                                Monto Efectivo <span style="color: #dc3545;">*</span>
-                            </label>
-                            <input type="number" id="swal-monto-efectivo" class="swal2-input"
-                                   placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0"
-                                   style="width: 100%; margin: 0; padding: 10px; font-size: 15px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                        </div>
-                        <div>
-                            <label for="swal-monto-transferencia" style="display: block; margin-bottom: 8px; font-weight: 500; color: #495057; font-size: 13px;">
-                                Monto Transferencia <span style="color: #dc3545;">*</span>
-                            </label>
-                            <input type="number" id="swal-monto-transferencia" class="swal2-input"
-                                   placeholder="0.00" step="0.01" min="0" max="${saldoPendiente}" value="0"
-                                   style="width: 100%; margin: 0; padding: 10px; font-size: 15px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                        </div>
-                    </div>
-
-                    <div style="margin-bottom: 20px;">
-                        <label for="swal-cuenta-mixto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                            Cuenta (Transferencia) <span style="color: #dc3545;">*</span>
-                        </label>
-                        <select id="swal-cuenta-mixto" class="swal2-input"
-                                style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                            <option value="">Seleccione Cuenta...</option>
-                            ${opcionesCuentas}
-                        </select>
-                    </div>
-
-                    <div style="margin-bottom: 10px;">
-                        <label for="swal-referencia-mixto" style="display: block; text-align: left; margin-bottom: 8px; font-weight: 500; color: #495057;">
-                            Referencia <span style="font-size: 12px; color: #6c757d;">(opcional)</span>
-                        </label>
-                        <input type="text" id="swal-referencia-mixto" class="swal2-input"
-                               placeholder="Ej: # de transacción"
-                               style="width: 100%; margin: 0; padding: 12px; font-size: 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                    </div>
-                </div>
-            </div>
-        `,
+      <div style="max-width:500px;margin:0 auto;padding:10px;">
+        <div style="background:#f8f9fa;border-radius:8px;padding:15px;margin-bottom:20px;display:flex;justify-content:space-between;">
+          <div><div style="font-size:12px;color:#6c757d;">Cliente</div><div style="font-weight:600;">${nombreCliente}</div></div>
+          <div style="text-align:right;"><div style="font-size:12px;color:#6c757d;">Saldo Pendiente</div><div style="font-size:18px;font-weight:bold;color:#dc3545;">${formatCurrency(saldoPendiente)}</div></div>
+        </div>
+        <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Fecha del Pago *</label>
+          <input type="text" id="swal-fecha-pago" class="swal2-input" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;"></div>
+        <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Método de Pago *</label>
+          <select id="swal-metodo" class="swal2-input" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;">
+            <option value="Efectivo" selected>Efectivo</option><option value="Transferencia">Transferencia</option><option value="Pago Mixto">Pago Mixto</option></select></div>
+        <div id="campos-simple">
+          <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Monto *</label>
+            <input type="number" id="swal-monto" class="swal2-input" step="0.01" min="0" max="${saldoPendiente}" value="${saldoPendiente}" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;"></div>
+          <div id="campo-cuenta" style="display:none;">
+            <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Cuenta Destino *</label>
+              <select id="swal-cuenta" class="swal2-input" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;"><option value="">Seleccione Cuenta...</option>${opcionesCuentas}</select></div>
+            <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Referencia <span style="color:#999;font-size:12px;">(opcional)</span></label>
+              <input type="text" id="swal-referencia" class="swal2-input" placeholder="# de transacción" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;"></div></div></div>
+        <div id="campos-mixto" style="display:none;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">
+            <div><label style="display:block;margin-bottom:5px;font-weight:500;font-size:13px;">Monto Efectivo *</label>
+              <input type="number" id="swal-monto-efectivo" class="swal2-input" placeholder="0.00" step="0.01" min="0" value="0" style="width:100%;margin:0;padding:10px;border:2px solid #e0e0e0;border-radius:6px;"></div>
+            <div><label style="display:block;margin-bottom:5px;font-weight:500;font-size:13px;">Monto Transferencia *</label>
+              <input type="number" id="swal-monto-transferencia" class="swal2-input" placeholder="0.00" step="0.01" min="0" value="0" style="width:100%;margin:0;padding:10px;border:2px solid #e0e0e0;border-radius:6px;"></div></div>
+          <div style="margin-bottom:15px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Cuenta (Transferencia) *</label>
+            <select id="swal-cuenta-mixto" class="swal2-input" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;"><option value="">Seleccione Cuenta...</option>${opcionesCuentas}</select></div>
+          <div style="margin-bottom:10px;"><label style="display:block;margin-bottom:5px;font-weight:500;">Referencia <span style="color:#999;font-size:12px;">(opcional)</span></label>
+            <input type="text" id="swal-referencia-mixto" class="swal2-input" placeholder="# de transacción" style="width:100%;margin:0;padding:12px;border:2px solid #e0e0e0;border-radius:6px;"></div></div>
+      </div>`,
     showCancelButton: true,
     confirmButtonText: "Registrar Pago",
     cancelButtonText: "Cancelar",
     didOpen: () => {
-      const selectMetodo = document.getElementById("swal-metodo");
-      const camposSimple = document.getElementById("campos-simple");
-      const camposMixto = document.getElementById("campos-mixto");
-      const campoCuenta = document.getElementById("campo-cuenta");
-
-      // Inicializar Flatpickr para el campo de fecha
+      const selectMetodo = document.getElementById("swal-metodo"),
+        camposSimple = document.getElementById("campos-simple"),
+        camposMixto = document.getElementById("campos-mixto"),
+        campoCuenta = document.getElementById("campo-cuenta");
       if (typeof flatpickr !== "undefined") {
-        // Obtener fecha actual en la zona horaria local
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const fechaLocal = `${year}-${month}-${day}`;
-
+        const now = new Date(),
+          fl = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
         flatpickr("#swal-fecha-pago", {
           locale: "es",
           enableTime: false,
           dateFormat: "Y-m-d",
           altInput: true,
           altFormat: "d/m/Y",
-          defaultDate: fechaLocal,
-          maxDate: "today" // No permitir fechas futuras
+          defaultDate: fl,
+          maxDate: "today",
         });
       }
-
-      // Manejar cambio de método de pago
       selectMetodo.addEventListener("change", function () {
-        const metodo = this.value;
-
-        if (metodo === "Pago Mixto") {
+        const m = this.value;
+        if (m === "Pago Mixto") {
           camposSimple.style.display = "none";
           camposMixto.style.display = "block";
         } else {
           camposSimple.style.display = "block";
           camposMixto.style.display = "none";
-
-          if (metodo === "Transferencia") {
-            campoCuenta.style.display = "block";
-          } else {
-            campoCuenta.style.display = "none";
-          }
+          campoCuenta.style.display = m === "Transferencia" ? "block" : "none";
         }
       });
     },
     preConfirm: () => {
-      const metodo = document.getElementById("swal-metodo").value;
-      const fechaPago = document.getElementById("swal-fecha-pago").value;
-
-      // Validar fecha
+      const metodo = document.getElementById("swal-metodo").value,
+        fechaPago = document.getElementById("swal-fecha-pago").value;
       if (!fechaPago) {
-        Swal.showValidationMessage("Debe seleccionar una fecha para el pago");
+        Swal.showValidationMessage("Debe seleccionar una fecha");
         return false;
       }
-
       if (metodo === "Pago Mixto") {
-        const montoEfectivo =
-          parseFloat(document.getElementById("swal-monto-efectivo").value) || 0;
-        const montoTransferencia =
-          parseFloat(
-            document.getElementById("swal-monto-transferencia").value
-          ) || 0;
-        const cuentaMixto = document.getElementById("swal-cuenta-mixto").value;
-        const referenciaMixto = document.getElementById(
-          "swal-referencia-mixto"
-        ).value;
-
-        const totalMixto = montoEfectivo + montoTransferencia;
-
-        if (totalMixto <= 0) {
-          Swal.showValidationMessage("Debe ingresar al menos un monto");
+        const me =
+            parseFloat(document.getElementById("swal-monto-efectivo").value) ||
+            0,
+          mt =
+            parseFloat(
+              document.getElementById("swal-monto-transferencia").value,
+            ) || 0;
+        const cm = document.getElementById("swal-cuenta-mixto").value,
+          rm = document.getElementById("swal-referencia-mixto").value;
+        if (me + mt <= 0) {
+          Swal.showValidationMessage("Ingrese al menos un monto");
           return false;
         }
-
-        if (totalMixto > saldoPendiente) {
+        if (me + mt > saldoPendiente) {
+          Swal.showValidationMessage("El total excede el saldo pendiente");
+          return false;
+        }
+        if (mt > 0 && !cm) {
           Swal.showValidationMessage(
-            `El total (${formatCurrency(
-              totalMixto
-            )}) no puede exceder el saldo pendiente`
+            "Seleccione una cuenta para la transferencia",
           );
           return false;
         }
-
-        if (montoTransferencia > 0 && !cuentaMixto) {
-          Swal.showValidationMessage(
-            "Debe seleccionar una cuenta para la transferencia"
-          );
-          return false;
-        }
-
         return {
           metodo: "Pago Mixto",
-          montoEfectivo,
-          montoTransferencia,
-          cuenta: cuentaMixto,
-          referencia: referenciaMixto,
+          montoEfectivo: me,
+          montoTransferencia: mt,
+          cuenta: cm,
+          referencia: rm,
           fechaPago,
         };
       } else {
-        const monto = parseFloat(document.getElementById("swal-monto").value);
-        const cuenta = document.getElementById("swal-cuenta")?.value || null;
-        const referencia =
-          document.getElementById("swal-referencia")?.value || null;
-
+        const monto = parseFloat(document.getElementById("swal-monto").value),
+          cuenta = document.getElementById("swal-cuenta")?.value || null,
+          referencia =
+            document.getElementById("swal-referencia")?.value || null;
         if (!monto || monto <= 0) {
           Swal.showValidationMessage("Ingrese un monto válido");
           return false;
         }
-
         if (monto > saldoPendiente) {
-          Swal.showValidationMessage(
-            `El monto no puede exceder el saldo pendiente (${formatCurrency(
-              saldoPendiente
-            )})`
-          );
+          Swal.showValidationMessage("El monto excede el saldo pendiente");
           return false;
         }
-
         if (metodo === "Transferencia" && !cuenta) {
-          Swal.showValidationMessage("Debe seleccionar una cuenta destino");
+          Swal.showValidationMessage("Seleccione una cuenta destino");
           return false;
         }
-
         return { metodo, monto, cuenta, referencia, fechaPago };
       }
     },
@@ -1844,25 +1063,15 @@ async function mostrarDialogoAgregarPago(
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
-      const client = getSupabaseClient();
-
-      // Obtener el ID del usuario actual
       const {
         data: { session },
-        error: sessionError,
       } = await client.auth.getSession();
-      if (sessionError || !session?.user?.id) {
-        throw new Error("No se pudo obtener la sesión del usuario");
-      }
+      if (!session?.user?.id) throw new Error("No se pudo obtener la sesión");
+      const uid = session.user.id;
 
-      const userId = session.user.id;
-
-      // Procesar según el método de pago
       if (result.value.metodo === "Pago Mixto") {
-        // Registrar pago en efectivo (si hay monto)
         if (result.value.montoEfectivo > 0) {
-          const { data: dataEfectivo, error: errorEfectivo } = await client.rpc(
+          const { data: de, error: ee } = await client.rpc(
             "fn_agregar_pago_venta",
             {
               id_venta: idVenta,
@@ -1871,35 +1080,21 @@ async function mostrarDialogoAgregarPago(
               id_cuenta_bancaria_destino: null,
               referencia_pago: null,
               fecha_pago: result.value.fechaPago,
-              id_usuario_responsable: userId,
+              id_usuario_responsable: uid,
               empresa_id: null,
-            }
+            },
           );
-
-          // Capturar error de Supabase (triggers, validaciones)
-          if (errorEfectivo) {
-            Swal.fire({
-              icon: 'error',
-              title: 'No se pudo registrar el pago',
-              text: errorEfectivo.message
-            });
+          if (ee) {
+            Swal.fire({ icon: "error", title: "Error", text: ee.message });
             return;
           }
-
-          // Verificar respuesta RPC
-          if (dataEfectivo?.exito === false) {
-            Swal.fire({
-              icon: 'error',
-              title: 'No se pudo registrar el pago',
-              text: dataEfectivo.mensaje || "Error al registrar pago en efectivo"
-            });
+          if (de?.exito === false) {
+            Swal.fire({ icon: "error", title: "Error", text: de.mensaje });
             return;
           }
         }
-
-        // Registrar pago por transferencia (si hay monto)
         if (result.value.montoTransferencia > 0) {
-          const { data: dataTransf, error: errorTransf } = await client.rpc(
+          const { data: dt, error: et } = await client.rpc(
             "fn_agregar_pago_venta",
             {
               id_venta: idVenta,
@@ -1908,64 +1103,25 @@ async function mostrarDialogoAgregarPago(
               id_cuenta_bancaria_destino: result.value.cuenta || null,
               referencia_pago: result.value.referencia || null,
               fecha_pago: result.value.fechaPago,
-              id_usuario_responsable: userId,
+              id_usuario_responsable: uid,
               empresa_id: null,
-            }
+            },
           );
-
-          // Capturar error de Supabase (triggers, validaciones)
-          if (errorTransf) {
-            Swal.fire({
-              icon: 'error',
-              title: 'No se pudo registrar el pago',
-              text: errorTransf.message
-            });
+          if (et) {
+            Swal.fire({ icon: "error", title: "Error", text: et.message });
             return;
           }
-
-          // Verificar respuesta RPC
-          if (dataTransf?.exito === false) {
-            Swal.fire({
-              icon: 'error',
-              title: 'No se pudo registrar el pago',
-              text: dataTransf.mensaje || "Error al registrar pago por transferencia"
-            });
+          if (dt?.exito === false) {
+            Swal.fire({ icon: "error", title: "Error", text: dt.mensaje });
             return;
           }
         }
-
-        const totalPagado =
-          result.value.montoEfectivo + result.value.montoTransferencia;
-
         Swal.fire({
           icon: "success",
           title: "Pagos Registrados",
-          html: `
-                        <p>Se registraron los siguientes pagos:</p>
-                        <ul style="text-align: left; display: inline-block;">
-                            ${
-                              result.value.montoEfectivo > 0
-                                ? `<li>Efectivo: ${formatCurrency(
-                                    result.value.montoEfectivo
-                                  )}</li>`
-                                : ""
-                            }
-                            ${
-                              result.value.montoTransferencia > 0
-                                ? `<li>Transferencia: ${formatCurrency(
-                                    result.value.montoTransferencia
-                                  )}</li>`
-                                : ""
-                            }
-                        </ul>
-                        <p><strong>Total: ${formatCurrency(
-                          totalPagado
-                        )}</strong></p>
-                    `,
-          confirmButtonText: "OK",
+          html: `<ul style="text-align:left;display:inline-block;">${result.value.montoEfectivo > 0 ? `<li>Efectivo: ${formatCurrency(result.value.montoEfectivo)}</li>` : ""}${result.value.montoTransferencia > 0 ? `<li>Transferencia: ${formatCurrency(result.value.montoTransferencia)}</li>` : ""}</ul><p><strong>Total: ${formatCurrency(result.value.montoEfectivo + result.value.montoTransferencia)}</strong></p>`,
         });
       } else {
-        // Pago simple (Efectivo o Transferencia)
         const { data, error } = await client.rpc("fn_agregar_pago_venta", {
           id_venta: idVenta,
           monto: result.value.monto,
@@ -1973,67 +1129,41 @@ async function mostrarDialogoAgregarPago(
           id_cuenta_bancaria_destino: result.value.cuenta || null,
           referencia_pago: result.value.referencia || null,
           fecha_pago: result.value.fechaPago,
-          id_usuario_responsable: userId,
+          id_usuario_responsable: uid,
           empresa_id: null,
         });
-
-        // Capturar error de Supabase (triggers, validaciones)
         if (error) {
-          console.error("[Ventas] Error al registrar pago:", error);
-          Swal.fire({
-            icon: 'error',
-            title: 'No se pudo registrar el pago',
-            text: error.message
-          });
+          Swal.fire({ icon: "error", title: "Error", text: error.message });
           return;
         }
-
-        // Verificar respuesta RPC
         if (data?.exito === false) {
-          Swal.fire({
-            icon: 'error',
-            title: 'No se pudo registrar el pago',
-            text: data.mensaje || "Error al registrar el pago"
-          });
+          Swal.fire({ icon: "error", title: "Error", text: data.mensaje });
           return;
         }
-
         Swal.fire({
           icon: "success",
           title: "Pago Registrado",
-          text: `Se registró un pago de ${formatCurrency(
-            result.value.monto
-          )} exitosamente.`,
-          confirmButtonText: "OK",
+          text: `Pago de ${formatCurrency(result.value.monto)} registrado exitosamente.`,
         });
       }
-
       await ejecutarBusquedaDeVentas();
-    } catch (error) {
-      console.error("[Ventas] Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-        confirmButtonText: "Cerrar",
-      });
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: e.message });
     }
   }
 }
 
 /**
  * Mostrar diálogo para gestionar pagos de una venta
+ * FIX: Se aumentó el ancho a 900px y se aplicó white-space: nowrap para evitar cortes.
  */
 async function mostrarDialogoGestionarPagos(
   idVenta,
   codigoVenta,
   nombreCliente,
-  estado
+  estado,
 ) {
-  console.log("[Ventas] Gestionando pagos de venta:", codigoVenta);
-
   const ventaAnulada = estado === "Anulada";
-
   try {
     Swal.fire({
       title: "Cargando pagos...",
@@ -2041,170 +1171,207 @@ async function mostrarDialogoGestionarPagos(
       didOpen: () => Swal.showLoading(),
     });
 
-    // Obtener los pagos de la venta
     const client = getSupabaseClient();
     const { data, error } = await client.rpc("fn_obtener_venta_detalle", {
       p_id_venta: idVenta,
     });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (!data || !data.exito) {
+    if (error) throw new Error(error.message);
+    if (!data?.exito)
       throw new Error(data?.mensaje || "No se pudieron obtener los pagos");
-    }
 
     const venta = data.datos;
-    const pagos = venta.pagos_venta || []; // ✅ CORREGIDO: el campo es "pagos_venta"
+    const pagos = venta.pagos_venta || [];
     const totalPagado = pagos.reduce(
-      (sum, p) => sum + (parseFloat(p.monto) || 0),
-      0
+      (s, p) => s + (parseFloat(p.monto) || 0),
+      0,
     );
     const saldoPendiente = venta.monto_total - totalPagado;
 
-    // Generar HTML de la tabla de pagos
+    // ── Tarjetas de resumen ──────────────────────────────────────────────────
+    const resumenHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:16px 0;">
+        <div style="background:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:#6c757d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">TOTAL</div>
+          <div style="font-size:18px;font-weight:700;color:#212529;">${formatCurrency(venta.monto_total)}</div>
+        </div>
+        <div style="background:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:#6c757d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">PAGADO</div>
+          <div style="font-size:18px;font-weight:700;color:#28a745;">${formatCurrency(totalPagado)}</div>
+        </div>
+        <div style="background:#f8f9fa;border-radius:8px;padding:12px;text-align:center;">
+          <div style="font-size:11px;color:#6c757d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">SALDO</div>
+          <div style="font-size:18px;font-weight:700;color:${saldoPendiente > 0 ? "#dc3545" : "#28a745"};">${formatCurrency(saldoPendiente)}</div>
+        </div>
+      </div>`;
+
+    // ── Alerta venta anulada ─────────────────────────────────────────────────
+    const mensajeAnulada = ventaAnulada
+      ? `
+      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <i class="fas fa-exclamation-triangle" style="color:#856404;font-size:16px;flex-shrink:0;"></i>
+        <span style="color:#856404;font-size:13px;"><strong>Venta Anulada</strong> — No se pueden realizar movimientos de pagos.</span>
+      </div>`
+      : "";
+
+    // ── Tarjetas de pagos ────────────────────────────────────────────────────
     let htmlPagos = "";
     if (pagos.length > 0) {
-      htmlPagos = `
-                <table class="swal2-table" style="width: 100%; text-align: left; margin-top: 15px; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
-                            <th style="padding: 10px; text-align: left;">FECHA</th>
-                            <th style="padding: 10px; text-align: left;">MÉTODO</th>
-                            <th style="padding: 10px; text-align: right;">MONTO</th>
-                            <th style="padding: 10px; text-align: center;">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+      htmlPagos = pagos
+        .map((p, idx) => {
+          // ✅ FIX fecha UTC
+          const fechaPago = moment.utc(p.fecha_pago).format("DD/MM/YYYY");
 
-      pagos.forEach((p, index) => {
-        // Usar moment.utc() para evitar conversión de zona horaria
-        const fechaPago = moment.utc(p.fecha_pago).format("DD/MM/YYYY");
+          // Icono y color según método
+          const iconoMetodo =
+            p.metodo_pago === "Transferencia"
+              ? `<i class="fas fa-university" style="color:#3498db;margin-right:5px;"></i>`
+              : p.metodo_pago === "Pago Mixto"
+                ? `<i class="fas fa-layer-group" style="color:#9b59b6;margin-right:5px;"></i>`
+                : `<i class="fas fa-money-bill-wave" style="color:#27ae60;margin-right:5px;"></i>`;
 
-        // Deshabilitar botones si la venta está anulada
-        const btnDisabled = ventaAnulada ? 'disabled' : '';
-        const cursorStyle = ventaAnulada ? 'not-allowed' : 'pointer';
-        const opacityStyle = ventaAnulada ? '0.4' : '1';
-        const titleEditar = ventaAnulada ? 'No se puede editar (venta anulada)' : 'Editar pago';
-        const titleBorrar = ventaAnulada ? 'No se puede eliminar (venta anulada)' : 'Eliminar pago';
+          // Cuenta y referencia
+          let cuentaRefHTML = "";
+          if (
+            (p.metodo_pago === "Transferencia" ||
+              p.metodo_pago === "Pago Mixto") &&
+            (p.nombre_cuenta_destino || p.referencia_pago)
+          ) {
+            cuentaRefHTML = `
+            <div style="margin-top:6px;padding:6px 8px;background:#f0f4ff;border-radius:4px;font-size:12px;">
+              ${
+                p.nombre_cuenta_destino
+                  ? `<span style="font-weight:600;color:#2c3e50;"><i class="fas fa-credit-card" style="margin-right:4px;color:#3498db;"></i>${p.nombre_cuenta_destino}</span>`
+                  : ""
+              }
+              ${
+                p.referencia_pago
+                  ? `<span style="color:#7f8c8d;margin-left:8px;"><i class="fas fa-hashtag" style="margin-right:2px;"></i>${p.referencia_pago}</span>`
+                  : ""
+              }
+            </div>`;
+          }
 
-        htmlPagos += `
-                    <tr style="border-bottom: 1px solid #eee;">
-                        <td style="padding: 8px;">${fechaPago}</td>
-                        <td style="padding: 8px;">${p.metodo_pago}</td>
-                        <td style="padding: 8px; text-align: right;">${formatCurrency(
-                          p.monto
-                        )}</td>
-                        <td style="padding: 8px; text-align: center;">
-                            <button class="btn-accion-pago" data-accion="editar" data-index="${index}"
-                                    style="background: none; border: none; cursor: ${cursorStyle}; margin: 0 5px; font-size: 16px; opacity: ${opacityStyle};"
-                                    title="${titleEditar}" ${btnDisabled}>
-                                <i class="fas fa-edit" style="color: #3498db;"></i>
-                            </button>
-                            <button class="btn-accion-pago" data-accion="borrar" data-index="${index}"
-                                    style="background: none; border: none; cursor: ${cursorStyle}; margin: 0 5px; font-size: 16px; opacity: ${opacityStyle};"
-                                    title="${titleBorrar}" ${btnDisabled}>
-                                    <i class="fas fa-trash" style="color: #e74c3c;"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-      });
+          const dis = ventaAnulada ? "disabled" : "";
+          const cur = ventaAnulada ? "not-allowed" : "pointer";
+          const op = ventaAnulada ? "0.4" : "1";
 
-      htmlPagos += `
-                    </tbody>
-                </table>
-            `;
+          return `
+          <div style="background:#fff;border:1px solid #e9ecef;border-radius:8px;padding:12px 14px;margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+
+              <!-- Columna izquierda: fecha + método + cuenta -->
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="font-size:13px;color:#495057;white-space:nowrap;">
+                    <i class="fas fa-calendar-alt" style="color:#adb5bd;margin-right:4px;"></i>${fechaPago}
+                  </span>
+                  <span style="font-size:13px;font-weight:600;white-space:nowrap;">
+                    ${iconoMetodo}${p.metodo_pago}
+                  </span>
+                </div>
+                ${cuentaRefHTML}
+              </div>
+
+              <!-- Columna derecha: monto + acciones -->
+              <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                <span style="font-size:16px;font-weight:700;color:#212529;white-space:nowrap;">
+                  ${formatCurrency(p.monto)}
+                </span>
+                <div style="display:flex;gap:4px;">
+                  <button class="btn-accion-pago" data-accion="editar" data-index="${idx}"
+                          style="background:none;border:1px solid #3498db;border-radius:5px;cursor:${cur};padding:5px 8px;opacity:${op};color:#3498db;"
+                          title="Editar pago" ${dis}>
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-accion-pago" data-accion="borrar" data-index="${idx}"
+                          style="background:none;border:1px solid #e74c3c;border-radius:5px;cursor:${cur};padding:5px 8px;opacity:${op};color:#e74c3c;"
+                          title="Eliminar pago" ${dis}>
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>`;
+        })
+        .join("");
     } else {
-      htmlPagos =
-        '<p style="margin: 30px 0; text-align: center; color: #999;">No se han registrado pagos para esta venta.</p>';
+      htmlPagos = `
+        <div style="text-align:center;padding:30px 0;color:#adb5bd;">
+          <i class="fas fa-receipt" style="font-size:36px;margin-bottom:10px;display:block;"></i>
+          <p style="margin:0;font-size:14px;">No se han registrado pagos para esta venta.</p>
+        </div>`;
     }
 
-    // Mensaje informativo para ventas anuladas
-    const mensajeVentaAnulada = ventaAnulada ? `
-                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 12px; margin: 15px 0; text-align: center;">
-                    <i class="fas fa-exclamation-triangle" style="color: #856404; margin-right: 5px;"></i>
-                    <strong style="color: #856404;">Venta Anulada:</strong>
-                    <span style="color: #856404;">No se pueden realizar movimientos de pagos</span>
-                </div>
-            ` : '';
-
-    const resultado = await Swal.fire({
+    await Swal.fire({
       title: "Gestión de Pagos",
-      html: `
-                <div style="text-align: center; margin-bottom: 15px;">
-                    <p style="font-size: 16px; margin: 5px 0;">Venta <strong>${codigoVenta}</strong></p>
-                    <p style="margin: 5px 0;">Cliente: <strong>${nombreCliente}</strong></p>
-                    <div style="margin: 15px 0; font-size: 14px;">
-                        <span>Total: <strong>${formatCurrency(
-                          venta.monto_total
-                        )}</strong></span>
-                        <span style="margin: 0 15px;">Pagado: <strong>${formatCurrency(
-                          totalPagado
-                        )}</strong></span>
-                        <span>Saldo: <strong style="color: ${
-                          saldoPendiente > 0 ? "#e74c3c" : "#27ae60"
-                        };">${formatCurrency(saldoPendiente)}</strong></span>
-                    </div>
-                </div>
-                ${mensajeVentaAnulada}
-                ${htmlPagos}
-                <div style="margin-top: 20px;">
-                    <button id="btn-registrar-pago" class="swal2-confirm swal2-styled" style="background-color: #3498db;">
-                        Registrar Pago
-                    </button>
-                </div>
-            `,
-      width: "700px",
+      width: "560px",
       showConfirmButton: false,
       showCloseButton: true,
-      willClose: () => {
-        // Refrescar la tabla de ventas al cerrar el modal
-        ejecutarBusquedaDeVentas();
+      customClass: { popup: "swal-pagos-popup" },
+      didRender: () => {
+        const popup = Swal.getPopup();
+        if (popup) popup.style.overflowX = "hidden";
       },
+      willClose: () => ejecutarBusquedaDeVentas(),
+      html: `
+        <div style="text-align:center;margin-bottom:4px;">
+          <p style="font-size:15px;margin:0;">Venta <strong>${codigoVenta}</strong></p>
+          <p style="font-size:13px;color:#6c757d;margin:4px 0 0;">${nombreCliente}</p>
+        </div>
+        ${resumenHTML}
+        ${mensajeAnulada}
+        <div style="max-height:340px;overflow-y:auto;padding-right:2px;">
+          ${htmlPagos}
+        </div>
+        <div style="margin-top:14px;border-top:1px solid #e9ecef;padding-top:14px;">
+          <button id="btn-registrar-pago" class="swal2-confirm swal2-styled"
+                  style="background-color:#3498db;width:100%;justify-content:center;">
+            <i class="fas fa-plus" style="margin-right:6px;"></i> Registrar Nuevo Pago
+          </button>
+        </div>`,
       didOpen: () => {
-        // Botón registrar pago
-        const btnRegistrarPago = document.getElementById("btn-registrar-pago");
-
-        // Deshabilitar si la venta está anulada
-        if (btnRegistrarPago && ventaAnulada) {
-          btnRegistrarPago.disabled = true;
-          btnRegistrarPago.title = "No se pueden registrar pagos (venta anulada)";
-          btnRegistrarPago.style.opacity = "0.5";
-          btnRegistrarPago.style.cursor = "not-allowed";
-        } else if (btnRegistrarPago && saldoPendiente > 0) {
-          btnRegistrarPago.addEventListener("click", async () => {
+        // ✅ Eliminar scroll horizontal en todos los contenedores de Swal
+        const popup = Swal.getPopup();
+        if (popup) {
+          popup.style.overflowX = "hidden";
+          popup.querySelectorAll("*").forEach((el) => {
+            el.style.overflowX = "hidden";
+          });
+        }
+        const btnRP = document.getElementById("btn-registrar-pago");
+        if (btnRP && ventaAnulada) {
+          btnRP.disabled = true;
+          btnRP.style.opacity = "0.5";
+          btnRP.style.cursor = "not-allowed";
+          btnRP.title = "No se pueden registrar pagos (venta anulada)";
+        } else if (btnRP && saldoPendiente > 0) {
+          btnRP.addEventListener("click", async () => {
             Swal.close();
             await mostrarDialogoAgregarPago(
               idVenta,
               codigoVenta,
               nombreCliente,
-              saldoPendiente
+              saldoPendiente,
             );
-            // Recargar el diálogo de pagos después de agregar
             await mostrarDialogoGestionarPagos(
               idVenta,
               codigoVenta,
               nombreCliente,
-              estado
+              estado,
             );
           });
-        } else if (btnRegistrarPago) {
-          btnRegistrarPago.disabled = true;
-          btnRegistrarPago.title = "La venta está completamente pagada";
-          btnRegistrarPago.style.opacity = "0.5";
+        } else if (btnRP) {
+          btnRP.disabled = true;
+          btnRP.style.opacity = "0.5";
+          btnRP.title = "La venta está completamente pagada";
         }
 
-        // Botones de acciones (editar/borrar)
-        const botonesAccion = document.querySelectorAll(".btn-accion-pago");
-        botonesAccion.forEach((btn) => {
-          btn.addEventListener("click", async (e) => {
+        document.querySelectorAll(".btn-accion-pago").forEach((btn) => {
+          btn.addEventListener("click", async () => {
             const accion = btn.dataset.accion;
-            const index = parseInt(btn.dataset.index);
-            const pago = pagos[index];
-
+            const idx = parseInt(btn.dataset.index);
+            const pago = pagos[idx];
             if (accion === "editar") {
               Swal.close();
               await editarPago(pago, idVenta, codigoVenta, nombreCliente);
@@ -2212,187 +1379,130 @@ async function mostrarDialogoGestionarPagos(
                 idVenta,
                 codigoVenta,
                 nombreCliente,
-                estado
+                estado,
               );
             } else if (accion === "borrar") {
-              await borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado);
+              await borrarPago(
+                pago,
+                idVenta,
+                codigoVenta,
+                nombreCliente,
+                estado,
+              );
             }
           });
         });
       },
     });
-  } catch (error) {
-    console.error("[Ventas] Error:", error);
+  } catch (e) {
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "Error al cargar los pagos: " + error.message,
-      confirmButtonText: "Cerrar",
+      text: "Error al cargar los pagos: " + e.message,
     });
   }
 }
 
-/**
- * Editar un pago existente
- */
 async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
-  console.log("[Ventas] Editando pago:", pago);
-
   const client = getSupabaseClient();
-
-  // Obtener los datos de la venta para calcular el máximo permitido
-  let montoTotalVenta = 0;
-  let totalOtrosPagos = 0;
-
+  let montoMax = 0;
   try {
-    const { data, error } = await client.rpc("fn_obtener_venta_detalle", {
+    const { data } = await client.rpc("fn_obtener_venta_detalle", {
       p_id_venta: idVenta,
     });
-
-    if (!error && data?.exito) {
-      const venta = data.datos;
-      montoTotalVenta = venta.monto_total;
-
-      // Calcular total de OTROS pagos (excluyendo el que se está editando)
-      const pagosVenta = venta.pagos_venta || [];
-      totalOtrosPagos = pagosVenta
-        .filter((p) => p.id !== pago.id)
-        .reduce((sum, p) => sum + parseFloat(p.monto), 0);
+    if (data?.exito) {
+      montoMax =
+        data.datos.monto_total -
+        (data.datos.pagos_venta || [])
+          .filter((p) => p.id !== pago.id)
+          .reduce((s, p) => s + parseFloat(p.monto), 0);
     }
-  } catch (error) {
-    console.error("[Ventas] Error al obtener datos de venta:", error);
-  }
+  } catch (e) {}
 
-  // Calcular el monto máximo permitido para este pago
-  const montoMaximoPermitido = montoTotalVenta - totalOtrosPagos;
-
-  // Cargar cuentas bancarias
   let cuentasBancarias = [];
-
   try {
-    const { data: cuentas } = await client
+    const { data: c } = await client
       .from("cuentas_bancarias_empresa")
-      .select("id, nombre_cuenta, numero_cuenta")
+      .select("id,nombre_cuenta,numero_cuenta")
       .order("nombre_cuenta");
-
-    if (cuentas) cuentasBancarias = cuentas;
-  } catch (error) {
-    console.error("[Ventas] Error al cargar cuentas:", error);
-  }
+    if (c) cuentasBancarias = c;
+  } catch (e) {}
 
   const opcionesCuentas = cuentasBancarias
     .map(
       (c) =>
-        `<option value="${c.id}" ${
-          c.id === pago.id_cuenta_bancaria_destino ? "selected" : ""
-        }>${c.nombre_cuenta}</option>`
+        `<option value="${c.id}" ${c.id === pago.id_cuenta_bancaria_destino ? "selected" : ""}>${c.nombre_cuenta}</option>`,
     )
     .join("");
 
-  const mostrarCuenta = pago.metodo_pago === "Transferencia";
-
   const result = await Swal.fire({
     title: `Editar Pago - ${codigoVenta}`,
-    html: `
-            <div class="swal2-form" style="text-align: left; padding: 0 20px;">
-                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                    Monto máximo permitido: <strong style="color: #27ae60;">${formatCurrency(
-                      montoMaximoPermitido
-                    )}</strong>
-                </p>
-
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Fecha del Pago:</label>
-                <input type="text" id="edit-fecha-pago" class="swal2-input" placeholder="Seleccione fecha" style="margin-bottom: 15px;">
-
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Monto:</label>
-                <input type="number" id="edit-monto" class="swal2-input" value="${
-                  pago.monto
-                }" step="0.01" min="0" max="${montoMaximoPermitido}" style="margin-bottom: 15px;">
-
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Método de Pago:</label>
-                <select id="edit-metodo" class="swal2-input" style="margin-bottom: 15px;">
-                    <option value="Efectivo" ${
-                      pago.metodo_pago === "Efectivo" ? "selected" : ""
-                    }>Efectivo</option>
-                    <option value="Transferencia" ${
-                      pago.metodo_pago === "Transferencia" ? "selected" : ""
-                    }>Transferencia</option>
-                </select>
-
-                <div id="edit-campo-cuenta" style="display: ${
-                  mostrarCuenta ? "block" : "none"
-                };">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">Cuenta Destino:</label>
-                    <select id="edit-cuenta" class="swal2-input" style="margin-bottom: 15px;">
-                        <option value="">Seleccione Cuenta...</option>
-                        ${opcionesCuentas}
-                    </select>
-                </div>
-
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">Referencia (Opcional):</label>
-                <input type="text" id="edit-referencia" class="swal2-input" value="${
-                  pago.referencia_pago || ""
-                }" placeholder="# de transacción">
-            </div>
-        `,
+    width: "500px",
+    html: `<div style="text-align:left;padding:0 20px;">
+      <p style="margin-bottom:15px;color:#666;font-size:14px;">Monto máximo: <strong style="color:#27ae60;">${formatCurrency(montoMax)}</strong></p>
+      <label style="display:block;margin-bottom:5px;font-weight:500;">Fecha del Pago:</label>
+      <input type="text" id="edit-fecha-pago" class="swal2-input" style="margin-bottom:15px;">
+      <label style="display:block;margin-bottom:5px;font-weight:500;">Monto:</label>
+      <input type="number" id="edit-monto" class="swal2-input" value="${pago.monto}" step="0.01" min="0" max="${montoMax}" style="margin-bottom:15px;">
+      <label style="display:block;margin-bottom:5px;font-weight:500;">Método de Pago:</label>
+      <select id="edit-metodo" class="swal2-input" style="margin-bottom:15px;">
+        <option value="Efectivo" ${pago.metodo_pago === "Efectivo" ? "selected" : ""}>Efectivo</option>
+        <option value="Transferencia" ${pago.metodo_pago === "Transferencia" ? "selected" : ""}>Transferencia</option>
+      </select>
+      <div id="edit-campo-cuenta" style="display:${pago.metodo_pago === "Transferencia" ? "block" : "none"};">
+        <label style="display:block;margin-bottom:5px;font-weight:500;">Cuenta Destino:</label>
+        <select id="edit-cuenta" class="swal2-input" style="margin-bottom:15px;"><option value="">Seleccione Cuenta...</option>${opcionesCuentas}</select>
+      </div>
+      <label style="display:block;margin-bottom:5px;font-weight:500;">Referencia (Opcional):</label>
+      <input type="text" id="edit-referencia" class="swal2-input" value="${pago.referencia_pago || ""}" placeholder="# de transacción">
+    </div>`,
     showCancelButton: true,
     confirmButtonText: "Guardar Cambios",
     cancelButtonText: "Cancelar",
-    width: "500px",
     didOpen: () => {
-      const selectMetodo = document.getElementById("edit-metodo");
-      const campoCuenta = document.getElementById("edit-campo-cuenta");
-
-      // Inicializar Flatpickr con la fecha del pago (sin conversión de zona horaria)
+      const sm = document.getElementById("edit-metodo"),
+        cc = document.getElementById("edit-campo-cuenta");
       if (typeof flatpickr !== "undefined") {
-        // Extraer solo la parte de fecha (YYYY-MM-DD) sin conversión UTC
-        const fechaPagoISO = pago.fecha_pago ? pago.fecha_pago.split('T')[0] : null;
-
+        // ✅ FIX: extraer fecha sin conversión UTC
+        const fp = pago.fecha_pago ? pago.fecha_pago.split("T")[0] : null;
         flatpickr("#edit-fecha-pago", {
           locale: "es",
           enableTime: false,
           dateFormat: "Y-m-d",
           altInput: true,
           altFormat: "d/m/Y",
-          defaultDate: fechaPagoISO,
-          maxDate: "today"
+          defaultDate: fp,
+          maxDate: "today",
         });
       }
-
-      // Manejar cambio de método de pago (solo Efectivo/Transferencia)
-      selectMetodo.addEventListener("change", function () {
-        campoCuenta.style.display = this.value === "Transferencia" ? "block" : "none";
+      sm.addEventListener("change", function () {
+        cc.style.display = this.value === "Transferencia" ? "block" : "none";
       });
     },
     preConfirm: () => {
-      const fechaPago = document.getElementById("edit-fecha-pago").value;
-      const metodo = document.getElementById("edit-metodo").value;
-      const monto = parseFloat(document.getElementById("edit-monto").value);
-      const cuenta = document.getElementById("edit-cuenta")?.value || null;
+      const fechaPago = document.getElementById("edit-fecha-pago").value,
+        metodo = document.getElementById("edit-metodo").value;
+      const monto = parseFloat(document.getElementById("edit-monto").value),
+        cuenta = document.getElementById("edit-cuenta")?.value || null;
       const referencia = document.getElementById("edit-referencia").value;
-
       if (!fechaPago) {
-        Swal.showValidationMessage("Debe seleccionar una fecha para el pago");
+        Swal.showValidationMessage("Seleccione una fecha");
         return false;
       }
-
       if (!monto || monto <= 0) {
         Swal.showValidationMessage("Ingrese un monto válido");
         return false;
       }
-
-      if (monto > montoMaximoPermitido) {
+      if (monto > montoMax) {
         Swal.showValidationMessage(
-          `El monto no puede exceder ${formatCurrency(montoMaximoPermitido)}`
+          `El monto no puede exceder ${formatCurrency(montoMax)}`,
         );
         return false;
       }
-
       if (metodo === "Transferencia" && !cuenta) {
-        Swal.showValidationMessage("Debe seleccionar una cuenta");
+        Swal.showValidationMessage("Seleccione una cuenta");
         return false;
       }
-
       return { fechaPago, monto, metodo, cuenta, referencia };
     },
   });
@@ -2404,43 +1514,24 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
-      const {
-        data: { session },
-      } = await client.auth.getSession();
-      if (!session?.user?.id) {
-        throw new Error("No se pudo obtener la sesión del usuario");
-      }
-
       const { data, error } = await client.rpc("fn_editar_pago_venta", {
         id_pago: pago.id,
         monto: result.value.monto,
         metodo_pago: result.value.metodo,
-        id_cuenta_bancaria_destino: result.value.cuenta,
-        referencia_pago: result.value.referencia,
-        fecha_pago: result.value.fechaPago,
+        id_cuenta_bancaria_destino: result.value.cuenta || null,
+        referencia_pago: result.value.referencia || null,
+        fecha_pago: result.value.fechaPago
+          ? new Date(result.value.fechaPago + "T12:00:00").toISOString()
+          : null,
       });
-
-      // CRÍTICO: Capturar error de Supabase (triggers, validaciones, etc.)
       if (error) {
-        Swal.fire({
-          icon: 'error',
-          title: 'No se pudo actualizar',
-          text: error.message
-        });
+        Swal.fire({ icon: "error", title: "Error", text: error.message });
         return;
       }
-
-      // Verificar respuesta RPC
       if (data?.exito === false) {
-        Swal.fire({
-          icon: 'error',
-          title: 'No se pudo actualizar',
-          text: data.mensaje || "Error al actualizar el pago"
-        });
+        Swal.fire({ icon: "error", title: "Error", text: data.mensaje });
         return;
       }
-
       Swal.fire({
         icon: "success",
         title: "Pago Actualizado",
@@ -2448,36 +1539,22 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         timer: 1500,
         showConfirmButton: false,
       });
-    } catch (error) {
-      console.error("[Ventas] Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-      });
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: e.message });
     }
   }
 }
 
-/**
- * Borrar un pago
- */
 async function borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado) {
   const result = await Swal.fire({
     title: "¿Eliminar este pago?",
-    html: `
-            <p>Venta: <strong>${codigoVenta}</strong></p>
-            <p>Monto: <strong>${formatCurrency(pago.monto)}</strong></p>
-            <p>Método: <strong>${pago.metodo_pago}</strong></p>
-            <p style="color: #e74c3c; margin-top: 15px;">Esta acción no se puede deshacer.</p>
-        `,
+    html: `<p>Venta: <strong>${codigoVenta}</strong></p><p>Monto: <strong>${formatCurrency(pago.monto)}</strong></p><p>Método: <strong>${pago.metodo_pago}</strong></p><p style="color:#e74c3c;margin-top:15px;">Esta acción no se puede deshacer.</p>`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Sí, eliminar",
     cancelButtonText: "Cancelar",
     confirmButtonColor: "#e74c3c",
   });
-
   if (result.isConfirmed) {
     try {
       Swal.fire({
@@ -2485,18 +1562,12 @@ async function borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado) {
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
       const client = getSupabaseClient();
       const { data, error } = await client.rpc("fn_eliminar_pago_venta", {
         id_pago: pago.id,
       });
-
-      if (error || data?.exito === false) {
-        throw new Error(
-          data?.mensaje || error?.message || "Error al eliminar el pago"
-        );
-      }
-
+      if (error || data?.exito === false)
+        throw new Error(data?.mensaje || error?.message || "Error al eliminar");
       Swal.fire({
         icon: "success",
         title: "Pago Eliminado",
@@ -2504,18 +1575,18 @@ async function borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado) {
         timer: 1500,
         showConfirmButton: false,
       });
-
-      // Recargar el diálogo de pagos
-      setTimeout(() => {
-        mostrarDialogoGestionarPagos(idVenta, codigoVenta, nombreCliente, estado);
-      }, 1500);
-    } catch (error) {
-      console.error("[Ventas] Error:", error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: error.message,
-      });
+      setTimeout(
+        () =>
+          mostrarDialogoGestionarPagos(
+            idVenta,
+            codigoVenta,
+            nombreCliente,
+            estado,
+          ),
+        1500,
+      );
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Error", text: e.message });
     }
   }
 }
