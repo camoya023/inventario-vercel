@@ -19,13 +19,16 @@
                 <tr>
                     <th>Nombre Categoría</th>
                     <th>Descripción</th>
+                    <th class="text-center" title="Define el orden de aparición en el ticket de venta. Menor número = aparece primero.">
+                        Orden Ticket <i class="fas fa-info-circle" style="color:#aaa;font-size:0.8rem;"></i>
+                    </th>
                     <th class="text-center">Nº Productos</th>
                     <th class="column-actions text-center">Acciones</th>
                 </tr>
             </thead>
             <tbody id="tbody-categorias">
                 <tr>
-                    <td colspan="4" class="text-center" style="padding:20px; font-style:italic;">
+                    <td colspan="5" class="text-center" style="padding:20px;font-style:italic;">
                         Cargando categorías...
                     </td>
                 </tr>
@@ -47,21 +50,47 @@
                     <input type="hidden" id="input-id-categoria" name="id_categoria">
 
                     <div class="form-group">
-                        <label for="input-nombre-categoria">Nombre de la Categoría <span class="required-field">*</span></label>
-                        <input type="text" id="input-nombre-categoria" name="nombre_categoria" class="form-input" required placeholder="Ej: Electrónicos" maxlength="100">
+                        <label for="input-nombre-categoria">
+                            Nombre de la Categoría <span class="required-field">*</span>
+                        </label>
+                        <input type="text" id="input-nombre-categoria" name="nombre_categoria"
+                               class="form-input" required placeholder="Ej: Yogures" maxlength="100">
                         <div class="validation-message" id="error-nombre-categoria"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="input-descripcion-categoria">Descripción (Opcional)</label>
-                        <textarea id="input-descripcion-categoria" name="descripcion_categoria" class="form-input" rows="3" placeholder="Ej: Dispositivos y gadgets tecnológicos" maxlength="500"></textarea>
+                        <textarea id="input-descripcion-categoria" name="descripcion_categoria"
+                                  class="form-input" rows="3"
+                                  placeholder="Ej: Productos lácteos fermentados" maxlength="500"></textarea>
                         <div class="validation-message" id="error-descripcion-categoria"></div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="input-orden-impresion-categoria">
+                            Orden en el Ticket de Venta
+                            <span style="font-size:0.8rem;color:#888;font-weight:400;">
+                                — Menor número aparece primero (99 = al final)
+                            </span>
+                        </label>
+                        <input type="number" id="input-orden-impresion-categoria"
+                               name="orden_impresion" class="form-input"
+                               min="1" max="999" value="99"
+                               placeholder="Ej: 1 para aparecer primero"
+                               style="max-width: 180px;">
+                        <div class="validation-message" id="error-orden-impresion-categoria"></div>
+                    </div>
+
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" id="btn-cancelar-operacion-categoria" class="button button-secondary">Cancelar</button>
-                <button type="submit" id="btn-guardar-cambios-categoria" class="button button-primary" form="form-categoria">Guardar Categoría</button>
+                <button type="button" id="btn-cancelar-operacion-categoria" class="button button-secondary">
+                    Cancelar
+                </button>
+                <button type="submit" id="btn-guardar-cambios-categoria" class="button button-primary"
+                        form="form-categoria">
+                    Guardar Categoría
+                </button>
             </div>
         </div>
     </div>

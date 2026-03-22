@@ -732,7 +732,8 @@ async function imprimirFacturaVenta(idVenta, codigoVenta) {
 
 function generarContenidoFacturaPOS(venta) {
   const W = 36,
-    SEP = "=".repeat(W);
+    SEP = "=".repeat(W),
+    LIN = "-".repeat(W);
   const centrar = (t) =>
     t.padStart(Math.floor((W + t.length) / 2), " ").padEnd(W, " ");
   const alinear = (i, d) => i + d.padStart(W - i.length, " ");
@@ -750,6 +751,7 @@ function generarContenidoFacturaPOS(venta) {
     lineas.push(actual.trim());
     return lineas;
   };
+
   let c = "";
   const fechaVenta = new Date(venta.fecha_venta).toLocaleDateString("es-CO", {
     timeZone: "UTC",
@@ -781,17 +783,55 @@ function generarContenidoFacturaPOS(venta) {
       for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
     }
   }
-  c += SEP + "\nProducto        Cant Precio Subtotal\n" + "-".repeat(W) + "\n";
-  let ta = 0;
-  venta.detalles_venta.forEach((d) => {
-    ta += d.cantidad;
-    const np = d.productos?.nombre_producto || "Producto",
-      pu = d.precio_unitario_venta || 0,
-      tl = d.total_linea || d.cantidad * pu;
-    const l = envolver(np, 15);
-    c += `${l[0].padEnd(15)} ${d.cantidad.toString().padStart(4)} ${Math.round(pu).toLocaleString("es-CO").padStart(6)} ${Math.round(tl).toLocaleString("es-CO").padStart(9)}\n`;
-    for (let i = 1; i < l.length; i++) c += `${l[i].padEnd(15)}\n`;
+
+  // ── Agrupar detalles por categoría ──────────────────────────────────────
+  const grupos = {};
+  (venta.detalles_venta || []).forEach((d) => {
+    const cat = d.productos?.nombre_categoria || "Sin Categoría";
+    const orden = d.productos?.orden_categoria ?? 99;
+    const key = `${String(orden).padStart(4, "0")}_${cat}`;
+    if (!grupos[key]) grupos[key] = { nombre: cat, orden, items: [] };
+    grupos[key].items.push(d);
   });
+
+  // Ordenar grupos por orden_categoria
+  const gruposOrdenados = Object.values(grupos).sort(
+    (a, b) => a.orden - b.orden,
+  );
+
+  c += SEP + "\nProducto        Cant Precio Subtotal\n" + LIN + "\n";
+
+  let ta = 0;
+
+  gruposOrdenados.forEach((grupo) => {
+    // Encabezado de categoría
+    const tituloCat = grupo.nombre.toUpperCase();
+    const tituloLineas = envolver(tituloCat, W);
+    tituloLineas.forEach((l) => {
+      c += l + "\n";
+    });
+    c += LIN + "\n";
+
+    let totalUnidadesGrupo = 0;
+
+    grupo.items.forEach((d) => {
+      ta += d.cantidad;
+      totalUnidadesGrupo += d.cantidad;
+      const np = d.productos?.nombre_producto || "Producto";
+      const pu = d.precio_unitario_venta || 0;
+      const tl = d.total_linea || d.cantidad * pu;
+      const l = envolver(np, 15);
+      c += `${l[0].padEnd(15)} ${d.cantidad.toString().padStart(4)} ${Math.round(pu).toLocaleString("es-CO").padStart(6)} ${Math.round(tl).toLocaleString("es-CO").padStart(9)}\n`;
+      for (let i = 1; i < l.length; i++) c += `${l[i].padEnd(15)}\n`;
+    });
+
+    // Subtotal de unidades del grupo
+    c +=
+      alinear(`  Subtotal ${grupo.nombre}:`, `${totalUnidadesGrupo} und`) +
+      "\n";
+    c += LIN + "\n";
+  });
+
   const fm = (v) => `$${Math.round(v || 0).toLocaleString("es-CO")}`;
   c += SEP + "\n" + alinear(`Total Artículos: ${ta}`, "") + "\n\n";
   c += alinear("Subtotal:", fm(venta.subtotal)) + "\n";
@@ -1153,10 +1193,6 @@ async function mostrarDialogoAgregarPago(
   }
 }
 
-/**
- * Mostrar diálogo para gestionar pagos de una venta
- * FIX: Se aumentó el ancho a 900px y se aplicó white-space: nowrap para evitar cortes.
- */
 async function mostrarDialogoGestionarPagos(
   idVenta,
   codigoVenta,
@@ -1309,10 +1345,6 @@ async function mostrarDialogoGestionarPagos(
       showConfirmButton: false,
       showCloseButton: true,
       customClass: { popup: "swal-pagos-popup" },
-      didRender: () => {
-        const popup = Swal.getPopup();
-        if (popup) popup.style.overflowX = "hidden";
-      },
       willClose: () => ejecutarBusquedaDeVentas(),
       html: `
         <div style="text-align:center;margin-bottom:4px;">
@@ -1331,14 +1363,6 @@ async function mostrarDialogoGestionarPagos(
           </button>
         </div>`,
       didOpen: () => {
-        // ✅ Eliminar scroll horizontal en todos los contenedores de Swal
-        const popup = Swal.getPopup();
-        if (popup) {
-          popup.style.overflowX = "hidden";
-          popup.querySelectorAll("*").forEach((el) => {
-            el.style.overflowX = "hidden";
-          });
-        }
         const btnRP = document.getElementById("btn-registrar-pago");
         if (btnRP && ventaAnulada) {
           btnRP.disabled = true;
@@ -1514,16 +1538,13 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
-
       const { data, error } = await client.rpc("fn_editar_pago_venta", {
         id_pago: pago.id,
         monto: result.value.monto,
         metodo_pago: result.value.metodo,
-        id_cuenta_bancaria_destino: result.value.cuenta || null,
-        referencia_pago: result.value.referencia || null,
-        p_fecha_pago: result.value.fechaPago
-          ? new Date(result.value.fechaPago + "T12:00:00").toISOString()
-          : null,
+        id_cuenta_bancaria_destino: result.value.cuenta,
+        referencia_pago: result.value.referencia,
+        fecha_pago: result.value.fechaPago,
       });
       if (error) {
         Swal.fire({ icon: "error", title: "Error", text: error.message });
