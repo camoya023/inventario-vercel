@@ -233,6 +233,9 @@ function configurarEventListenersListaVentas() {
           case "borrar_venta":
             await confirmarBorrarVenta(idVenta, codigoVenta, nombreCliente);
             break;
+          case "whatsapp":
+            await compartirTicketWhatsApp(idVenta, codigoVenta);
+            break;
           default:
             toastr.info("Función en desarrollo");
         }
@@ -432,6 +435,7 @@ function renderizarTablaVentas(ventas) {
     let opcionesMenu = `
       <a href="#" class="actions-menu-item" data-action="ver_detalles"><i class="fas fa-eye"></i> Ver Detalles</a>
       <a href="#" class="actions-menu-item" data-action="imprimir_factura"><i class="fas fa-print"></i> Imprimir Factura</a>
+      <a href="#" class="actions-menu-item" data-action="whatsapp" style="color:#25d366;"><i class="fab fa-whatsapp"></i> Enviar por WhatsApp</a>
     `;
     if (venta.estado !== "Completado" && venta.estado !== "Anulada") {
       opcionesMenu += `
@@ -1610,6 +1614,126 @@ async function borrarPago(pago, idVenta, codigoVenta, nombreCliente, estado) {
     } catch (e) {
       Swal.fire({ icon: "error", title: "Error", text: e.message });
     }
+  }
+}
+
+// ========================================
+// COMPARTIR TICKET POR WHATSAPP
+// ========================================
+async function compartirTicketWhatsApp(idVenta, codigoVenta) {
+  try {
+    toastr.info("Preparando ticket para WhatsApp...");
+
+    // 1. Obtener datos de la venta
+    const client = getSupabaseClient();
+    const { data, error } = await client.rpc("fn_obtener_venta_detalle", {
+      p_id_venta: idVenta,
+    });
+    if (error) throw new Error(error.message);
+    if (!data?.exito)
+      throw new Error(data?.mensaje || "No se pudo obtener la venta");
+
+    const venta = data.datos;
+
+    // 2. Generar contenido del ticket
+    const contenidoTicket = generarContenidoFacturaPOS(venta);
+
+    // 3. Crear elemento HTML temporal del ticket para renderizar como imagen
+    const ticketEl = document.createElement("div");
+    ticketEl.style.cssText = `
+      position: fixed;
+      left: -9999px;
+      top: 0;
+      background: white;
+      padding: 20px 24px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      width: 380px;
+      color: #000;
+      white-space: pre;
+    `;
+    ticketEl.textContent = contenidoTicket;
+    document.body.appendChild(ticketEl);
+
+    // 4. Renderizar a canvas con html2canvas
+    const canvas = await html2canvas(ticketEl, {
+      backgroundColor: "#ffffff",
+      scale: 2, // Alta resolución para que se vea nítido en WhatsApp
+      useCORS: true,
+      logging: false,
+    });
+
+    // 5. Limpiar elemento temporal
+    document.body.removeChild(ticketEl);
+
+    // 6. Convertir canvas a blob y copiar al portapapeles
+    canvas.toBlob(async (blob) => {
+      try {
+        // Copiar imagen al portapapeles
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+
+        // 7. Obtener teléfono del cliente
+        const telefono = venta.clientes?.telefono_principal || "";
+        const telefonoLimpio = telefono.replace(/\D/g, ""); // quitar caracteres no numéricos
+        const telefonoColombia = telefonoLimpio.startsWith("57")
+          ? telefonoLimpio
+          : `57${telefonoLimpio}`;
+
+        // 8. Mensaje de texto para WhatsApp
+        const mensaje = encodeURIComponent(
+          `Hola! 👋 Adjunto el pedido *${venta.codigo_venta}*.
+Por favor revisalo y confirma si está correcto.`,
+        );
+
+        // 9. Mostrar instrucción y abrir WhatsApp
+        await Swal.fire({
+          icon: "success",
+          title: "¡Listo! 📋",
+          html: `
+            <p>La imagen del ticket fue <strong>copiada al portapapeles</strong>.</p>
+            <p style="margin-top:10px;">WhatsApp se abrirá ahora.<br>
+            Solo haz <strong>Ctrl+V</strong> en el chat para pegar la imagen.</p>
+          `,
+          confirmButtonText: "Abrir WhatsApp",
+          confirmButtonColor: "#25d366",
+          showCancelButton: true,
+          cancelButtonText: "Cerrar",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // Abrir WhatsApp Desktop con el número del cliente
+            if (telefonoLimpio) {
+              window.location.href = `whatsapp://send?phone=${telefonoColombia}&text=${mensaje}`;
+            } else {
+              // Sin teléfono: abrir WhatsApp sin número
+              window.location.href = `whatsapp://send?text=${mensaje}`;
+              toastr.warning(
+                "El cliente no tiene teléfono registrado. Se abrió WhatsApp sin número.",
+                "Sin teléfono",
+              );
+            }
+          }
+        });
+      } catch (clipErr) {
+        console.error("[WhatsApp] Error al copiar al portapapeles:", clipErr);
+        // Fallback: ofrecer descarga si falla el clipboard
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ticket-${codigoVenta}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toastr.warning(
+          "No se pudo copiar al portapapeles. La imagen fue descargada.",
+          "Descargada",
+        );
+      }
+    }, "image/png");
+  } catch (err) {
+    console.error("[WhatsApp] Error:", err);
+    toastr.error("Error al preparar el ticket: " + err.message, "Error");
   }
 }
 
