@@ -1,63 +1,42 @@
 // =========================================================================
-// MÓDULO DE INFORME DE STOCK - VERCEL
+// MÓDULO DE INFORME DE STOCK
 // =========================================================================
 
-// 🚨 BANDERA DE MÓDULO ACTIVO (evita colisiones con otros módulos)
 let informeStockModuloActivo = false;
 
-// Variables globales del módulo
 let stock_currentPage = 1;
 const stock_rowsPerPage = 50;
-let stock_allData = []; // Array completo de datos (para paginación client-side)
-let stock_filteredData = []; // Datos después de aplicar filtros
+let stock_allData = [];
+let stock_filteredData = [];
 let stock_isLoading = false;
-let stock_debounceTimer = null; // Timer para búsqueda con debounce
+let stock_debounceTimer = null;
 
-// Filtros actuales
 let stock_currentSearchTerm = "";
 let stock_currentFilterMarca = "";
 let stock_currentFilterEstado = "";
 
-// Ordenamiento actual
-let stock_currentSortKey = "NOMBRE"; // Valores: 'NOMBRE', 'MARCA', 'DISPONIBLE'
-let stock_currentSortDirection = "ASC"; // Valores: 'ASC', 'DESC'
+let stock_currentSortKey = "NOMBRE";
+let stock_currentSortDirection = "ASC";
 
 // =========================================================================
-// FUNCIÓN DE INICIALIZACIÓN DEL MÓDULO
+// INICIALIZACIÓN
 // =========================================================================
 
-/**
- * Limpia todos los timers y recursos del módulo
- * Esta función se llama cuando se desactiva el módulo
- */
 function limpiarModuloInformeStock() {
     console.log('[Informe Stock] Limpiando timers y recursos del módulo...');
-
-    // Limpiar timer de búsqueda
     if (stock_debounceTimer) {
         clearTimeout(stock_debounceTimer);
         stock_debounceTimer = null;
-        console.log('[Informe Stock]   ✓ Timer de búsqueda limpiado');
     }
-
-    // Aquí se pueden agregar más limpiezas en el futuro
-    // Por ejemplo: cancelar peticiones fetch pendientes, limpiar otros timers, etc.
-
     console.log('[Informe Stock] Módulo limpiado correctamente');
 }
 
-/**
- * Resetea todas las variables globales del módulo de informe de stock
- */
 function resetearVariablesGlobalesStock() {
     console.log('[Informe Stock] Reseteando variables globales...');
-
-    // Limpiar timer de búsqueda si existe
     if (stock_debounceTimer) {
         clearTimeout(stock_debounceTimer);
         stock_debounceTimer = null;
     }
-
     stock_currentPage = 1;
     stock_allData = [];
     stock_filteredData = [];
@@ -70,34 +49,20 @@ function resetearVariablesGlobalesStock() {
     console.log('[Informe Stock] Variables globales reseteadas');
 }
 
-/**
- * Función principal para cargar el módulo de informe de stock.
- * Se llama desde home.js cuando se navega a la página.
- */
 async function cargarPaginaInformeStock() {
     console.log('[Informe Stock] ===== INICIALIZANDO MÓDULO DE INFORME DE STOCK =====');
 
-    // 🚨 CRÍTICO: Desactivar otros módulos antes de activar este
     if (typeof desactivarTodosLosModulos === 'function') {
         desactivarTodosLosModulos();
     }
 
-    // 🚨 ACTIVAR BANDERA DE MÓDULO
     informeStockModuloActivo = true;
-
-    // Resetear variables globales
     resetearVariablesGlobalesStock();
 
     try {
-        // Configurar event listeners
         configurarEventListenersInformeStock();
-
-        // Cargar desplegables (marcas)
         await cargarDesplegablesInformeStock();
-
-        // Cargar KPIs y datos
         await cargarDatosInformeStock();
-
         console.log('[Informe Stock] ✅ Módulo inicializado correctamente');
     } catch (error) {
         console.error('[Informe Stock] ❌ Error inicializando módulo:', error);
@@ -105,13 +70,9 @@ async function cargarPaginaInformeStock() {
     }
 }
 
-/**
- * Configura los listeners de eventos para el módulo
- */
 function configurarEventListenersInformeStock() {
     console.log('[Informe Stock] Configurando event listeners...');
 
-    // Botón de toggle de filtros
     const btnToggleFiltros = document.getElementById('btn-toggle-filtros-stock');
     if (btnToggleFiltros) {
         btnToggleFiltros.addEventListener('click', function() {
@@ -122,15 +83,10 @@ function configurarEventListenersInformeStock() {
         });
     }
 
-    // Input de búsqueda (con debounce)
     const inputBuscar = document.getElementById('input-buscar-stock');
     if (inputBuscar) {
         inputBuscar.addEventListener('input', function() {
-            // Limpiar timer anterior si existe
-            if (stock_debounceTimer) {
-                clearTimeout(stock_debounceTimer);
-            }
-            // Crear nuevo timer
+            if (stock_debounceTimer) clearTimeout(stock_debounceTimer);
             stock_debounceTimer = setTimeout(() => {
                 stock_currentSearchTerm = this.value.trim();
                 aplicarFiltrosYRecargar();
@@ -138,7 +94,6 @@ function configurarEventListenersInformeStock() {
         });
     }
 
-    // Select de marca
     const selectMarca = document.getElementById('filtro-marca-stock');
     if (selectMarca) {
         selectMarca.addEventListener('change', function() {
@@ -147,7 +102,6 @@ function configurarEventListenersInformeStock() {
         });
     }
 
-    // Select de estado
     const selectEstado = document.getElementById('filtro-estado-stock');
     if (selectEstado) {
         selectEstado.addEventListener('change', function() {
@@ -156,16 +110,13 @@ function configurarEventListenersInformeStock() {
         });
     }
 
-    // Headers ordenables
     const sortableHeaders = document.querySelectorAll('.sortable-header');
     sortableHeaders.forEach(header => {
         header.addEventListener('click', function() {
-            const sortKey = this.getAttribute('data-sort-key');
-            handleSortClick(sortKey);
+            handleSortClick(this.getAttribute('data-sort-key'));
         });
     });
 
-    // Botones de paginación
     const btnPrev = document.getElementById('btn-prev-page-stock');
     const btnNext = document.getElementById('btn-next-page-stock');
 
@@ -188,33 +139,29 @@ function configurarEventListenersInformeStock() {
         });
     }
 
-    // Botón de exportar CSV
     const btnExportar = document.getElementById('btn-exportar-csv-stock');
     if (btnExportar) {
         btnExportar.addEventListener('click', exportarStockCSV);
+    }
+
+    // ✅ NUEVO: Botón compartir por WhatsApp
+    const btnWhatsApp = document.getElementById('btn-compartir-stock-whatsapp');
+    if (btnWhatsApp) {
+        btnWhatsApp.addEventListener('click', compartirStockWhatsApp);
     }
 
     console.log('[Informe Stock] Event listeners configurados');
 }
 
 // =========================================================================
-// CARGA DE DATOS INICIALES
+// CARGA DE DATOS
 // =========================================================================
 
-/**
- * Carga los desplegables (select de marcas)
- */
 async function cargarDesplegablesInformeStock() {
-    console.log('[Informe Stock] Cargando desplegables...');
-
     const client = getSupabaseClient();
-    if (!client) {
-        console.error('[Informe Stock] Cliente de Supabase no inicializado');
-        return;
-    }
+    if (!client) return;
 
     try {
-        // Cargar marcas
         const { data: marcas, error } = await client
             .from('marcas')
             .select('id_marca, nombre_marca')
@@ -224,17 +171,13 @@ async function cargarDesplegablesInformeStock() {
 
         const selectMarca = document.getElementById('filtro-marca-stock');
         if (selectMarca && marcas) {
-            // Limpiar opciones actuales (excepto "Todas las marcas")
             selectMarca.innerHTML = '<option value="">Todas las marcas</option>';
-
-            // Agregar marcas
             marcas.forEach(marca => {
                 const option = document.createElement('option');
                 option.value = marca.id_marca;
                 option.textContent = marca.nombre_marca;
                 selectMarca.appendChild(option);
             });
-
             console.log(`[Informe Stock] ${marcas.length} marcas cargadas`);
         }
     } catch (error) {
@@ -243,38 +186,19 @@ async function cargarDesplegablesInformeStock() {
     }
 }
 
-/**
- * Carga los KPIs y los datos de la tabla
- */
 async function cargarDatosInformeStock() {
-    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
-    if (!informeStockModuloActivo) {
-        console.warn('[Informe Stock] Módulo inactivo, cancelando carga de datos.');
-        return;
-    }
-
-    if (stock_isLoading) {
-        console.log('[Informe Stock] Ya hay una carga en proceso, ignorando...');
-        return;
-    }
+    if (!informeStockModuloActivo) return;
+    if (stock_isLoading) return;
 
     stock_isLoading = true;
-    console.log('[Informe Stock] Cargando datos...');
-
     const client = getSupabaseClient();
-    if (!client) {
-        console.error('[Informe Stock] Cliente de Supabase no inicializado');
-        stock_isLoading = false;
-        return;
-    }
+    if (!client) { stock_isLoading = false; return; }
 
     try {
-        // Cargar KPIs y datos en paralelo
         const [kpisResult, dataResult] = await Promise.all([
             cargarKPIs(client),
             cargarDatosTabla(client)
         ]);
-
         if (kpisResult.success && dataResult.success) {
             console.log('[Informe Stock] ✅ Datos cargados exitosamente');
         }
@@ -286,12 +210,7 @@ async function cargarDatosInformeStock() {
     }
 }
 
-/**
- * Carga los KPIs (tarjetas superiores)
- */
 async function cargarKPIs(client) {
-    console.log('[Informe Stock] Cargando KPIs...');
-
     try {
         const { data, error } = await client.rpc('fn_reporte_stock_kpis', {
             p_busqueda: stock_currentSearchTerm || null,
@@ -300,31 +219,17 @@ async function cargarKPIs(client) {
         });
 
         if (error) throw error;
-
-        // 🚨 VERIFICAR SI EL MÓDULO SIGUE ACTIVO después de la operación asíncrona
-        if (!informeStockModuloActivo) {
-            console.warn('[Informe Stock] Módulo inactivo después de cargar KPIs, cancelando actualización DOM.');
-            return { success: false };
-        }
+        if (!informeStockModuloActivo) return { success: false };
 
         if (data) {
-            // Actualizar valores en el DOM
             document.getElementById('kpi-valor-inventario').textContent =
-                window.formatMoney(data.valor_inventario || 0, true); // true = formato compacto para KPI
+                window.formatMoney(data.valor_inventario || 0, true);
+            document.getElementById('kpi-total-productos').textContent = data.total_productos || 0;
+            document.getElementById('kpi-bajo-stock').textContent = data.items_bajo_stock || 0;
+            document.getElementById('kpi-agotados').textContent = data.items_agotados || 0;
 
-            document.getElementById('kpi-total-productos').textContent =
-                data.total_productos || 0;
-
-            document.getElementById('kpi-bajo-stock').textContent =
-                data.items_bajo_stock || 0;
-
-            document.getElementById('kpi-agotados').textContent =
-                data.items_agotados || 0;
-
-            // Mostrar alerta de alta reserva si es necesario
             const porcentajeComprometido = data.porcentaje_comprometido || 0;
             const alertaAltaReserva = document.getElementById('alerta-alta-reserva');
-
             if (porcentajeComprometido > 50 && alertaAltaReserva) {
                 document.getElementById('porcentaje-comprometido').textContent =
                     porcentajeComprometido.toFixed(1) + '%';
@@ -332,10 +237,7 @@ async function cargarKPIs(client) {
             } else if (alertaAltaReserva) {
                 alertaAltaReserva.style.display = 'none';
             }
-
-            console.log('[Informe Stock] KPIs actualizados:', data);
         }
-
         return { success: true };
     } catch (error) {
         console.error('[Informe Stock] Error cargando KPIs:', error);
@@ -344,12 +246,7 @@ async function cargarKPIs(client) {
     }
 }
 
-/**
- * Carga los datos de la tabla desde el RPC
- */
 async function cargarDatosTabla(client) {
-    console.log('[Informe Stock] Cargando datos de tabla...');
-
     try {
         const { data, error } = await client.rpc('fn_reporte_stock', {
             p_busqueda: stock_currentSearchTerm || null,
@@ -360,183 +257,105 @@ async function cargarDatosTabla(client) {
         });
 
         if (error) throw error;
+        if (!informeStockModuloActivo) return { success: false };
 
-        // 🚨 VERIFICAR SI EL MÓDULO SIGUE ACTIVO después de la operación asíncrona
-        if (!informeStockModuloActivo) {
-            console.warn('[Informe Stock] Módulo inactivo después de cargar datos, cancelando renderizado.');
-            return { success: false };
-        }
-
-        // Guardar datos completos
         stock_allData = data || [];
         stock_filteredData = data || [];
-
-        console.log(`[Informe Stock] ${stock_allData.length} registros obtenidos`);
-
-        // Resetear a página 1 y renderizar
         stock_currentPage = 1;
         renderizarTablaPaginadaStock();
-
         return { success: true };
     } catch (error) {
         console.error('[Informe Stock] Error cargando datos de tabla:', error);
-
-        // Mostrar mensaje de error en la tabla
         const tbody = document.getElementById('tbody-stock');
         if (tbody) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center" style="padding: 40px; color: #EF4444;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Error al cargar los datos: ${error.message}
-                    </td>
-                </tr>
-            `;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding:40px;color:#EF4444;">
+                <i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</td></tr>`;
         }
-
         return { success: false };
     }
 }
 
 // =========================================================================
-// RENDERIZADO DE TABLA Y PAGINACIÓN
+// RENDERIZADO
 // =========================================================================
 
-/**
- * Renderiza la tabla con paginación client-side
- */
 function renderizarTablaPaginadaStock() {
-    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
-    if (!informeStockModuloActivo) {
-        console.warn('[Informe Stock] Módulo inactivo, cancelando renderizado.');
-        return;
-    }
-
-    console.log(`[Informe Stock] Renderizando página ${stock_currentPage}...`);
+    if (!informeStockModuloActivo) return;
 
     const tbody = document.getElementById('tbody-stock');
-
-    // --- BLOQUE DE SEGURIDAD ---
-    // Protección contra cambios de vista rápidos (DOM no listo)
     if (!tbody) {
-        console.warn('[Informe Stock] Tbody no encontrado en el DOM (cambio de vista detectado).');
-        // Vital: Resetear flags para no bloquear futuras cargas
         stock_isLoading = false;
         informeStockModuloActivo = false;
         return;
     }
-    // ---------------------------
 
-    // Calcular índices de paginación
     const startIndex = (stock_currentPage - 1) * stock_rowsPerPage;
     const endIndex = startIndex + stock_rowsPerPage;
     const paginatedData = stock_filteredData.slice(startIndex, endIndex);
 
-    // Limpiar tabla
     tbody.innerHTML = '';
 
-    // Si no hay datos
     if (paginatedData.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center" style="padding: 40px; font-style: italic; color: #888;">
-                    <i class="fas fa-inbox"></i> No se encontraron productos con los filtros seleccionados
-                </td>
-            </tr>
-        `;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding:40px;font-style:italic;color:#888;">
+            <i class="fas fa-inbox"></i> No se encontraron productos con los filtros seleccionados</td></tr>`;
         actualizarControlesPaginacionStock();
         return;
     }
 
-    // Renderizar filas
     paginatedData.forEach(item => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-50 transition-colors';
 
-        // Determinar clase del badge según estado
         let badgeClass = 'stock-normal';
-        if (item.estado_calculado === 'AGOTADO') {
-            badgeClass = 'stock-agotado';
-        } else if (item.estado_calculado === 'BAJO') {
-            badgeClass = 'stock-bajo';
-        }
+        if (item.estado_calculado === 'AGOTADO') badgeClass = 'stock-agotado';
+        else if (item.estado_calculado === 'BAJO') badgeClass = 'stock-bajo';
 
-        // Clase especial si hay stock reservado
         const reservadoClass = item.stock_reservado > 0 ? 'text-reserved-active' : '';
 
         row.innerHTML = `
             <td>
-                <div style="font-weight: 600; color: #1F2937;">${escapeHtml(item.nombre_producto)}</div>
-                <div style="font-size: 0.75rem; color: #6B7280;">SKU: ${escapeHtml(item.sku)}</div>
+                <div style="font-weight:600;color:#1F2937;">${escapeHtml(item.nombre_producto)}</div>
+                <div style="font-size:0.75rem;color:#6B7280;">SKU: ${escapeHtml(item.sku)}</div>
             </td>
             <td>${escapeHtml(item.nombre_marca || '-')}</td>
             <td class="text-center">${escapeHtml(item.nombre_unidad || '-')}</td>
-            <td class="text-right" style="font-weight: 500;">${formatearNumero(item.stock_fisico)}</td>
+            <td class="text-right" style="font-weight:500;">${formatearNumero(item.stock_fisico)}</td>
             <td class="text-right ${reservadoClass}">${formatearNumero(item.stock_reservado)}</td>
             <td class="text-right">
-                <span class="stock-badge ${badgeClass}">
-                    ${formatearNumero(item.stock_disponible)}
-                </span>
+                <span class="stock-badge ${badgeClass}">${formatearNumero(item.stock_disponible)}</span>
             </td>
         `;
-
         tbody.appendChild(row);
     });
 
-    // Actualizar controles de paginación
     actualizarControlesPaginacionStock();
-
-    // Actualizar indicadores de ordenamiento
     actualizarIndicadoresOrdenamiento();
-
     console.log(`[Informe Stock] ${paginatedData.length} filas renderizadas`);
 }
 
-/**
- * Actualiza los controles de paginación
- */
 function actualizarControlesPaginacionStock() {
     const totalPages = Math.ceil(stock_filteredData.length / stock_rowsPerPage);
     const btnPrev = document.getElementById('btn-prev-page-stock');
     const btnNext = document.getElementById('btn-next-page-stock');
     const pageInfo = document.getElementById('page-info-stock');
 
-    // Habilitar/deshabilitar botones
-    if (btnPrev) {
-        btnPrev.disabled = stock_currentPage <= 1;
-    }
+    if (btnPrev) btnPrev.disabled = stock_currentPage <= 1;
+    if (btnNext) btnNext.disabled = stock_currentPage >= totalPages;
 
-    if (btnNext) {
-        btnNext.disabled = stock_currentPage >= totalPages;
-    }
-
-    // Actualizar información de página
     if (pageInfo) {
         const start = (stock_currentPage - 1) * stock_rowsPerPage + 1;
         const end = Math.min(stock_currentPage * stock_rowsPerPage, stock_filteredData.length);
-
-        if (stock_filteredData.length === 0) {
-            pageInfo.textContent = 'No hay resultados';
-        } else {
-            pageInfo.textContent = `Mostrando ${start}-${end} de ${stock_filteredData.length} productos | Página ${stock_currentPage} de ${totalPages}`;
-        }
+        pageInfo.textContent = stock_filteredData.length === 0
+            ? 'No hay resultados'
+            : `Mostrando ${start}-${end} de ${stock_filteredData.length} productos | Página ${stock_currentPage} de ${totalPages}`;
     }
 }
 
-/**
- * Actualiza los indicadores visuales de ordenamiento en los headers
- */
 function actualizarIndicadoresOrdenamiento() {
-    // Remover todas las clases activas
-    document.querySelectorAll('.sortable-header').forEach(header => {
-        header.classList.remove('active', 'asc', 'desc');
-    });
-
-    // Agregar clase activa al header correspondiente
+    document.querySelectorAll('.sortable-header').forEach(h => h.classList.remove('active','asc','desc'));
     const activeHeader = document.querySelector(`[data-sort-key="${stock_currentSortKey}"]`);
     if (activeHeader) {
-        activeHeader.classList.add('active');
-        activeHeader.classList.add(stock_currentSortDirection.toLowerCase());
+        activeHeader.classList.add('active', stock_currentSortDirection.toLowerCase());
     }
 }
 
@@ -544,175 +363,267 @@ function actualizarIndicadoresOrdenamiento() {
 // FILTROS Y ORDENAMIENTO
 // =========================================================================
 
-/**
- * Aplica los filtros actuales y recarga los datos
- */
 async function aplicarFiltrosYRecargar() {
-    // 🚨 VERIFICAR SI EL MÓDULO ESTÁ ACTIVO
-    if (!informeStockModuloActivo) {
-        console.warn('[Informe Stock] Módulo inactivo, cancelando aplicación de filtros.');
-        return;
-    }
-
-    console.log('[Informe Stock] Aplicando filtros y recargando...');
-    console.log('[Informe Stock] Filtros:', {
-        busqueda: stock_currentSearchTerm,
-        marca: stock_currentFilterMarca,
-        estado: stock_currentFilterEstado
-    });
-
+    if (!informeStockModuloActivo) return;
     await cargarDatosInformeStock();
 }
 
-/**
- * Maneja el clic en un header ordenable
- */
 function handleSortClick(sortKey) {
-    console.log(`[Informe Stock] Ordenando por ${sortKey}...`);
-
-    // Si es la misma columna, alternar dirección
     if (stock_currentSortKey === sortKey) {
         stock_currentSortDirection = stock_currentSortDirection === 'ASC' ? 'DESC' : 'ASC';
     } else {
-        // Nueva columna, ordenar ascendente por defecto
         stock_currentSortKey = sortKey;
         stock_currentSortDirection = 'ASC';
     }
-
-    // Recargar datos con nuevo ordenamiento
     aplicarFiltrosYRecargar();
 }
 
 // =========================================================================
-// EXPORTACIÓN A CSV
+// COMPARTIR POR WHATSAPP ✅
 // =========================================================================
 
-/**
- * Exporta los datos actuales a CSV
- */
-async function exportarStockCSV() {
-    console.log('[Informe Stock] Iniciando exportación a CSV...');
+async function compartirStockWhatsApp() {
+    console.log('[Informe Stock] Iniciando compartir por WhatsApp...');
 
-    const btn = document.getElementById('btn-exportar-csv-stock');
+    if (!stock_filteredData || stock_filteredData.length === 0) {
+        showNotification('No hay datos para compartir con los filtros actuales', 'warning');
+        return;
+    }
 
-    // Estado de carga
-    if (btn) {
-        btn.disabled = true;
-        btn.classList.add('button-loading');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+    // 1. Obtener marcas únicas de los datos actuales
+    const marcasUnicas = [...new Set(
+        stock_filteredData
+            .filter(p => p.stock_disponible > 0)
+            .map(p => p.nombre_marca || 'Sin Marca')
+    )].sort();
 
-        try {
-            // Usar los datos filtrados actuales (ya están en memoria)
-            if (!stock_filteredData || stock_filteredData.length === 0) {
-                showNotification('No hay datos para exportar con los filtros actuales', 'warning');
-                return;
-            }
+    if (marcasUnicas.length === 0) {
+        showNotification('No hay productos con stock disponible para compartir', 'warning');
+        return;
+    }
 
-            // Definir headers del CSV
-            const headers = [
-                'SKU',
-                'Producto',
-                'Marca',
-                'Unidad',
-                'Stock Físico',
-                'Stock Reservado',
-                'Stock Disponible',
-                'Estado',
-                'Costo Unitario'
-            ];
+    // 2. Generar checkboxes de marcas
+    const checkboxesHtml = marcasUnicas.map(marca => `
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:14px;">
+            <input type="checkbox" class="chk-marca-whatsapp" value="${marca}" checked
+                   style="width:16px;height:16px;cursor:pointer;">
+            <span>${marca}</span>
+            <span style="margin-left:auto;color:#6b7280;font-size:12px;">
+                (${stock_filteredData.filter(p => (p.nombre_marca||'Sin Marca') === marca && p.stock_disponible > 0).length} productos)
+            </span>
+        </label>
+    `).join('');
 
-            // Convertir datos a filas CSV
-            const rows = stock_filteredData.map(item => {
-                return [
-                    cleanCsvValue(item.sku),
-                    cleanCsvValue(item.nombre_producto),
-                    cleanCsvValue(item.nombre_marca),
-                    cleanCsvValue(item.nombre_unidad),
-                    item.stock_fisico,
-                    item.stock_reservado,
-                    item.stock_disponible,
-                    item.estado_calculado,
-                    item.costo_unitario
-                ];
+    // 3. Mostrar modal de selección
+    const result = await Swal.fire({
+        title: '<i class="fab fa-whatsapp" style="color:#25d366;margin-right:8px;"></i> Compartir Inventario',
+        html: `
+            <div style="text-align:left;">
+                <p style="margin-bottom:12px;color:#495057;font-size:14px;">
+                    Selecciona las marcas que quieres incluir en el mensaje:
+                </p>
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <button type="button" id="btn-marcar-todos" class="swal2-confirm swal2-styled"
+                            style="background:#6c757d;padding:4px 12px;font-size:12px;">
+                        Marcar todos
+                    </button>
+                    <button type="button" id="btn-desmarcar-todos" class="swal2-confirm swal2-styled"
+                            style="background:#6c757d;padding:4px 12px;font-size:12px;">
+                        Desmarcar todos
+                    </button>
+                </div>
+                <div style="max-height:280px;overflow-y:auto;border:1px solid #e9ecef;border-radius:6px;padding:8px 12px;">
+                    ${checkboxesHtml}
+                </div>
+                <p style="margin-top:12px;color:#6b7280;font-size:12px;">
+                    <i class="fas fa-info-circle"></i>
+                    Solo se incluirán productos con stock disponible > 0
+                </p>
+            </div>
+        `,
+        width: '480px',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fab fa-whatsapp"></i> Generar y Copiar',
+        confirmButtonColor: '#25d366',
+        cancelButtonText: 'Cancelar',
+        didOpen: () => {
+            document.getElementById('btn-marcar-todos')?.addEventListener('click', () => {
+                document.querySelectorAll('.chk-marca-whatsapp').forEach(c => c.checked = true);
             });
-
-            // Crear string CSV
-            const csvString = [
-                headers.join(','),
-                ...rows.map(row => row.join(','))
-            ].join('\n');
-
-            // Descargar archivo con BOM para UTF-8 (tildes y ñ en Excel)
-            const blob = new Blob(["\uFEFF" + csvString], {
-                type: 'text/csv;charset=utf-8;'
+            document.getElementById('btn-desmarcar-todos')?.addEventListener('click', () => {
+                document.querySelectorAll('.chk-marca-whatsapp').forEach(c => c.checked = false);
             });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-
-            const fecha = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-            link.setAttribute('href', url);
-            link.setAttribute('download', `informe_stock_${fecha}.csv`);
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showNotification(`${stock_filteredData.length} productos exportados exitosamente`, 'success');
-            console.log('[Informe Stock] ✅ Exportación completada');
-
-        } catch (error) {
-            console.error('[Informe Stock] ❌ Error exportando:', error);
-            showNotification('Error al exportar el archivo CSV', 'error');
-        } finally {
-            // Restaurar botón
-            if (btn) {
-                btn.disabled = false;
-                btn.classList.remove('button-loading');
-                btn.innerHTML = originalText;
+        },
+        preConfirm: () => {
+            const marcasSeleccionadas = [...document.querySelectorAll('.chk-marca-whatsapp:checked')]
+                .map(c => c.value);
+            if (marcasSeleccionadas.length === 0) {
+                Swal.showValidationMessage('Debes seleccionar al menos una marca');
+                return false;
             }
+            return marcasSeleccionadas;
         }
+    });
+
+    if (!result.isConfirmed) return;
+
+    const marcasSeleccionadas = result.value;
+
+    // 4. Generar texto formateado para WhatsApp
+    const fecha = new Date().toLocaleDateString('es-CO', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+
+    let texto = `📦 *INVENTARIO DISPONIBLE*\n`;
+    texto += `📅 ${fecha}\n`;
+    texto += `─────────────────────\n\n`;
+
+    let totalProductos = 0;
+
+    marcasSeleccionadas.forEach(marca => {
+        const productos = stock_filteredData
+            .filter(p => (p.nombre_marca || 'Sin Marca') === marca && p.stock_disponible > 0)
+            .sort((a, b) => a.nombre_producto.localeCompare(b.nombre_producto));
+
+        if (productos.length === 0) return;
+
+        texto += `🏷️ *${marca.toUpperCase()}*\n`;
+
+        productos.forEach(p => {
+            const nombre = p.nombre_producto.padEnd(22, ' ');
+            const cantidad = `${formatearNumero(p.stock_disponible)} und`;
+            texto += `• ${nombre} ${cantidad}\n`;
+            totalProductos++;
+        });
+
+        texto += `\n`;
+    });
+
+    texto += `─────────────────────\n`;
+    texto += `Total: *${totalProductos} productos*\n`;
+    texto += `_Inventrack · Actualizado en tiempo real_`;
+
+    // 5. Copiar al portapapeles
+    try {
+        await navigator.clipboard.writeText(texto);
+
+        // 6. Confirmar y abrir WhatsApp
+        await Swal.fire({
+            icon: 'success',
+            title: '¡Listo! 📋',
+            html: `
+                <p>El inventario fue <strong>copiado al portapapeles</strong>.</p>
+                <p style="margin-top:8px;font-size:13px;color:#6b7280;">
+                    ${totalProductos} productos de ${marcasSeleccionadas.length} marca(s)
+                </p>
+                <p style="margin-top:10px;">
+                    Abre WhatsApp y haz <strong>Ctrl+V</strong> para pegar el mensaje.
+                </p>
+            `,
+            confirmButtonText: 'Abrir WhatsApp',
+            confirmButtonColor: '#25d366',
+            showDenyButton: true,
+            denyButtonText: 'Solo copiar',
+            denyButtonColor: '#6c757d',
+            showCancelButton: false
+        }).then(r => {
+            if (r.isConfirmed) {
+                window.location.href = `whatsapp://send?text=${encodeURIComponent(texto)}`;
+            }
+        });
+
+    } catch (clipErr) {
+        console.error('[Informe Stock] Error al copiar:', clipErr);
+        // Fallback: mostrar el texto para que lo copie manualmente
+        await Swal.fire({
+            title: 'Copia este texto',
+            html: `<textarea style="width:100%;height:200px;font-family:monospace;font-size:12px;padding:8px;"
+                             readonly onclick="this.select()">${texto}</textarea>
+                   <p style="font-size:12px;color:#6b7280;margin-top:8px;">
+                       Haz clic en el texto y presiona Ctrl+A, luego Ctrl+C para copiarlo.
+                   </p>`,
+            confirmButtonText: 'Cerrar',
+            width: '500px'
+        });
     }
 }
 
-/**
- * Limpia valores para CSV (escapa comillas, comas, etc.)
- */
+// =========================================================================
+// EXPORTACIÓN CSV
+// =========================================================================
+
+async function exportarStockCSV() {
+    const btn = document.getElementById('btn-exportar-csv-stock');
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.classList.add('button-loading');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exportando...';
+
+    try {
+        if (!stock_filteredData || stock_filteredData.length === 0) {
+            showNotification('No hay datos para exportar con los filtros actuales', 'warning');
+            return;
+        }
+
+        const headers = ['SKU','Producto','Marca','Unidad','Stock Físico','Stock Reservado','Stock Disponible','Estado','Costo Unitario'];
+        const rows = stock_filteredData.map(item => [
+            cleanCsvValue(item.sku),
+            cleanCsvValue(item.nombre_producto),
+            cleanCsvValue(item.nombre_marca),
+            cleanCsvValue(item.nombre_unidad),
+            item.stock_fisico,
+            item.stock_reservado,
+            item.stock_disponible,
+            item.estado_calculado,
+            item.costo_unitario
+        ]);
+
+        const csvString = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const fecha = new Date().toISOString().slice(0, 10);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `informe_stock_${fecha}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification(`${stock_filteredData.length} productos exportados exitosamente`, 'success');
+    } catch (error) {
+        console.error('[Informe Stock] Error exportando:', error);
+        showNotification('Error al exportar el archivo CSV', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('button-loading');
+        btn.innerHTML = originalText;
+    }
+}
+
 function cleanCsvValue(value) {
     if (value === null || value === undefined) return '';
-    const stringValue = value.toString();
-
-    // Si contiene comas, comillas o saltos de línea, encerrar en comillas y escapar
-    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
+    const s = value.toString();
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return `"${s.replace(/"/g, '""')}"`;
     }
-    return stringValue;
+    return s;
 }
 
 // =========================================================================
-// FUNCIONES HELPER
+// HELPERS
 // =========================================================================
 
-/**
- * Formatea un número con separadores de miles
- */
 function formatearNumero(numero) {
     if (numero === null || numero === undefined) return '0';
     return Number(numero).toLocaleString('es-CO');
 }
 
-/**
- * Formatea un valor como moneda
- * @deprecated Usar window.formatMoney() de utils.js en su lugar
- * Esta función se mantiene por compatibilidad temporal
- */
 function formatearMoneda(valor, esCompacto = false) {
     return window.formatMoney(valor, esCompacto);
 }
 
-/**
- * Escapa HTML para prevenir XSS
- */
 function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
