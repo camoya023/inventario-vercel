@@ -1543,13 +1543,15 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         didOpen: () => Swal.showLoading(),
       });
       const { data, error } = await client.rpc("fn_editar_pago_venta", {
-        id_pago: pago.id,
-        monto: result.value.monto,
-        metodo_pago: result.value.metodo,
-        id_cuenta_bancaria_destino: result.value.cuenta,
-        referencia_pago: result.value.referencia,
-        fecha_pago: result.value.fechaPago,
-      });
+  id_pago: pago.id,
+  monto: result.value.monto,
+  metodo_pago: result.value.metodo,
+  id_cuenta_bancaria_destino: result.value.cuenta || null,
+  referencia_pago: result.value.referencia || null,
+  p_fecha_pago: result.value.fechaPago
+    ? new Date(result.value.fechaPago + "T12:00:00").toISOString()
+    : null,
+});
       if (error) {
         Swal.fire({ icon: "error", title: "Error", text: error.message });
         return;
