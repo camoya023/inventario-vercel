@@ -786,6 +786,14 @@ function generarContenidoFacturaPOS(venta) {
       c += `           ${l[0]}\n`;
       for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
     }
+    if (venta.direccion_entrega.indicaciones_adicionales) {
+      const l = envolver(
+        `Indic: ${venta.direccion_entrega.indicaciones_adicionales}`,
+        W - 11,
+      );
+      c += `           ${l[0]}\n`;
+      for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
+    }
   }
 
   // ── Agrupar detalles por categoría ──────────────────────────────────────
@@ -1546,9 +1554,11 @@ async function editarPago(pago, idVenta, codigoVenta, nombreCliente) {
         id_pago: pago.id,
         monto: result.value.monto,
         metodo_pago: result.value.metodo,
-        id_cuenta_bancaria_destino: result.value.cuenta,
-        referencia_pago: result.value.referencia,
-        fecha_pago: result.value.fechaPago,
+        id_cuenta_bancaria_destino: result.value.cuenta || null,
+        referencia_pago: result.value.referencia || null,
+        p_fecha_pago: result.value.fechaPago
+          ? new Date(result.value.fechaPago + "T12:00:00").toISOString()
+          : null,
       });
       if (error) {
         Swal.fire({ icon: "error", title: "Error", text: error.message });
