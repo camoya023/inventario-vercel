@@ -786,6 +786,14 @@ function generarContenidoFacturaPOS(venta) {
       c += `           ${l[0]}\n`;
       for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
     }
+    if (venta.direccion_entrega.indicaciones_adicionales) {
+      const l = envolver(
+        `Indic: ${venta.direccion_entrega.indicaciones_adicionales}`,
+        W - 11,
+      );
+      c += `           ${l[0]}\n`;
+      for (let i = 1; i < l.length; i++) c += `           ${l[i]}\n`;
+    }
   }
 
   // ── Agrupar detalles por categoría ──────────────────────────────────────
