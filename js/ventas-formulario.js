@@ -128,7 +128,7 @@ async function cargarDatosIniciales() {
     cuentasBancariasDisponibles = data || [];
     console.log(
       "[Ventas] Cuentas bancarias cargadas:",
-      cuentasBancariasDisponibles.length
+      cuentasBancariasDisponibles.length,
     );
   } catch (error) {
     console.error("[Ventas] Error al cargar cuentas bancarias:", error);
@@ -183,7 +183,7 @@ async function poblarFormularioVenta(datos) {
     // Pasar la dirección de la venta para que se seleccione en lugar de la predeterminada
     renderizarDatosClienteEnFormularioVenta(
       response,
-      datos.id_direccion_entrega
+      datos.id_direccion_entrega,
     );
   }
 
@@ -225,7 +225,7 @@ async function poblarFormularioVenta(datos) {
 
       // Actualizar valores específicos (descuento)
       const fila = $(
-        `#carrito-tbody tr[data-id-producto="${productoData.id_producto}"]`
+        `#carrito-tbody tr[data-id-producto="${productoData.id_producto}"]`,
       );
       fila.find(".input-descuento").val(detalle.porcentaje_descuento || 0);
     }
@@ -240,7 +240,7 @@ async function poblarFormularioVenta(datos) {
       agregarFilaDePago(
         pago.monto,
         pago.metodo_pago,
-        pago.id_cuenta_bancaria_destino
+        pago.id_cuenta_bancaria_destino,
       );
     });
   }
@@ -274,7 +274,10 @@ async function poblarFormularioVentaEdicion(data) {
 
     // Cargar datos del cliente (incluyendo direcciones)
     const response = await obtenerDetallesClienteSupabase(venta.id_cliente);
-    renderizarDatosClienteEnFormularioVenta(response, venta.id_direccion_entrega);
+    renderizarDatosClienteEnFormularioVenta(
+      response,
+      venta.id_direccion_entrega,
+    );
   }
 
   // Fecha
@@ -306,15 +309,22 @@ async function poblarFormularioVentaEdicion(data) {
       // Construir objeto producto con datos del detalle
       const productoData = {
         id_producto: detalle.id_producto,
-        nombre_producto: detalle.nombre_producto || detalle.productos?.nombre_producto,
+        nombre_producto:
+          detalle.nombre_producto || detalle.productos?.nombre_producto,
         precio_venta_actual: detalle.precio_unitario_venta,
         costo_promedio: detalle.costo_unitario_venta || 0,
         id_tipo_impuesto: detalle.id_tipo_impuesto,
-        tipos_impuesto: detalle.tipos_impuesto || { porcentaje: detalle.porcentaje_impuesto || 0 },
+        tipos_impuesto: detalle.tipos_impuesto || {
+          porcentaje: detalle.porcentaje_impuesto || 0,
+        },
       };
 
       // Agregar producto al carrito (mostrar logística solo si estado activo)
-      agregarProductoAlCarritoEdicion(productoData, detalle, mostrarDetallesLogisticos);
+      agregarProductoAlCarritoEdicion(
+        productoData,
+        detalle,
+        mostrarDetallesLogisticos,
+      );
     }
 
     actualizarResumenGeneral();
@@ -327,7 +337,7 @@ async function poblarFormularioVentaEdicion(data) {
       agregarFilaDePago(
         pago.monto,
         pago.metodo_pago,
-        pago.id_cuenta_bancaria_destino
+        pago.id_cuenta_bancaria_destino,
       );
     });
   }
@@ -341,7 +351,11 @@ async function poblarFormularioVentaEdicion(data) {
  * @param {Object} detalle - Detalle con cantidad_solicitada, cantidad_reservada, cantidad_pendiente, alerta_stock
  * @param {boolean} mostrarDetallesLogisticos - Si true, muestra badges de stock (solo para estados activos)
  */
-function agregarProductoAlCarritoEdicion(producto, detalle, mostrarDetallesLogisticos = true) {
+function agregarProductoAlCarritoEdicion(
+  producto,
+  detalle,
+  mostrarDetallesLogisticos = true,
+) {
   const carritoBody = $("#carrito-tbody");
   const idProducto = producto.id_producto;
 
@@ -352,7 +366,8 @@ function agregarProductoAlCarritoEdicion(producto, detalle, mostrarDetallesLogis
   const idTipoImpuesto = producto.id_tipo_impuesto || null;
 
   // Extraer datos de cantidades
-  const cantidadSolicitada = detalle.cantidad_solicitada || detalle.cantidad || 0;
+  const cantidadSolicitada =
+    detalle.cantidad_solicitada || detalle.cantidad || 0;
   const stockDisponibleActual = detalle.stock_disponible_actual || 0;
   const cantidadReservadaBD = detalle.cantidad_reservada || 0;
 
@@ -404,7 +419,9 @@ function generarBadgesEstadoStock(reservada, pendiente, stockDisponible) {
 
   // Hay cantidades pendientes - determinar color del stock en bodega
   const haySuficienteStock = stockDisponible >= pendiente;
-  const stockColor = haySuficienteStock ? "stock-text-disponible" : "stock-text-sin-stock";
+  const stockColor = haySuficienteStock
+    ? "stock-text-disponible"
+    : "stock-text-sin-stock";
   const stockIcon = haySuficienteStock
     ? '<i class="fas fa-check-circle"></i>'
     : '<i class="fas fa-times-circle"></i>';
@@ -445,7 +462,7 @@ function configurarEventListenersFormularioVenta() {
         () => {
           cargarPaginaVentas();
         },
-        "¿Cancelar operación?"
+        "¿Cancelar operación?",
       );
     });
   }
@@ -554,7 +571,7 @@ function configurarEventListenersFormularioVenta() {
       target.closest("tr").remove();
       if ($("#carrito-tbody tr").not(".empty-cart-row").length === 0) {
         $("#carrito-tbody").html(
-          '<tr class="empty-cart-row"><td colspan="7">Aún no has agregado productos.</td></tr>'
+          '<tr class="empty-cart-row"><td colspan="7">Aún no has agregado productos.</td></tr>',
         );
       }
       actualizarResumenGeneral();
@@ -562,7 +579,7 @@ function configurarEventListenersFormularioVenta() {
 
     if (
       target.is(
-        ".input-cantidad, .input-precio, .input-descuento, .input-impuesto"
+        ".input-cantidad, .input-precio, .input-descuento, .input-impuesto",
       )
     ) {
       actualizarResumenGeneral();
@@ -616,7 +633,7 @@ function configurarListenersDePagos() {
           parseFloat(
             $("#summary-total")
               .text()
-              .replace(/[^0-9]+/g, "")
+              .replace(/[^0-9]+/g, ""),
           ) || 0;
         let totalPagadoActual = 0;
         paymentsContainer.find(".payment-amount-input").each(function () {
@@ -629,7 +646,7 @@ function configurarListenersDePagos() {
           target.val(valorActualInput - excedente);
           toastr.warning(
             "El monto pagado no puede exceder el total de la venta.",
-            "Monto Ajustado"
+            "Monto Ajustado",
           );
         }
 
@@ -661,7 +678,7 @@ function configurarListenersDePagos() {
             contenedorCuenta.show();
           } else {
             toastr.warning(
-              "No hay cuentas bancarias configuradas para recibir este tipo de pago."
+              "No hay cuentas bancarias configuradas para recibir este tipo de pago.",
             );
             target.val("Efectivo");
           }
@@ -729,7 +746,7 @@ function inicializarComponentesExternosFormularioVenta() {
               .from("clientes")
               .select("id, codigo_cliente, nombres, apellidos, razon_social")
               .or(
-                `nombres.ilike.%${termino}%,apellidos.ilike.%${termino}%,razon_social.ilike.%${termino}%,codigo_cliente.ilike.%${termino}%`
+                `nombres.ilike.%${termino}%,apellidos.ilike.%${termino}%,razon_social.ilike.%${termino}%,codigo_cliente.ilike.%${termino}%`,
               )
               .eq("estado", "Activo")
               .order("nombres", { ascending: true })
@@ -797,9 +814,10 @@ async function obtenerDetallesClienteSupabase(clienteId) {
                     ciudad_municipio,
                     departamento_estado,
                     indicaciones_adicionales,
-                    es_direccion_envio_predeterminada
+                    es_direccion_envio_predeterminada,
+                    activa
                 )
-            `
+            `,
       )
       .eq("id", clienteId)
       .single();
@@ -834,7 +852,7 @@ async function obtenerDetallesClienteSupabase(clienteId) {
  */
 function renderizarDatosClienteEnFormularioVenta(
   response,
-  idDireccionASeleccionar = null
+  idDireccionASeleccionar = null,
 ) {
   const infoCard = document.getElementById("cliente-info-card");
 
@@ -855,7 +873,7 @@ function renderizarDatosClienteEnFormularioVenta(
               cliente.codigo_cliente || "N/A"
             }</span></div>
             <div class="info-item"><strong>Saldo:</strong><span class="text-danger">${formatearMoneda(
-              cliente.saldo_pendiente || 0
+              cliente.saldo_pendiente || 0,
             )}</span></div>
             <div class="info-item"><strong>Celular:</strong><span>${
               cliente.telefono_principal || "N/A"
@@ -882,20 +900,29 @@ function renderizarDatosClienteEnFormularioVenta(
 
   console.log(
     "[Ventas] Renderizando direcciones. Total:",
-    cliente.direcciones_cliente?.length || 0
+    cliente.direcciones_cliente?.length || 0,
   );
 
   if (cliente.direcciones_cliente && cliente.direcciones_cliente.length > 0) {
     let idDireccionPredeterminada = null;
 
     cliente.direcciones_cliente.forEach((dir) => {
+      const activa = dir.activa !== false;
       const textoOpcion = `${dir.nombre_referencia_direccion || "Dirección"}: ${
         dir.direccion_completa
-      }, ${dir.barrio || ""} (${dir.ciudad_municipio})`;
+      }, ${dir.barrio || ""} (${dir.ciudad_municipio})${!activa ? " — Inactiva" : ""}`;
+
       const opcion = new Option(textoOpcion, dir.id);
+
+      if (!activa) {
+        opcion.disabled = true;
+        opcion.style.cssText = "color:#aaa;font-style:italic;";
+      }
+
       selectDireccion.append(opcion);
 
-      if (dir.es_direccion_envio_predeterminada) {
+      // Solo considerar como predeterminada si está activa
+      if (dir.es_direccion_envio_predeterminada && activa) {
         idDireccionPredeterminada = dir.id;
       }
     });
@@ -910,7 +937,7 @@ function renderizarDatosClienteEnFormularioVenta(
     }
   } else {
     selectDireccion.append(
-      '<option value="" disabled>Este cliente no tiene direcciones registradas.</option>'
+      '<option value="" disabled>Este cliente no tiene direcciones registradas.</option>',
     );
   }
 }
@@ -961,7 +988,7 @@ const buscarYRenderizarProductos = debounce(async function () {
                 costo_promedio,
                 id_tipo_impuesto,
                 tipos_impuesto(porcentaje)
-            `
+            `,
       )
       .or(`nombre_producto.ilike.%${termino}%,sku.ilike.%${termino}%`)
       .eq("activo", true)
@@ -973,7 +1000,7 @@ const buscarYRenderizarProductos = debounce(async function () {
     if (error) {
       console.error("[Ventas] Error al buscar productos:", error);
       resultsContainer.html(
-        '<div class="result-item">Error al buscar productos.</div>'
+        '<div class="result-item">Error al buscar productos.</div>',
       );
       return;
     }
@@ -984,7 +1011,7 @@ const buscarYRenderizarProductos = debounce(async function () {
       productos.forEach((producto) => {
         const productoDataString = JSON.stringify(producto).replace(
           /'/g,
-          "&apos;"
+          "&apos;",
         );
         const itemHtml = `
                     <div class='result-item' data-producto='${productoDataString}'>
@@ -1000,13 +1027,13 @@ const buscarYRenderizarProductos = debounce(async function () {
       });
     } else {
       resultsContainer.html(
-        '<div class="result-item">No se encontraron productos.</div>'
+        '<div class="result-item">No se encontraron productos.</div>',
       );
     }
   } catch (error) {
     console.error("[Ventas] Error en búsqueda de productos:", error);
     resultsContainer.html(
-      '<div class="result-item">Error al buscar productos.</div>'
+      '<div class="result-item">Error al buscar productos.</div>',
     );
   }
 }, 350);
@@ -1024,7 +1051,7 @@ function agregarProductoAlCarrito(producto, cantidadInicial = 1) {
   const stockDisponible = producto.stock_disponible || 0;
 
   const filaExistente = carritoBody.find(
-    `tr[data-id-producto="${idProducto}"]`
+    `tr[data-id-producto="${idProducto}"]`,
   );
 
   if (filaExistente.length > 0) {
@@ -1045,8 +1072,8 @@ function agregarProductoAlCarrito(producto, cantidadInicial = 1) {
 
     const nuevaFilaHtml = `
             <tr data-id-producto="${idProducto}" data-id-tipo-impuesto="${
-      idTipoImpuesto || ""
-    }" data-costo-unitario="${producto.costo_promedio || 0}" data-stock-disponible="${stockDisponible}">
+              idTipoImpuesto || ""
+            }" data-costo-unitario="${producto.costo_promedio || 0}" data-stock-disponible="${stockDisponible}">
                 <td>
                   <div class="producto-nombre-carrito">${producto.nombre_producto}</div>
                   <div class="reserva-control-container"></div>
@@ -1100,7 +1127,6 @@ function actualizarSwitchReserva(fila) {
 
   // Solo mostrar si estado=Pendiente y cantidad > stock
   if (esEstadoPendiente && cantidad > stockDisponible) {
-
     // CASO 1: Stock = 0, no mostrar switch, solo aviso
     if (stockDisponible <= 0) {
       container.html(`
@@ -1128,7 +1154,7 @@ function actualizarSwitchReserva(fila) {
     const switchId = `switch-reservar-${idProducto}`;
     const switchHtml = `
       <div class="form-check form-switch reserva-switch-solo">
-        <input class="form-check-input switch-reservar-stock" type="checkbox" id="${switchId}" ${switchChecked ? 'checked' : ''}>
+        <input class="form-check-input switch-reservar-stock" type="checkbox" id="${switchId}" ${switchChecked ? "checked" : ""}>
       </div>
       <div class="stock-badges-dinamicos"></div>
     `;
@@ -1136,7 +1162,6 @@ function actualizarSwitchReserva(fila) {
 
     // Actualizar badges inicial según estado del switch
     recalcularDistribucionFila(fila, switchChecked);
-
   } else if (esEstadoPendiente && cantidad > 0 && stockDisponible >= cantidad) {
     // CASO 3: Hay suficiente stock - mostrar switch ON por defecto
     // El usuario puede decidir no reservar si lo desea
@@ -1149,7 +1174,7 @@ function actualizarSwitchReserva(fila) {
     const switchId = `switch-reservar-suficiente-${idProducto}`;
     const switchHtml = `
       <div class="form-check form-switch reserva-switch-solo">
-        <input class="form-check-input switch-reservar-stock" type="checkbox" id="${switchId}" ${switchChecked ? 'checked' : ''}>
+        <input class="form-check-input switch-reservar-stock" type="checkbox" id="${switchId}" ${switchChecked ? "checked" : ""}>
       </div>
       <div class="stock-badges-dinamicos"></div>
     `;
@@ -1204,7 +1229,7 @@ function recalcularDistribucionFila(fila, reservarDisponibles) {
         <span class="stock-text stock-text-disponible">
           <i class="fas fa-warehouse"></i> Disp: <strong>${stockDisponible}</strong>
         </span>
-        <span class="stock-text ${cantidadReservar > 0 ? 'stock-text-reservado' : 'stock-text-muted'}">
+        <span class="stock-text ${cantidadReservar > 0 ? "stock-text-reservado" : "stock-text-muted"}">
           <i class="fas fa-box"></i> Res: <strong>${cantidadReservar}</strong>
         </span>
         <span class="stock-text stock-text-pendiente">
@@ -1222,9 +1247,11 @@ function recalcularDistribucionFila(fila, reservarDisponibles) {
  * Se llama cuando cambia el estado de la venta
  */
 function actualizarTodosSwitchesReserva() {
-  $("#carrito-tbody tr").not(".empty-cart-row").each(function () {
-    actualizarSwitchReserva($(this));
-  });
+  $("#carrito-tbody tr")
+    .not(".empty-cart-row")
+    .each(function () {
+      actualizarSwitchReserva($(this));
+    });
 }
 
 // ========================================
@@ -1305,7 +1332,7 @@ function actualizarResumenGeneral() {
   $("#summary-subtotal").text(formatearMoneda(totalesVentaActual.subtotal));
   $("#summary-cantidad").text(totalesVentaActual.cantidad);
   $("#summary-descuento").text(
-    "-" + formatearMoneda(totalesVentaActual.descuento)
+    "-" + formatearMoneda(totalesVentaActual.descuento),
   );
   $("#summary-envio").text(formatearMoneda(totalesVentaActual.envio));
   $("#summary-impuestos").text(formatearMoneda(totalesVentaActual.impuestos));
@@ -1324,7 +1351,7 @@ function actualizarResumenGeneral() {
 function agregarFilaDePago(
   montoInicial = 0,
   metodoPago = "Efectivo",
-  idCuentaBancaria = null
+  idCuentaBancaria = null,
 ) {
   console.log("Añadiendo una nueva fila de pago...");
 
@@ -1402,7 +1429,7 @@ function actualizarResumenDePagos() {
 
     if (unicoInputMonto.attr("data-edited") === "false") {
       console.log(
-        "Auto-actualizando el monto del pago único para que coincida con el total de la venta."
+        "Auto-actualizando el monto del pago único para que coincida con el total de la venta.",
       );
       unicoInputMonto.val(totalVenta);
     }
@@ -1461,7 +1488,7 @@ function validarFormularioVenta() {
       $("#venta-direccion").val() === "Seleccione una dirección..."
     ) {
       toastr.error(
-        "Debe seleccionar una dirección de envío para entregas a domicilio."
+        "Debe seleccionar una dirección de envío para entregas a domicilio.",
       );
       return false;
     }
@@ -1597,7 +1624,7 @@ async function guardarVenta(event) {
     if (modoEdicionVentas.activo) {
       // MODO EDICIÓN
       console.log(
-        `[Ventas] Modo Edición para Venta ID: ${modoEdicionVentas.idVenta}`
+        `[Ventas] Modo Edición para Venta ID: ${modoEdicionVentas.idVenta}`,
       );
 
       const { data, error } = await client.rpc("fn_actualizar_venta_completa", {
@@ -1619,20 +1646,22 @@ async function guardarVenta(event) {
           data?.mensaje || "Error desconocido al actualizar la venta";
 
         // Detectar si es error de stock
-        const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+        const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(
+          mensaje,
+        );
 
         Swal.fire({
           icon: esErrorStock ? "warning" : "error",
           title: esErrorStock ? "Stock Insuficiente" : "Error al Actualizar",
           text: mensaje,
           confirmButtonText: "Entendido",
-          confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+          confirmButtonColor: esErrorStock ? "#f39c12" : "#d33",
         });
       }
     } else {
       // MODO CREACIÓN
       console.log(
-        "[Ventas] Modo Creación. Llamando a fn_crear_venta_completa..."
+        "[Ventas] Modo Creación. Llamando a fn_crear_venta_completa...",
       );
 
       const { data, error } = await client.rpc("fn_crear_venta_completa", {
@@ -1662,7 +1691,7 @@ async function guardarVenta(event) {
       if (data && data.success) {
         toastr.success(
           `¡Venta ${data.codigo_venta} creada exitosamente!`,
-          "Éxito"
+          "Éxito",
         );
         setTimeout(resetearFormularioCompleto, 2000);
       } else {
@@ -1670,14 +1699,16 @@ async function guardarVenta(event) {
           data?.mensaje || "Error desconocido al guardar la venta";
 
         // Detectar si es error de stock
-        const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+        const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(
+          mensaje,
+        );
 
         Swal.fire({
           icon: esErrorStock ? "warning" : "error",
           title: esErrorStock ? "Stock Insuficiente" : "Error al Guardar",
           text: mensaje,
           confirmButtonText: "Entendido",
-          confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+          confirmButtonColor: esErrorStock ? "#f39c12" : "#d33",
         });
       }
     }
@@ -1688,14 +1719,16 @@ async function guardarVenta(event) {
       error?.message || error?.msg || "Error de comunicación con el servidor";
 
     // Detectar si es error de stock
-    const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(mensaje);
+    const esErrorStock = /stock|inventario|insuficiente|disponible/i.test(
+      mensaje,
+    );
 
     Swal.fire({
       icon: esErrorStock ? "warning" : "error",
       title: esErrorStock ? "Stock Insuficiente" : "Error de Comunicación",
       text: mensaje,
       confirmButtonText: "Entendido",
-      confirmButtonColor: esErrorStock ? "#f39c12" : "#d33"
+      confirmButtonColor: esErrorStock ? "#f39c12" : "#d33",
     });
   }
 }
