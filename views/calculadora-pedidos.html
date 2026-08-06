@@ -1,0 +1,288 @@
+<div class="page-content-wrapper">
+
+  <!-- Encabezado -->
+  <div class="page-header-controls">
+    <h2 class="page-section-title">Calculadora de Pedidos</h2>
+    <button id="btn-exportar-csv-pedido" class="button button-success" disabled>
+      <i class="fas fa-file-csv"></i> Exportar CSV
+    </button>
+    <button
+      id="btn-compartir-pedido-whatsapp"
+      class="button"
+      style="background-color: #25d366; color: white; border: none"
+      disabled
+    >
+      <i class="fab fa-whatsapp"></i> Compartir
+    </button>
+    <button id="btn-imprimir-pedido" class="button button-secondary" disabled>
+      <i class="fas fa-print"></i> Imprimir
+    </button>
+    <button id="btn-ajustar-pedido" class="button button-primary" disabled
+            title="Reparte la diferencia hasta el total elegido entre los sabores de mayor demanda que siguen en el pedido">
+      <i class="fas fa-balance-scale"></i> Ajustar al total
+    </button>
+    <button id="btn-restaurar-pedido" class="button button-warning" disabled>
+      <i class="fas fa-undo"></i> Restaurar sugeridos
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <section class="stock-kpis-grid">
+    <div class="kpi-card kpi-card-blue">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Total Unidades</p>
+          <p class="kpi-card-value" id="kpi-pedido-unidades">0</p>
+          <p class="kpi-card-subtitle">Unidades del pedido</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-blue">
+          <i class="fas fa-boxes"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-gray">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Valor Total</p>
+          <p class="kpi-card-value" id="kpi-pedido-valor">$ 0</p>
+          <p class="kpi-card-subtitle">Costo estimado</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-gray">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-yellow">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Bajo Pedido</p>
+          <p class="kpi-card-value" id="kpi-pedido-bajo-pedido">0</p>
+          <p class="kpi-card-subtitle">Unidades por encargo</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-yellow">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-red">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">En Crítico</p>
+          <p class="kpi-card-value" id="kpi-pedido-criticos">0</p>
+          <p class="kpi-card-subtitle">Compromisos sin stock</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-red">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Avisos del reparto de capacidad -->
+  <div id="avisos-pedido"></div>
+
+  <!-- Panel de parámetros -->
+  <div class="page-toolbar-container">
+    <button
+      id="btn-toggle-parametros-pedido"
+      class="button button-secondary button-sm"
+      aria-expanded="true"
+      aria-controls="parametros-pedido-content"
+    >
+      <i class="fas fa-sliders-h"></i> Parámetros del Pedido
+      <i class="fas fa-chevron-up"></i>
+    </button>
+    <div id="parametros-pedido-content" class="page-toolbar-collapsible is-visible">
+      <div class="page-toolbar">
+
+        <div class="toolbar-row">
+          <div class="filter-container">
+            <label for="filtro-proveedor-pedido" class="form-label-inline">Proveedor:</label>
+            <select id="filtro-proveedor-pedido" class="form-input-select">
+              <option value="">Todos los proveedores</option>
+            </select>
+          </div>
+
+          <div class="filter-container">
+            <label for="input-dias-historial-pedido" class="form-label-inline">Días de historial:</label>
+            <input type="number" id="input-dias-historial-pedido" class="form-input calculadora-input-num" min="30" max="365" step="30" value="120">
+          </div>
+
+          <div class="filter-container">
+            <label for="filtro-modelo-pronostico" class="form-label-inline">Modelo:</label>
+            <select id="filtro-modelo-pronostico" class="form-input-select">
+              <option value="hibrido" selected>Híbrido — últimos 30 días</option>
+              <option value="dia_semana">Por día de semana — 60 días</option>
+              <option value="conservador">Conservador — 60 días</option>
+              <option value="simple">Simple — últimos 9 registros</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toolbar-row">
+          <div class="filter-container">
+            <label for="input-cobertura-pedido" class="form-label-inline">Días de cobertura:</label>
+            <input type="number" id="input-cobertura-pedido" class="form-input calculadora-input-num" min="1" max="30" value="3">
+          </div>
+
+          <div class="filter-container">
+            <label for="input-seguridad-pedido" class="form-label-inline">Seguridad (%):</label>
+            <input type="number" id="input-seguridad-pedido" class="form-input calculadora-input-num" min="0" max="100" value="20">
+          </div>
+
+          <div class="filter-container">
+            <label for="input-capacidad-max-pedido" class="form-label-inline"
+                   title="Tope del almacén. 0 = sin tope.">Capacidad máx.:</label>
+            <input type="number" id="input-capacidad-max-pedido" class="form-input calculadora-input-num" min="0" step="100" value="400">
+          </div>
+
+          <div class="filter-container">
+            <label for="input-unidades-obsequio" class="form-label-inline"
+                   title="El proveedor regala 1 unidad por cada N compradas. El pedido se ajusta a múltiplos de N para no dejar unidades sin obsequio.">Obsequio 1 und c/:</label>
+            <input type="number" id="input-unidades-obsequio" class="form-input calculadora-input-num" min="0" step="50" value="100">
+          </div>
+        </div>
+
+        <div class="toolbar-row">
+          <div class="filter-container">
+            <label for="input-precio-varios" class="form-label-inline">Precio varios:</label>
+            <input type="number" id="input-precio-varios" class="form-input calculadora-input-num" min="0" step="100" value="3500">
+          </div>
+
+          <div class="filter-container">
+            <label for="input-precio-frutos-rojos" class="form-label-inline">Frutos rojos:</label>
+            <input type="number" id="input-precio-frutos-rojos" class="form-input calculadora-input-num" min="0" step="100" value="4000">
+          </div>
+
+          <div class="filter-container">
+            <label for="input-precio-sin-azucar" class="form-label-inline">Sin azúcar:</label>
+            <input type="number" id="input-precio-sin-azucar" class="form-input calculadora-input-num" min="0" step="100" value="4000">
+          </div>
+
+          <div class="action-button-container">
+            <button id="btn-calcular-pedido" class="button button-primary">
+              <i class="fas fa-calculator"></i> Calcular Pedido
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Opciones de pedido: múltiplos alrededor del ideal -->
+  <h3 class="calculadora-bloque-titulo">
+    <i class="fas fa-list-ol"></i> Opciones de pedido
+    <span class="calculadora-bloque-hint" id="hint-ideal-pedido"></span>
+  </h3>
+
+  <div class="table-wrapper">
+    <table class="data-table-default calculadora-tabla">
+      <thead>
+        <tr>
+          <th class="text-right">Pedido</th>
+          <th class="text-right">Obsequio</th>
+          <th class="text-right">Recibes</th>
+          <th class="text-right">Cobertura mín.</th>
+          <th class="text-right">vs ideal</th>
+          <th class="text-right">Costo</th>
+          <th class="text-right">Descuento</th>
+          <th class="column-actions text-center">Elegir</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-opciones-pedido">
+        <tr>
+          <td colspan="8" class="text-center" style="padding: 30px; font-style: italic; color: #888">
+            Pulsa <strong>Calcular Pedido</strong> para ver las opciones.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="resumen-obsequio" class="calculadora-resumen-obsequio" style="display: none"></div>
+
+  <!-- Bloque A: productos de modo stock (con pronóstico) -->
+  <h3 class="calculadora-bloque-titulo">
+    <i class="fas fa-chart-line"></i> Productos de stock
+    <span class="calculadora-bloque-hint">pronóstico + reparto nivelando cobertura</span>
+  </h3>
+
+  <div class="table-wrapper">
+    <table class="data-table-default calculadora-tabla">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th class="text-right">Físico</th>
+          <th class="text-right">Comprometido</th>
+          <th class="text-right">Disponible</th>
+          <th class="text-right">Pendiente</th>
+          <th class="text-right">Demanda/día</th>
+          <th class="text-right" title="Unidades que faltan para cumplir los compromisos ya adquiridos">Faltante</th>
+          <th class="text-right">Ideal</th>
+          <th class="text-right">Sugerido</th>
+          <th class="text-center">Final</th>
+          <th class="text-right">Cobertura</th>
+          <th class="column-actions text-center">Quitar</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-pedido-stock">
+        <tr>
+          <td colspan="12" class="text-center" style="padding: 40px; font-style: italic; color: #888">
+            Ajusta los parámetros y pulsa <strong>Calcular Pedido</strong>.
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="calculadora-fila-total">
+          <td colspan="8" class="text-right"><strong>TOTAL STOCK</strong></td>
+          <td class="text-right" id="total-sugerido-stock">0</td>
+          <td class="text-center" id="total-final-stock">0</td>
+          <td colspan="2" class="text-center" id="delta-total-stock"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Bloque B: productos bajo pedido (sin pronóstico) -->
+  <h3 class="calculadora-bloque-titulo">
+    <i class="fas fa-clipboard-list"></i> Productos bajo pedido
+    <span class="calculadora-bloque-hint">se compra exactamente lo pendiente</span>
+  </h3>
+
+  <div class="table-wrapper">
+    <table class="data-table-default calculadora-tabla">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Proveedor(es)</th>
+          <th class="text-right">Disponible</th>
+          <th class="text-right">Pend. firme</th>
+          <th class="text-right">Pend. borrador</th>
+          <th class="text-right">Comprar</th>
+          <th class="text-center">Final</th>
+          <th class="column-actions text-center">Quitar</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-pedido-bajo-pedido">
+        <tr>
+          <td colspan="8" class="text-center" style="padding: 40px; font-style: italic; color: #888">
+            Ajusta los parámetros y pulsa <strong>Calcular Pedido</strong>.
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="calculadora-fila-total">
+          <td colspan="5" class="text-right"><strong>TOTAL BAJO PEDIDO</strong></td>
+          <td class="text-right" id="total-sugerido-bajo-pedido">0</td>
+          <td class="text-center" id="total-final-bajo-pedido">0</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>

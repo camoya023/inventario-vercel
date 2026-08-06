@@ -1,0 +1,168 @@
+/* =========================================================================
+   CALCULADORA DE PEDIDOS - INVENTRACK VERCEL
+   Solo lo que no cubren global.css / components.css / informe-stock.css
+   ========================================================================= */
+
+/* El panel de parámetros tiene 3 filas y en pantallas estrechas se envuelven.
+   components.css limita el estado abierto a 500px, que no alcanza y recortaría
+   el botón de calcular. Se amplía solo para este panel. */
+#parametros-pedido-content.page-toolbar-collapsible.is-visible {
+  max-height: 900px;
+}
+
+/* Campos numéricos del panel de parámetros.
+   login.css:113 define un .form-input global (pensado para los campos con
+   icono de la pantalla de login) con padding: 12px 44px 12px 12px y, sobre
+   todo, padding-left: 30px !important. Ese relleno se cuela en todas las
+   vistas: sobre un input de 110px dejaba ~14px útiles y "120" se veía "12".
+   El !important solo se puede contrarrestar con otro !important; se limita
+   al padding para no alterar el resto del aspecto ni la pantalla de login. */
+.calculadora-input-num {
+  width: 120px;
+  min-width: 120px;
+  flex-shrink: 0;
+  padding: 8px 10px !important;
+  text-align: right;
+}
+
+/* Los select se autoajustan a su opción más larga y quedaban al límite.
+   Un nombre de proveedor largo se recortaría, así que se les da holgura. */
+#parametros-pedido-content .form-input-select {
+  min-width: 265px;
+  max-width: 100%;
+  padding: 8px 10px;
+}
+
+/* Títulos de los dos bloques (stock / bajo pedido) */
+.calculadora-bloque-titulo {
+  margin: 24px 0 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #333);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calculadora-bloque-titulo i {
+  color: var(--color-primary, #4a6cf7);
+}
+
+.calculadora-bloque-hint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-style: italic;
+  color: #888;
+}
+
+/* Tabla del pedido */
+.calculadora-tabla td,
+.calculadora-tabla th {
+  white-space: nowrap;
+}
+
+.calculadora-tabla .calculadora-nombre-producto {
+  white-space: normal;
+  min-width: 200px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.calculadora-tabla .calculadora-proveedores {
+  white-space: normal;
+  min-width: 160px;
+  font-size: 0.85em;
+  color: #666;
+}
+
+/* Celda de cantidad sugerida: es la recomendación del sistema */
+.calculadora-celda-sugerido {
+  background-color: #fff8e1;
+  font-weight: 700;
+  color: #8a6d1f;
+}
+
+/* Input de cantidad final (editable) */
+.calculadora-input-final {
+  width: 90px;
+  padding: 5px 6px;
+  border: 2px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 0.95em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.calculadora-input-final:focus {
+  outline: none;
+  border-color: var(--color-primary, #4a6cf7);
+}
+
+/* Fila excluida del pedido (cantidad final en cero por acción del usuario) */
+.calculadora-fila-excluida {
+  opacity: 0.45;
+}
+
+/* Semáforo de stock real (disponible - pendiente) */
+.calculadora-stock-critico {
+  background-color: #f8d7da;
+  color: #721c24;
+  font-weight: 700;
+}
+
+.calculadora-stock-bajo {
+  background-color: #fff3cd;
+  color: #856404;
+  font-weight: 600;
+}
+
+.calculadora-stock-ok {
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: 600;
+}
+
+/* Opción de pedido actualmente elegida */
+.calculadora-opcion-elegida td {
+  background-color: #e8f0ff;
+  font-weight: 700;
+}
+
+/* Opción cuya cobertura mínima no alcanza los días objetivo */
+.calculadora-opcion-corta {
+  color: #856404;
+}
+
+/* Resumen del obsequio y el descuento a aplicar en la compra */
+.calculadora-resumen-obsequio {
+  margin-top: 12px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  background-color: #f0f7ff;
+  border-left: 4px solid var(--color-primary, #4a6cf7);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.calculadora-resumen-obsequio strong {
+  font-size: 1.05em;
+}
+
+.calculadora-descuento-destacado {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: var(--color-primary, #4a6cf7);
+}
+
+/* Fila de totales */
+.calculadora-fila-total td {
+  background-color: #f0f4ff;
+  font-weight: 700;
+  border-top: 3px solid var(--color-primary, #4a6cf7);
+  font-size: 1.02em;
+}
+
+/* Avisos del reparto de capacidad */
+#avisos-pedido .alert {
+  margin-bottom: 12px;
+}
