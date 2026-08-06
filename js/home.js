@@ -224,6 +224,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #proveedores-link no encontrado');
   }
 
+  // Enlace de Calculadora de Pedidos
+  const calculadoraPedidosLink = document.getElementById('calculadora-pedidos-link');
+  if (calculadoraPedidosLink) {
+    calculadoraPedidosLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a calculadora de pedidos...');
+      cargarVistaCalculadoraPedidos();
+    });
+    console.log('[HOME] Event listener de Calculadora de Pedidos configurado');
+  } else {
+    console.warn('[HOME] Enlace #calculadora-pedidos-link no encontrado');
+  }
+
   // Enlace de Productos (Lista de productos)
   const productosLink = document.getElementById('link-lista-productos');
   if (productosLink) {
@@ -730,6 +743,47 @@ async function cargarVistaProveedores() {
     } catch (error) {
         console.error('[HOME] Error al cargar vista de proveedores:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar el módulo de proveedores: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Carga dinámicamente la vista de la calculadora de pedidos
+ */
+async function cargarVistaCalculadoraPedidos() {
+    console.log('[HOME] Cargando vista de calculadora de pedidos...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando calculadora de pedidos...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/calculadora-pedidos.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Inicializar la vista de la calculadora
+        if (typeof configurarPaginaCalculadoraPedidosYListeners === 'function') {
+            configurarPaginaCalculadoraPedidosYListeners();
+            console.log('[HOME] Vista de calculadora de pedidos cargada e inicializada');
+        } else {
+            console.error('[HOME] Función configurarPaginaCalculadoraPedidosYListeners no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de calculadora de pedidos:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar la calculadora de pedidos: ${error.message}</div>`;
     }
 }
 
