@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Pedidos - Yogurt</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 { color: #667eea; font-size: 2.5em; margin-bottom: 10px; }
+        .header p { color: #666; font-size: 1.1em; }
+        
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .card h2 { color: #667eea; margin-bottom: 20px; font-size: 1.5em; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        
+        @media (max-width: 1200px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+        
+        .file-upload {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+        
+        .file-upload:hover { background: #e8e9ff; border-color: #764ba2; }
+        .file-upload input { display: none; }
+        
+        .control-group { margin-bottom: 20px; }
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover { transform: scale(1.02); }
+        .btn-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); }
+        .btn-info { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
+        
+        .order-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        
+        .order-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .order-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+        }
+        
+        .order-table tr:hover { background-color: #f5f5ff; }
+        
+        .order-table input[type="number"] {
+            width: 85px;
+            padding: 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.95em;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .order-table input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .order-table .suggested {
+            background-color: #fff3cd;
+            font-weight: 700;
+            color: #856404;
+        }
+        
+        .order-table .stock-critical {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: 700;
+        }
+        
+        .order-table .stock-low {
+            background-color: #fff3cd;
+            color: #856404;
+            font-weight: 600;
+        }
+        
+        .order-table .stock-ok {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: 600;
+        }
+        
+        .order-table .total-row {
+            background: #f0f7ff;
+            font-weight: 700;
+            border-top: 3px solid #667eea;
+            font-size: 1.05em;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success { background-color: #d4edda; color: #155724; border-left: 4px solid #28a745; }
+        .alert-warning { background-color: #fff3cd; color: #856404; border-left: 4px solid #ffc107; }
+        .alert-info { background-color: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; border-left: 4px solid #dc3545; }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-box h3 { font-size: 1.2em; margin-bottom: 15px; }
+        .summary-box .big-number { font-size: 2.8em; font-weight: 700; margin: 10px 0; }
+        .summary-box .label { font-size: 0.95em; opacity: 0.9; }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .loading { display: none; text-align: center; padding: 40px; }
+        .loading.active { display: block; }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .export-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .export-buttons button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Calculadora de Pedidos</h1>
+            <p>Sistema de Planificación con Stock, Ventas Borrador y Cálculo de Presupuesto</p>
+        </div>
+
+        <!-- Paso 1 -->
+        <div class="card">
+            <h2>📊 Paso 1: Cargar Histórico de Ventas</h2>
+            <div class="info-box">
+                <strong>Formato:</strong> Fecha,Sabor,UnidadesVendidas (ej: 16/01/2026,FRESA,5)
+            </div>
+            <div class="file-upload" onclick="document.getElementById('salesFile').click()">
+                <p style="font-size: 1.3em; margin-bottom: 10px;">📁 Cargar Histórico de Ventas</p>
+                <input type="file" id="salesFile" accept=".csv" onchange="loadSalesData(event)">
+            </div>
+            <div id="salesStatus" style="margin-top: 15px;"></div>
+        </div>
+
+        <!-- Paso 2 -->
+        <div class="card" id="stockCard" style="display: none;">
+            <h2>📋 Paso 2: Stock Actual y Pedidos Borrador</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 15px;">📦 Stock Actual</h3>
+                    <div class="file-upload" style="padding: 20px;" onclick="document.getElementById('stockFile').click()">
+                        <p>📁 Cargar CSV de Stock</p>
+                        <p style="font-size: 0.8em; color: #666; margin-top: 5px;">nombre_producto,stock_disponible</p>
+                        <input type="file" id="stockFile" accept=".csv" onchange="loadStockCSV(event)">
+                    </div>
+                    <div id="stockStatus"></div>
+                </div>
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 15px;">📋 Pedidos Borrador</h3>
+                    <div class="file-upload" style="padding: 20px;" onclick="document.getElementById('draftFile').click()">
+                        <p>📁 Cargar CSV de Borradores</p>
+                        <p style="font-size: 0.8em; color: #666; margin-top: 5px;">nombre_producto,cantidad_total_borrador</p>
+                        <input type="file" id="draftFile" accept=".csv" onchange="loadDraftCSV(event)">
+                    </div>
+                    <div id="draftStatus"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="card" id="configCard" style="display: none;">
+            <h2>⚙️ Paso 3: Configuración del Sistema</h2>
+            
+            <!-- Precios -->
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3 style="color: #667eea; margin-bottom: 15px;">💰 Configuración de Precios</h3>
+                
+                <div class="info-box">
+                    <strong>💡 Precios por Categoría:</strong><br>
+                    • <strong>Varios:</strong> Todos los sabores regulares<br>
+                    • <strong>Frutos Rojos:</strong> Solo el sabor "FRUTOS ROJOS"<br>
+                    • <strong>Sin Azúcar:</strong> Sabores que contengan "SIN AZUCAR" en el nombre<br>
+                    Los precios se guardan automáticamente.
+                </div>
+                
+                <div class="grid-3">
+                    <div class="control-group">
+                        <label>Sabores Varios</label>
+                        <input type="number" id="priceVarios" value="3500" min="0" step="100" onchange="updatePriceCategory('varios', this.value)">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Frutos Rojos</label>
+                        <input type="number" id="priceFrutosRojos" value="4000" min="0" step="100" onchange="updatePriceCategory('frutos_rojos', this.value)">
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>Sin Azúcar</label>
+                        <input type="number" id="priceSinAzucar" value="4000" min="0" step="100" onchange="updatePriceCategory('sin_azucar', this.value)">
+                    </div>
+                </div>
+                
+                <button onclick="showPriceAssignments()" class="btn-info">
+                    👁️ Ver Asignación de Precios
+                </button>
+            </div>
+            
+            <div class="info-box">
+                <strong>🔮 Modelo de Pronóstico:</strong><br>
+                Selecciona el método que mejor se adapte a tu negocio.
+            </div>
+            
+            <div class="control-group">
+                <label>📊 Modelo de Pronóstico</label>
+                <select id="forecastModel" onchange="updateModelDescription()">
+                    <option value="hybrid" selected>Híbrido Inteligente (Recomendado) - Últimos 30 días sin ceros</option>
+                    <option value="weekday">Por Día de Semana - Detecta patrones semanales</option>
+                    <option value="conservative">Conservador - Últimos 60 días sin ceros</option>
+                    <option value="simple">Simple - Últimos 9 registros (modelo anterior)</option>
+                </select>
+                <div id="modelDescription" style="margin-top: 10px; padding: 10px; background: #f0f7ff; border-radius: 5px; font-size: 0.9em;">
+                    <strong>Híbrido Inteligente:</strong> Usa todas las ventas de los últimos 30 días, excluyendo días sin actividad (vacaciones, cierres). Ideal para operaciones regulares con posibles interrupciones.
+                </div>
+            </div>
+            
+            <div class="grid-3">
+                <div class="control-group">
+                    <label>Días de Cobertura</label>
+                    <input type="number" id="coverageDays" value="3" min="1" max="30">
+                </div>
+                
+                <div class="control-group">
+                    <label>Stock de Seguridad (%)</label>
+                    <input type="number" id="safetyPercent" value="20" min="0" max="100">
+                </div>
+                
+                <div class="control-group">
+                    <label>Capacidad Almacén</label>
+                    <input type="number" id="capacity" value="400" min="100" max="20000">
+                </div>
+            </div>
+
+            <button onclick="calculateOrder()" class="btn-success">🔮 Calcular Pedido y Presupuesto</button>
+        </div>
+
+        <!-- Resultados -->
+        <div id="resultsCard" style="display: none;">
+            <div class="grid-3">
+                <div class="summary-box">
+                    <h3>📦 Total Unidades</h3>
+                    <div class="big-number" id="totalUnits">0</div>
+                    <div class="label">Unidades del pedido</div>
+                </div>
+                <div class="summary-box" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <h3>💰 Valor Total</h3>
+                    <div class="big-number" id="totalCost" style="font-size: 2.2em;">$0</div>
+                    <div class="label">Costo del pedido</div>
+                </div>
+                <div class="summary-box" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                    <h3>⚠️ Stock Crítico</h3>
+                    <div class="big-number" id="criticalCount">0</div>
+                    <div class="label">Productos sin stock</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📋 Pedido Sugerido - Editable</h2>
+                
+                <div id="alerts"></div>
+                
+                <div id="modelUsedInfo" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; border-radius: 5px; margin-bottom: 15px; font-size: 0.9em;">
+                </div>
+                
+                <div class="info-box">
+                    <strong>💡 Cómo leer la tabla:</strong><br>
+                    • <strong>Stock Físico:</strong> Lo que tienes en almacén<br>
+                    • <strong>Comprometido:</strong> Ventas borrador (ya vendidas, esperando entregar)<br>
+                    • <strong>Disponible:</strong> Stock Físico - Comprometido<br>
+                    • <strong>Final y Precio:</strong> Editables - Ajusta antes de hacer el pedido
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="order-table" id="orderTable"></table>
+                </div>
+                
+                <div class="export-buttons">
+                    <button onclick="exportToCSV()">📥 Exportar CSV</button>
+                    <button onclick="copyOrderWhatsApp()" style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);">📱 Copiar a WhatsApp</button>
+                    <button onclick="printOrder()">🖨️ Imprimir</button>
+                    <button onclick="resetToSuggested()" class="btn-warning">↺ Restaurar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Procesando...</p>
+        </div>
+    </div>
+
+    <script>
+        let salesData = [];
+        let activeFlavors = [];
+        let currentStock = {};
+        let draftOrders = {};
+        let suggestedQuantities = {};
+        let finalQuantities = {};
+        let dailyDemand = {};
+        let prices = {};
+        let priceCategories = {
+            'varios': 3500,
+            'frutos_rojos': 4000,
+            'sin_azucar': 4000
+        };
+
+        // Cargar precios guardados
+        function loadSavedPrices() {
+            try {
+                // Cargar precios por categoría
+                const saved = localStorage.getItem('yogurtPrices');
+                if (saved) {
+                    priceCategories = JSON.parse(saved);
+                    console.log('Precios de categorías cargados:', priceCategories);
+                }
+                
+                // Cargar precios personalizados por sabor
+                const savedFlavors = localStorage.getItem('yogurtFlavorPrices');
+                if (savedFlavors) {
+                    prices = JSON.parse(savedFlavors);
+                    console.log('Precios de sabores cargados:', prices);
+                }
+            } catch(e) {
+                console.error('Error cargando precios:', e);
+            }
+        }
+
+        // Guardar precios
+        function savePrices() {
+            try {
+                localStorage.setItem('yogurtPrices', JSON.stringify(priceCategories));
+                console.log('Precios guardados:', priceCategories);
+            } catch(e) {
+                console.error('Error guardando precios:', e);
+            }
+        }
+
+        // Determinar categoría
+        function getPriceCategory(flavor) {
+            if (flavor.includes('SIN AZUCAR')) {
+                return 'sin_azucar';
+            } else if (flavor === 'FRUTOS ROJOS') {
+                return 'frutos_rojos';
+            } else {
+                return 'varios';
+            }
+        }
+
+        // Obtener precio
+        function getFlavorPrice(flavor) {
+            if (prices[flavor]) {
+                return prices[flavor];
+            }
+            const category = getPriceCategory(flavor);
+            return priceCategories[category];
+        }
+
+        // Cargar al inicio
+        loadSavedPrices();
+
+        function loadSalesData(event) {
+            console.log('loadSalesData called');
+            const file = event.target.files[0];
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+            
+            console.log('File selected:', file.name);
+            document.getElementById('loading').classList.add('active');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                console.log('File loaded, parsing...');
+                parseSalesCSV(e.target.result);
+            };
+            reader.onerror = (e) => {
+                console.error('Error reading file:', e);
+                document.getElementById('loading').classList.remove('active');
+            };
+            reader.readAsText(file);
+        }
+
+        function parseSalesCSV(text) {
+            console.log('parseSalesCSV started');
+            console.log('Text length:', text.length);
+            
+            salesData = [];
+            const lines = text.trim().split('\n');
+            console.log('Lines:', lines.length);
+            
+            const hasHeaders = lines[0].toLowerCase().includes('fecha');
+            const startIndex = hasHeaders ? 1 : 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                const parts = line.split(/[,\t|]/);
+                if (parts.length < 3) {
+                    console.log('Line skipped (not enough parts):', line);
+                    continue;
+                }
+                
+                const dateStr = parts[0].trim();
+                const flavor = parts[1].trim().toUpperCase();
+                const sales = parseInt(parts[2].trim());
+                
+                let date;
+                if (dateStr.includes('/')) {
+                    const [day, month, year] = dateStr.split('/').map(Number);
+                    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+                        date = new Date(year, month - 1, day);
+                    }
+                } else {
+                    date = new Date(dateStr);
+                }
+                
+                if (date && !isNaN(date.getTime()) && !isNaN(sales) && sales >= 0 && flavor) {
+                    salesData.push({ date, flavor, sales });
+                } else {
+                    console.log('Invalid data:', {dateStr, flavor, sales});
+                }
+            }
+            
+            console.log('Sales data parsed:', salesData.length, 'records');
+            
+            if (salesData.length > 0) {
+                salesData.sort((a, b) => a.date - b.date);
+                
+                // Productos activos
+                const cutoff = new Date(salesData[salesData.length - 1].date);
+                cutoff.setDate(cutoff.getDate() - 60);
+                const recent = salesData.filter(d => d.date >= cutoff);
+                activeFlavors = [...new Set(recent.map(d => d.flavor))].sort();
+                
+                console.log('Active flavors:', activeFlavors);
+                
+                activeFlavors.forEach(f => {
+                    currentStock[f] = 0;
+                    draftOrders[f] = 0;
+                });
+                
+                document.getElementById('salesStatus').innerHTML = 
+                    `<div class="alert alert-success">
+                        ✓ ${salesData.length} registros | ${activeFlavors.length} productos activos<br>
+                        <strong>Productos:</strong> ${activeFlavors.join(', ')}
+                    </div>`;
+                
+                document.getElementById('stockCard').style.display = 'block';
+                document.getElementById('configCard').style.display = 'block';
+            } else {
+                console.log('No valid data found');
+                document.getElementById('salesStatus').innerHTML = 
+                    `<div class="alert alert-danger">❌ No se pudieron cargar datos válidos</div>`;
+            }
+            
+            document.getElementById('loading').classList.remove('active');
+        }
+
+        function loadStockCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => parseStockCSV(e.target.result);
+            reader.readAsText(file);
+        }
+
+        function parseStockCSV(text) {
+            const lines = text.trim().split('\n');
+            const hasHeaders = lines[0].toLowerCase().includes('producto') || lines[0].toLowerCase().includes('stock');
+            const startIndex = hasHeaders ? 1 : 0;
+            let count = 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const parts = line.split(/[,\t|]/);
+                if (parts.length < 2) continue;
+                
+                const product = parts[0].trim().toUpperCase();
+                const stock = parseInt(parts[1].trim()) || 0;
+                
+                if (product && activeFlavors.includes(product)) {
+                    currentStock[product] = stock;
+                    count++;
+                }
+            }
+            
+            document.getElementById('stockStatus').innerHTML = 
+                `<div class="alert alert-success" style="margin-top: 10px;">✓ ${count} productos cargados</div>`;
+        }
+
+        function loadDraftCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => parseDraftCSV(e.target.result);
+            reader.readAsText(file);
+        }
+
+        function parseDraftCSV(text) {
+            const lines = text.trim().split('\n');
+            const hasHeaders = lines[0].toLowerCase().includes('producto') || lines[0].toLowerCase().includes('cantidad');
+            const startIndex = hasHeaders ? 1 : 0;
+            let count = 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const parts = line.split(/[,\t|]/);
+                if (parts.length < 2) continue;
+                
+                const product = parts[0].trim().toUpperCase();
+                const quantity = parseInt(parts[1].trim()) || 0;
+                
+                if (product && activeFlavors.includes(product)) {
+                    draftOrders[product] = quantity;
+                    count++;
+                }
+            }
+            
+            document.getElementById('draftStatus').innerHTML = 
+                `<div class="alert alert-success" style="margin-top: 10px;">✓ ${count} productos cargados</div>`;
+        }
+
+        function updateModelDescription() {
+            const model = document.getElementById('forecastModel').value;
+            const descriptions = {
+                'hybrid': '<strong>Híbrido Inteligente:</strong> Usa todas las ventas de los últimos 30 días, excluyendo días sin actividad (vacaciones, cierres). Ideal para operaciones regulares con posibles interrupciones.',
+                'weekday': '<strong>Por Día de Semana:</strong> Calcula el promedio de cada día de la semana por separado (Lunes vs Martes, etc.). Perfecto si vendes más ciertos días. Usa datos de los últimos 60 días.',
+                'conservative': '<strong>Conservador:</strong> Usa todas las ventas de los últimos 60 días, excluyendo días sin actividad. Más estable pero menos reactivo a cambios recientes.',
+                'simple': '<strong>Simple:</strong> Promedio de los últimos 9 registros de venta (modelo anterior). Puede incluir datos antiguos si no vendes todos los días.'
+            };
+            document.getElementById('modelDescription').innerHTML = descriptions[model];
+        }
+
+        function calculateOrder() {
+            document.getElementById('loading').classList.add('active');
+            
+            setTimeout(() => {
+                const coverageDays = parseInt(document.getElementById('coverageDays').value);
+                const safetyPercent = parseInt(document.getElementById('safetyPercent').value) / 100;
+                const capacity = parseInt(document.getElementById('capacity').value);
+                const forecastModel = document.getElementById('forecastModel').value;
+                
+                // Calcular demanda usando el modelo seleccionado
+                activeFlavors.forEach(flavor => {
+                    const flavorSales = salesData.filter(d => d.flavor === flavor);
+                    
+                    if (flavorSales.length === 0) {
+                        dailyDemand[flavor] = 0;
+                        return;
+                    }
+                    
+                    if (forecastModel === 'hybrid') {
+                        // MODELO HÍBRIDO: Últimos 30 días, excluyendo ceros
+                        const cutoffDate = new Date(salesData[salesData.length - 1].date);
+                        cutoffDate.setDate(cutoffDate.getDate() - 30);
+                        
+                        const recentSales = flavorSales.filter(d => d.date >= cutoffDate && d.sales > 0);
+                        
+                        if (recentSales.length > 0) {
+                            const totalSales = recentSales.reduce((sum, d) => sum + d.sales, 0);
+                            const daysWithSales = recentSales.length;
+                            dailyDemand[flavor] = totalSales / daysWithSales;
+                        } else {
+                            // Fallback si no hay datos en 30 días
+                            const allSales = flavorSales.filter(d => d.sales > 0);
+                            if (allSales.length > 0) {
+                                dailyDemand[flavor] = allSales.reduce((sum, d) => sum + d.sales, 0) / allSales.length;
+                            } else {
+                                dailyDemand[flavor] = 0;
+                            }
+                        }
+                        
+                    } else if (forecastModel === 'weekday') {
+                        // MODELO POR DÍA DE SEMANA
+                        const cutoffDate = new Date(salesData[salesData.length - 1].date);
+                        cutoffDate.setDate(cutoffDate.getDate() - 60);
+                        
+                        const recentSales = flavorSales.filter(d => d.date >= cutoffDate && d.sales > 0);
+                        
+                        // Agrupar por día de semana (0=Domingo, 1=Lunes, etc.)
+                        const byWeekday = {};
+                        recentSales.forEach(d => {
+                            const day = d.date.getDay();
+                            if (!byWeekday[day]) byWeekday[day] = [];
+                            byWeekday[day].push(d.sales);
+                        });
+                        
+                        // Calcular promedio por día de semana
+                        const weekdayAverages = {};
+                        Object.keys(byWeekday).forEach(day => {
+                            const sales = byWeekday[day];
+                            weekdayAverages[day] = sales.reduce((a, b) => a + b, 0) / sales.length;
+                        });
+                        
+                        // Promedio general de todos los días de semana
+                        const averages = Object.values(weekdayAverages);
+                        if (averages.length > 0) {
+                            dailyDemand[flavor] = averages.reduce((a, b) => a + b, 0) / averages.length;
+                        } else {
+                            dailyDemand[flavor] = 0;
+                        }
+                        
+                    } else if (forecastModel === 'conservative') {
+                        // MODELO CONSERVADOR: Últimos 60 días, excluyendo ceros
+                        const cutoffDate = new Date(salesData[salesData.length - 1].date);
+                        cutoffDate.setDate(cutoffDate.getDate() - 60);
+                        
+                        const recentSales = flavorSales.filter(d => d.date >= cutoffDate && d.sales > 0);
+                        
+                        if (recentSales.length > 0) {
+                            const totalSales = recentSales.reduce((sum, d) => sum + d.sales, 0);
+                            const daysWithSales = recentSales.length;
+                            dailyDemand[flavor] = totalSales / daysWithSales;
+                        } else {
+                            dailyDemand[flavor] = 0;
+                        }
+                        
+                    } else {
+                        // MODELO SIMPLE: Últimos 9 registros (modelo anterior)
+                        const window = Math.min(9, flavorSales.length);
+                        const recent = flavorSales.slice(-window).map(d => d.sales);
+                        dailyDemand[flavor] = recent.reduce((a, b) => a + b, 0) / recent.length;
+                    }
+                });
+                
+                // Calcular cantidades sugeridas (igual que antes)
+                activeFlavors.forEach(flavor => {
+                    const demand = dailyDemand[flavor];
+                    const stockFisico = currentStock[flavor] || 0;
+                    const ventasComprometidas = draftOrders[flavor] || 0;
+                    const stockReal = stockFisico - ventasComprometidas;
+                    
+                    const demandaPeriodo = Math.ceil(demand * coverageDays);
+                    const stockSeguridad = Math.ceil(demandaPeriodo * safetyPercent);
+                    const totalNecesario = demandaPeriodo + stockSeguridad;
+                    
+                    let cantidadSugerida = totalNecesario - stockReal;
+                    cantidadSugerida = Math.max(0, cantidadSugerida);
+                    
+                    suggestedQuantities[flavor] = cantidadSugerida;
+                    finalQuantities[flavor] = cantidadSugerida;
+                });
+                
+                displayOrderTable(capacity);
+                
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('resultsCard').style.display = 'block';
+                document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+
+        function displayOrderTable(capacity) {
+            // Mostrar qué modelo se usó
+            const forecastModel = document.getElementById('forecastModel').value;
+            const modelNames = {
+                'hybrid': '🔮 Modelo Híbrido Inteligente (Últimos 30 días sin ceros)',
+                'weekday': '📊 Modelo Por Día de Semana (Últimos 60 días)',
+                'conservative': '🛡️ Modelo Conservador (Últimos 60 días sin ceros)',
+                'simple': '📈 Modelo Simple (Últimos 9 registros)'
+            };
+            
+            document.getElementById('modelUsedInfo').innerHTML = 
+                `<strong>Modelo utilizado:</strong> ${modelNames[forecastModel]}`;
+            
+            // Inicializar precios
+            document.getElementById('priceVarios').value = priceCategories.varios;
+            document.getElementById('priceFrutosRojos').value = priceCategories.frutos_rojos;
+            document.getElementById('priceSinAzucar').value = priceCategories.sin_azucar;
+            
+            // Resumen
+            let total = 0;
+            let totalCost = 0;
+            let critical = 0;
+            
+            activeFlavors.forEach(f => {
+                total += finalQuantities[f];
+                totalCost += finalQuantities[f] * getFlavorPrice(f);
+                
+                const stockFisico = currentStock[f] || 0;
+                const ventasBorrador = draftOrders[f] || 0;
+                const stockReal = stockFisico - ventasBorrador;
+                if (stockReal <= 0) critical++;
+            });
+            
+            document.getElementById('totalUnits').textContent = total.toLocaleString();
+            document.getElementById('totalCost').textContent = `$${totalCost.toLocaleString()}`;
+            document.getElementById('criticalCount').textContent = critical;
+            
+            // Alertas
+            let alertsHTML = '';
+            if (total > capacity) {
+                alertsHTML += `<div class="alert alert-warning">
+                    ⚠️ El pedido (${total.toLocaleString()}) excede capacidad (${capacity.toLocaleString()})
+                </div>`;
+            }
+            
+            if (critical > 0) {
+                const criticalProducts = activeFlavors.filter(f => {
+                    const stockFisico = currentStock[f] || 0;
+                    const ventasBorrador = draftOrders[f] || 0;
+                    return (stockFisico - ventasBorrador) <= 0;
+                });
+                alertsHTML += `<div class="alert alert-danger">
+                    🚨 ${critical} producto(s) con stock negativo: ${criticalProducts.join(', ')}<br>
+                    <strong>Tienes ventas comprometidas sin stock</strong>
+                </div>`;
+            }
+            
+            document.getElementById('alerts').innerHTML = alertsHTML;
+            
+            // Tabla
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th rowspan="2">Producto</th>
+                        <th colspan="3" style="background: #6c757d;">Inventario</th>
+                        <th rowspan="2">Demanda/Día</th>
+                        <th rowspan="2">Estado</th>
+                        <th colspan="2" style="background: #28a745;">Pedido</th>
+                        <th rowspan="2" style="background: #dc3545;">🗑️</th>
+                    </tr>
+                    <tr>
+                        <th style="background: #6c757d;">Físico</th>
+                        <th style="background: #6c757d;">Borrador</th>
+                        <th style="background: #6c757d;">Disponible</th>
+                        <th style="background: #ffc107;">Sugerido</th>
+                        <th style="background: #28a745;">Final</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            activeFlavors.forEach(flavor => {
+                const stockFisico = currentStock[flavor] || 0;
+                const ventasBorrador = draftOrders[flavor] || 0;
+                const stockReal = stockFisico - ventasBorrador;
+                const demand = dailyDemand[flavor].toFixed(1);
+                const suggested = suggestedQuantities[flavor];
+                const price = getFlavorPrice(flavor);
+                const subtotal = finalQuantities[flavor] * price;
+                
+                let statusClass = 'stock-ok';
+                let statusText = '✅ OK';
+                
+                if (stockReal <= 0) {
+                    statusClass = 'stock-critical';
+                    statusText = '🚨 NEG';
+                } else if (stockReal < dailyDemand[flavor] * 3) {
+                    statusClass = 'stock-low';
+                    statusText = '⚠️ BAJO';
+                }
+                
+                tableHTML += `
+                    <tr id="row_${flavor}">
+                        <td style="font-weight: 600; text-align: left;">${flavor}</td>
+                        <td>${stockFisico.toLocaleString()}</td>
+                        <td style="background: #fff3cd; font-weight: 600;">${ventasBorrador.toLocaleString()}</td>
+                        <td class="${statusClass}" style="font-weight: 700;">${stockReal.toLocaleString()}</td>
+                        <td>${demand}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                        <td class="suggested">${suggested.toLocaleString()}</td>
+                        <td>
+                            <input type="number" 
+                                   id="final_${flavor}" 
+                                   value="${suggested}" 
+                                   min="0" 
+                                   onchange="updateFinal('${flavor}', this.value)">
+                        </td>
+                        <td style="text-align: center;">
+                            <button onclick="deleteRow('${flavor}')" 
+                                    style="background: transparent; border: none; padding: 5px; cursor: pointer; font-size: 1.3em; width: auto; margin: 0; transition: transform 0.2s;"
+                                    onmouseover="this.style.transform='scale(1.2)'"
+                                    onmouseout="this.style.transform='scale(1)'"
+                                    title="Eliminar del pedido">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            // Calcular totales
+            const totalSuggested = activeFlavors.reduce((sum, f) => sum + suggestedQuantities[f], 0);
+            const totalFinal = activeFlavors.reduce((sum, f) => sum + finalQuantities[f], 0);
+            
+            tableHTML += `
+                <tr class="total-row">
+                    <td colspan="6" style="text-align: right;"><strong>TOTAL DEL PEDIDO:</strong></td>
+                    <td style="font-size: 1.1em;">${totalSuggested.toLocaleString()}</td>
+                    <td id="totalFinalCell" style="font-size: 1.2em;">${totalFinal.toLocaleString()}</td>
+                    <td></td>
+                </tr>
+            `;
+            
+            tableHTML += '</tbody>';
+            document.getElementById('orderTable').innerHTML = tableHTML;
+        }
+
+        function deleteRow(flavor) {
+            // Confirmar eliminación
+            if (!confirm(`¿Eliminar ${flavor} del pedido?`)) {
+                return;
+            }
+            
+            // Ocultar la fila
+            const row = document.getElementById(`row_${flavor}`);
+            if (row) {
+                row.style.display = 'none';
+            }
+            
+            // Poner cantidad en 0
+            finalQuantities[flavor] = 0;
+            
+            // Actualizar totales
+            const totalFinal = Object.values(finalQuantities).reduce((a, b) => a + b, 0);
+            document.getElementById('totalFinalCell').textContent = totalFinal.toLocaleString();
+            document.getElementById('totalUnits').textContent = totalFinal.toLocaleString();
+            
+            recalculateTotals();
+        }
+
+        function updatePriceCategory(category, value) {
+            const price = parseInt(value) || 0;
+            priceCategories[category] = price;
+            savePrices(); // Guardar inmediatamente
+            console.log('Precio actualizado:', category, price);
+            
+            if (Object.keys(finalQuantities).length > 0) {
+                recalculateTotals();
+            }
+        }
+
+        function updatePrice(flavor, value) {
+            const price = parseInt(value) || 0;
+            prices[flavor] = price;
+            
+            // También guardar en localStorage
+            const savedPrices = localStorage.getItem('yogurtFlavorPrices');
+            let flavorPrices = savedPrices ? JSON.parse(savedPrices) : {};
+            flavorPrices[flavor] = price;
+            localStorage.setItem('yogurtFlavorPrices', JSON.stringify(flavorPrices));
+            console.log('Precio de sabor actualizado:', flavor, price);
+            
+            recalculateTotals();
+        }
+
+        function updateFinal(flavor, value) {
+            const quantity = parseInt(value) || 0;
+            finalQuantities[flavor] = quantity;
+            
+            const totalFinal = Object.values(finalQuantities).reduce((a, b) => a + b, 0);
+            document.getElementById('totalFinalCell').textContent = totalFinal.toLocaleString();
+            document.getElementById('totalUnits').textContent = totalFinal.toLocaleString();
+            
+            recalculateTotals();
+        }
+
+        function recalculateTotals() {
+            activeFlavors.forEach(f => {
+                const quantity = finalQuantities[f] || 0;
+                const price = getFlavorPrice(f);
+                const subtotal = quantity * price;
+                
+                const subtotalCell = document.getElementById(`subtotal_${f}`);
+                if (subtotalCell) {
+                    subtotalCell.textContent = `$${subtotal.toLocaleString()}`;
+                }
+            });
+            
+            let totalCost = 0;
+            activeFlavors.forEach(f => {
+                totalCost += (finalQuantities[f] || 0) * getFlavorPrice(f);
+            });
+            
+            const totalCostCell = document.getElementById('totalCostCell');
+            if (totalCostCell) {
+                totalCostCell.textContent = `$${totalCost.toLocaleString()}`;
+            }
+            
+            document.getElementById('totalCost').textContent = `$${totalCost.toLocaleString()}`;
+        }
+
+        function showPriceAssignments() {
+            let message = '📋 ASIGNACIÓN DE PRECIOS:\n\n';
+            
+            message += '💰 VARIOS ($' + priceCategories.varios.toLocaleString() + '):\n';
+            const varios = activeFlavors.filter(f => getPriceCategory(f) === 'varios');
+            message += varios.length > 0 ? varios.join(', ') : 'Ninguno';
+            
+            message += '\n\n🍓 FRUTOS ROJOS ($' + priceCategories.frutos_rojos.toLocaleString() + '):\n';
+            const frutosRojos = activeFlavors.filter(f => getPriceCategory(f) === 'frutos_rojos');
+            message += frutosRojos.length > 0 ? frutosRojos.join(', ') : 'Ninguno';
+            
+            message += '\n\n🚫 SIN AZÚCAR ($' + priceCategories.sin_azucar.toLocaleString() + '):\n';
+            const sinAzucar = activeFlavors.filter(f => getPriceCategory(f) === 'sin_azucar');
+            message += sinAzucar.length > 0 ? sinAzucar.join(', ') : 'Ninguno';
+            
+            alert(message);
+        }
+
+        function resetToSuggested() {
+            activeFlavors.forEach(f => {
+                // Restaurar cantidad sugerida
+                finalQuantities[f] = suggestedQuantities[f];
+                const input = document.getElementById(`final_${f}`);
+                if (input) input.value = suggestedQuantities[f];
+                
+                // Mostrar fila si estaba oculta
+                const row = document.getElementById(`row_${f}`);
+                if (row) row.style.display = '';
+            });
+            
+            const total = Object.values(finalQuantities).reduce((a, b) => a + b, 0);
+            document.getElementById('totalFinalCell').textContent = total.toLocaleString();
+            document.getElementById('totalUnits').textContent = total.toLocaleString();
+            recalculateTotals();
+        }
+
+        function exportToCSV() {
+            let csv = 'Producto,Stock_Fisico,Ventas_Borrador,Disponible,Demanda,Sugerido,Final,Precio,Subtotal\n';
+            
+            activeFlavors.forEach(f => {
+                // Solo incluir productos con cantidad final > 0
+                if (finalQuantities[f] > 0) {
+                    const stockFisico = currentStock[f] || 0;
+                    const ventasBorrador = draftOrders[f] || 0;
+                    const stockReal = stockFisico - ventasBorrador;
+                    const demand = dailyDemand[f].toFixed(2);
+                    const suggested = suggestedQuantities[f];
+                    const final = finalQuantities[f];
+                    const price = getFlavorPrice(f);
+                    const subtotal = final * price;
+                    
+                    csv += `${f},${stockFisico},${ventasBorrador},${stockReal},${demand},${suggested},${final},${price},${subtotal}\n`;
+                }
+            });
+            
+            const totalUnits = Object.values(finalQuantities).reduce((a, b) => a + b, 0);
+            let totalCost = 0;
+            activeFlavors.forEach(f => {
+                totalCost += finalQuantities[f] * getFlavorPrice(f);
+            });
+            
+            csv += `\nTOTAL,,,,,,,${totalUnits},${totalCost}\n`;
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `pedido_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function copyOrderWhatsApp() {
+            const today = new Date();
+            const deliveryDate = new Date(today);
+            deliveryDate.setDate(deliveryDate.getDate() + 1); // Sumar 1 día para entrega
+            
+            const dateStr = deliveryDate.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            let text = `*📦 PEDIDO DE YOGURT*\n`;
+            text += `📅 Entrega: ${dateStr}\n`;
+            text += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+            
+            activeFlavors.forEach(f => {
+                if (finalQuantities[f] > 0) {
+                    text += `*${f}*  *${finalQuantities[f]}* Und\n`;
+                }
+            });
+            
+            const total = Object.values(finalQuantities).reduce((a, b) => a + b, 0);
+            text += `\n━━━━━━━━━━━━━━━━━━━━\n`;
+            text += `✅ *TOTAL: ${total} unidades*`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✓ Pedido copiado\n\nPega el texto en WhatsApp para enviarlo');
+            }).catch(() => {
+                alert('❌ Error al copiar. Intenta de nuevo.');
+            });
+        }
+
+        function printOrder() {
+            const w = window.open('', '', 'height=600,width=800');
+            w.document.write('<html><head><title>Pedido</title>');
+            w.document.write('<style>body{font-family:Arial;padding:20px;} table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{border:1px solid #000;padding:10px;} th{background:#667eea;color:white;} .total{background:#f0f0f0;font-weight:bold;font-size:1.2em;} .right{text-align:right;}</style>');
+            w.document.write('</head><body>');
+            w.document.write('<h1>PEDIDO DE YOGURT</h1>');
+            w.document.write(`<p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>`);
+            w.document.write('<table><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>');
+            
+            let totalCost = 0;
+            activeFlavors.forEach(f => {
+                // Solo incluir productos con cantidad final > 0
+                if (finalQuantities[f] > 0) {
+                    const price = getFlavorPrice(f);
+                    const subtotal = finalQuantities[f] * price;
+                    totalCost += subtotal;
+                    
+                    w.document.write(`<tr><td>${f}</td><td class="right">${finalQuantities[f].toLocaleString()}</td><td class="right">$${price.toLocaleString()}</td><td class="right">$${subtotal.toLocaleString()}</td></tr>`);
+                }
+            });
+            
+            const total = Object.values(finalQuantities).reduce((a, b) => a + b, 0);
+            w.document.write(`<tr class="total"><td>TOTAL</td><td class="right">${total.toLocaleString()}</td><td></td><td class="right">$${totalCost.toLocaleString()}</td></tr>`);
+            w.document.write('</table></body></html>');
+            w.document.close();
+            w.print();
+        }
+    </script>
+</body>
+</html>

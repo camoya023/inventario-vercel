@@ -62,8 +62,29 @@ const calculadora_formatoMoneda = new Intl.NumberFormat("es-CO", {
 // =========================================================================
 
 /**
- * Lee los parámetros guardados y los mezcla con los valores por defecto.
+ * Mezcla unos parámetros cualesquiera con los valores por defecto.
+ * Aísla la fusión para que la base y localStorage la compartan.
+ */
+function normalizarParametrosCalculadora(parseado) {
+  return {
+    ...CALCULADORA_PARAMETROS_POR_DEFECTO,
+    ...(parseado || {}),
+    precios: {
+      ...CALCULADORA_PARAMETROS_POR_DEFECTO.precios,
+      ...((parseado || {}).precios || {})
+    }
+  };
+}
+
+/**
+ * Lee los parámetros del caché local y los mezcla con los valores por defecto.
  * Degradación elegante: si el JSON está corrupto, devuelve los defaults.
+ *
+ * ⚠️ Esto ya NO es la fuente de verdad: lo es configuracion_negocio.parametros_compra.
+ * localStorage quedó como caché para pintar el panel al instante y para
+ * sobrevivir a una caída de red. Lee sincrónicamente a propósito: la vista se
+ * pinta sin esperar a la base y sincronizarParametrosDesdeLaBase() la corrige
+ * después si hay algo más nuevo.
  */
 function cargarParametrosCalculadora() {
   try {
@@ -72,18 +93,8 @@ function cargarParametrosCalculadora() {
       return { ...CALCULADORA_PARAMETROS_POR_DEFECTO };
     }
 
-    const parseado = JSON.parse(guardado);
-    const parametros = {
-      ...CALCULADORA_PARAMETROS_POR_DEFECTO,
-      ...parseado,
-      precios: {
-        ...CALCULADORA_PARAMETROS_POR_DEFECTO.precios,
-        ...(parseado.precios || {})
-      }
-    };
-
-    console.log('[Calculadora] ✓ Parámetros cargados desde localStorage');
-    return parametros;
+    console.log('[Calculadora] ✓ Parámetros cargados desde el caché local');
+    return normalizarParametrosCalculadora(JSON.parse(guardado));
 
   } catch (error) {
     console.warn('[Calculadora] ⚠ Parámetros corruptos, se usan los valores por defecto:', error);
@@ -92,15 +103,61 @@ function cargarParametrosCalculadora() {
 }
 
 /**
- * Guarda los parámetros. Un fallo aquí no debe romper el cálculo.
+ * Guarda los parámetros en la base y en el caché local.
+ *
+ * El caché se escribe primero y de forma síncrona para que el valor quede
+ * disponible aunque la red falle. La base se actualiza en segundo plano: un
+ * fallo se registra pero no interrumpe el cálculo que el usuario está haciendo.
  */
 function guardarParametrosCalculadora(parametros) {
   try {
     localStorage.setItem(CALCULADORA_CLAVE_PARAMETROS, JSON.stringify(parametros));
-    console.log('[Calculadora] ✓ Parámetros guardados');
   } catch (error) {
-    console.warn('[Calculadora] ⚠ No se pudieron guardar los parámetros:', error);
+    console.warn('[Calculadora] ⚠ No se pudo escribir el caché local de parámetros:', error);
   }
+
+  guardarParametrosCompraConSupabase(parametros).then((respuesta) => {
+    if (respuesta.error) {
+      console.warn('[Calculadora] ⚠ Los parámetros quedaron solo en el caché local:', respuesta.error);
+    } else {
+      console.log('[Calculadora] ✓ Parámetros guardados en la base');
+    }
+  });
+}
+
+/**
+ * Trae los parámetros de la base y refresca el panel si difieren del caché.
+ *
+ * Se llama al abrir la vista, después de haber pintado con el caché. Así los
+ * precios siguen al usuario entre equipos y navegadores: localStorage está
+ * atado al origen, y entrar por el dominio propio o por *.vercel.app son dos
+ * almacenamientos distintos.
+ */
+async function sincronizarParametrosDesdeLaBase() {
+  const respuesta = await obtenerParametrosCompraConSupabase();
+
+  if (respuesta.error || !respuesta.datos) {
+    console.log('[Calculadora] Se mantienen los parámetros del caché local');
+    return;
+  }
+
+  const parametros = normalizarParametrosCalculadora(respuesta.datos);
+  aplicarParametrosAlFormulario(parametros);
+
+  // El selector de proveedores puede haberse poblado ya o no; si el proveedor
+  // guardado existe entre sus opciones, se restaura.
+  const select = document.getElementById('filtro-proveedor-pedido');
+  if (select && parametros.proveedorId) {
+    select.value = parametros.proveedorId;
+  }
+
+  try {
+    localStorage.setItem(CALCULADORA_CLAVE_PARAMETROS, JSON.stringify(parametros));
+  } catch (error) {
+    console.warn('[Calculadora] ⚠ No se pudo refrescar el caché local:', error);
+  }
+
+  console.log('[Calculadora] ✓ Parámetros sincronizados desde la base');
 }
 
 /**
@@ -236,6 +293,104 @@ async function obtenerProveedoresParaSelectorConSupabase() {
   } catch (error) {
     console.error('[Calculadora] ✗ Excepción al obtener proveedores:', error);
     return { datos: [], error: error.message || 'Error desconocido' };
+  }
+}
+
+/**
+ * Lee los parámetros de compra guardados en la base.
+ * No lanza excepciones: devuelve el error dentro del objeto.
+ *
+ * Devuelve datos: null cuando la empresa todavía no ha guardado nada. No es
+ * un error — significa "usa el fallback local".
+ */
+async function obtenerParametrosCompraConSupabase() {
+  try {
+    const client = getSupabaseClient();
+    if (!client) {
+      throw new Error('Cliente de Supabase no inicializado');
+    }
+
+    const { data, error } = await client.rpc('fn_obtener_parametros_compra');
+
+    if (error) {
+      console.warn('[Calculadora] ⚠ No se pudieron leer los parámetros de la base:', error.message);
+      return { datos: null, error: error.message || 'Error al leer los parámetros' };
+    }
+
+    return { datos: data || null, error: null };
+
+  } catch (error) {
+    console.warn('[Calculadora] ⚠ Excepción al leer los parámetros de la base:', error);
+    return { datos: null, error: error.message || 'Error desconocido' };
+  }
+}
+
+/**
+ * Guarda los parámetros de compra en la base.
+ * No lanza excepciones: devuelve el error dentro del objeto.
+ */
+async function guardarParametrosCompraConSupabase(parametros) {
+  try {
+    const client = getSupabaseClient();
+    if (!client) {
+      throw new Error('Cliente de Supabase no inicializado');
+    }
+
+    const { data, error } = await client.rpc('fn_guardar_parametros_compra', {
+      p_parametros: parametros
+    });
+
+    if (error) {
+      return { datos: null, error: error.message || 'Error al guardar los parámetros' };
+    }
+
+    if (data && data.exito === false) {
+      return { datos: null, error: data.mensaje || 'Error al guardar los parámetros' };
+    }
+
+    return { datos: data, error: null };
+
+  } catch (error) {
+    return { datos: null, error: error.message || 'Error desconocido' };
+  }
+}
+
+/**
+ * Guarda el pedido enviado como un acta de solo lectura.
+ * No lanza excepciones: devuelve el error dentro del objeto.
+ */
+async function guardarPedidoCalculadoraConSupabase(pedido) {
+  try {
+    const client = getSupabaseClient();
+    if (!client) {
+      throw new Error('Cliente de Supabase no inicializado');
+    }
+
+    console.log('[Calculadora] Guardando el pedido enviado...', {
+      lineas: pedido.lineas.length,
+      unidades: pedido.resumen.total_unidades
+    });
+
+    const { data, error } = await client.rpc('fn_guardar_pedido_calculadora', {
+      p_pedido: pedido
+    });
+
+    if (error) {
+      console.error('[Calculadora] ✗ Error al guardar el pedido:', error);
+      return { datos: null, error: error.message || 'Error al guardar el pedido' };
+    }
+
+    if (data && data.exito === false) {
+      console.error('[Calculadora] ✗ La RPC rechazó el pedido:', data.mensaje);
+      return { datos: null, error: data.mensaje || 'Error al guardar el pedido' };
+    }
+
+    console.log('[Calculadora] ✓ Pedido guardado:', data);
+    return { datos: data, error: null };
+
+  } catch (error) {
+    console.error('[Calculadora] ✗ Excepción al guardar el pedido:', error);
+    return { datos: null, error: error.message || 'Error desconocido' };
   }
 }
 
@@ -1289,6 +1444,7 @@ function actualizarTotalesPedido() {
  */
 function habilitarAccionesPedido(habilitar) {
   const ids = [
+    'btn-guardar-pedido',
     'btn-exportar-csv-pedido',
     'btn-compartir-pedido-whatsapp',
     'btn-imprimir-pedido',
@@ -1398,9 +1554,12 @@ function sincronizarInputsConCantidades() {
   document.querySelectorAll('#tbody-pedido-stock .calculadora-input-final').forEach((input) => {
     const cantidad = calculadora_cantidadesFinales[input.dataset.id] || 0;
     input.value = cantidad;
+    input.dataset.valorPrevio = cantidad;
 
     const fila = input.closest('tr');
     if (fila) fila.classList.toggle('calculadora-fila-excluida', cantidad === 0);
+
+    marcarLineaBajoFaltante(input, cantidad, obtenerFaltanteDeLinea(input.dataset.id));
   });
 }
 
@@ -1448,6 +1607,314 @@ function obtenerLineasDelPedidoFinal() {
   });
 
   return lineas;
+}
+
+// =========================================================================
+// GUARDA DEL FALTANTE
+//
+// "Faltante" es el piso no negociable de una línea: las unidades que faltan
+// para cumplir compromisos ya adquiridos (piso = max(0, pendiente − disponible),
+// ver reparto_capacidad.js). Bajar de ahí significa aceptar que un pedido de
+// cliente se quedará sin cubrir, así que no puede pasar en silencio.
+// =========================================================================
+
+/**
+ * El faltante de una línea, buscando en los dos bloques.
+ *
+ * En el bloque de stock es la columna "Faltante" (linea.piso). El bloque bajo
+ * pedido no tiene esa columna, pero su "Comprar" (comprar_exacto) es la misma
+ * magnitud: pendiente − disponible. Ahí el pedido entero ES el faltante.
+ */
+function obtenerFaltanteDeLinea(idProducto) {
+  const clave = String(idProducto);
+
+  const enStock = calculadora_lineasStock.find(
+    (linea) => String(linea.id_producto) === clave);
+  if (enStock) return enStock.piso || 0;
+
+  const enBajoPedido = calculadora_lineasBajoPedido.find(
+    (linea) => String(linea.id_producto) === clave);
+  if (enBajoPedido) return enBajoPedido.comprar || 0;
+
+  return 0;
+}
+
+/**
+ * El nombre de un producto, para poder nombrarlo en la advertencia.
+ */
+function obtenerNombreDeLinea(idProducto) {
+  const clave = String(idProducto);
+  const linea =
+    calculadora_lineasStock.find((l) => String(l.id_producto) === clave) ||
+    calculadora_lineasBajoPedido.find((l) => String(l.id_producto) === clave);
+
+  return (linea && linea.nombre) || 'este producto';
+}
+
+/**
+ * Pide confirmación para dejar una línea por debajo de su faltante.
+ * Devuelve true si el usuario confirma.
+ *
+ * Degradación elegante: sin SweetAlert cae al confirm() del navegador.
+ */
+async function confirmarCantidadBajoFaltante(nombre, cantidad, faltante, esQuitar) {
+  const descubierto = faltante - cantidad;
+
+  const titulo = esQuitar
+    ? '¿Quitar una línea con compromisos?'
+    : '¿Pedir menos de lo comprometido?';
+
+  const detalle =
+    `${nombre}: ya hay pedidos de clientes que exigen ${faltante.toLocaleString('es-CO')} und ` +
+    `y vas a pedir ${cantidad.toLocaleString('es-CO')}. ` +
+    `Quedarían ${descubierto.toLocaleString('es-CO')} und sin cubrir.`;
+
+  if (typeof Swal === 'undefined') {
+    return window.confirm(`${titulo}\n\n${detalle}`);
+  }
+
+  const resultado = await Swal.fire({
+    title: titulo,
+    html: `<p>${detalle}</p>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: esQuitar ? 'Sí, quitar igual' : 'Sí, pedir menos',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d33'
+  });
+
+  return resultado.isConfirmed;
+}
+
+/**
+ * Marca visualmente un input cuya cantidad quedó por debajo del faltante.
+ * Tras confirmar, la línea sigue señalada: el aviso no puede ser de un solo uso.
+ */
+function marcarLineaBajoFaltante(input, cantidad, faltante) {
+  if (!input) return;
+
+  const estaBajo = faltante > 0 && cantidad < faltante;
+  input.classList.toggle('calculadora-input-bajo-faltante', estaBajo);
+  input.title = estaBajo
+    ? `Por debajo del faltante: los compromisos exigen ${faltante.toLocaleString('es-CO')} und.`
+    : '';
+}
+
+/**
+ * Punto único por el que pasa toda cantidad final ya aceptada.
+ * Sincroniza estado, input, clases y totales.
+ */
+function aplicarCantidadFinal(idProducto, cantidad, input) {
+  calculadora_cantidadesFinales[idProducto] = cantidad;
+
+  if (input) {
+    input.value = cantidad;
+    // Se actualiza para que un segundo cambio cancelado vuelva a ESTE valor y
+    // no al que había antes de tocar la fila por primera vez.
+    input.dataset.valorPrevio = cantidad;
+
+    const fila = input.closest('tr');
+    if (fila) fila.classList.toggle('calculadora-fila-excluida', cantidad === 0);
+
+    marcarLineaBajoFaltante(input, cantidad, obtenerFaltanteDeLinea(idProducto));
+  }
+
+  actualizarTotalesPedido();
+}
+
+// =========================================================================
+// PEDIDO ENVIADO (acta de solo lectura)
+// =========================================================================
+
+/**
+ * Congela el pedido tal como está en pantalla.
+ *
+ * Los números son los mismos que muestran los KPI y el resumen del obsequio,
+ * calculados con las mismas funciones: el acta no puede discrepar de lo que
+ * el usuario vio al enviarlo.
+ *
+ * ⚠️ El obsequio y el descuento se calculan SOLO sobre el bloque de stock.
+ * Es la regla del negocio: el bloque bajo pedido va a otros proveedores.
+ */
+function construirPedidoParaGuardar() {
+  const parametros = leerParametrosDelFormulario();
+
+  const lineasStockParaBono = calculadora_lineasStock.map((linea) => ({
+    nombre: linea.nombre,
+    cantidad: calculadora_cantidadesFinales[linea.id_producto] || 0
+  }));
+
+  const bono = calcularObsequioYDescuento(lineasStockParaBono, parametros);
+  const desglose = calcularDesglosePorCategoria(lineasStockParaBono, parametros);
+
+  const lineas = [];
+  let unidadesStock = 0;
+  let unidadesBajoPedido = 0;
+  let totalValor = 0;
+
+  calculadora_lineasStock.forEach((linea) => {
+    const final = calculadora_cantidadesFinales[linea.id_producto] || 0;
+    if (final <= 0) return;
+
+    const precio = obtenerPrecioProducto(linea.nombre, parametros.precios);
+    unidadesStock += final;
+    totalValor += final * precio;
+
+    lineas.push({
+      id_producto: linea.id_producto,
+      nombre: linea.nombre,
+      bloque: 'Stock',
+      categoria_precio: clasificarCategoriaPrecio(linea.nombre),
+      stock_actual: linea.stock_actual || 0,
+      stock_comprometido: linea.stock_comprometido || 0,
+      stock_disponible: linea.stockDisponible,
+      pendiente: linea.pendiente,
+      demanda_diaria: linea.demandaDiaria,
+      faltante: linea.piso,
+      ideal: linea.ideal,
+      sugerido: linea.pedir,
+      final: final,
+      precio: precio,
+      subtotal: final * precio,
+      cobertura_resultante: linea.coberturaResultante
+    });
+  });
+
+  calculadora_lineasBajoPedido.forEach((linea) => {
+    const final = calculadora_cantidadesFinales[linea.id_producto] || 0;
+    if (final <= 0) return;
+
+    const precio = obtenerPrecioProducto(linea.nombre, parametros.precios);
+    unidadesBajoPedido += final;
+    totalValor += final * precio;
+
+    lineas.push({
+      id_producto: linea.id_producto,
+      nombre: linea.nombre,
+      bloque: 'Bajo pedido',
+      categoria_precio: clasificarCategoriaPrecio(linea.nombre),
+      proveedores: (linea.proveedores || []).map((p) => p.nombre).filter(Boolean),
+      stock_disponible: linea.stockDisponible,
+      pendiente_firme: linea.pendienteFirme,
+      pendiente_borrador: linea.pendienteBorrador,
+      faltante: linea.comprar,
+      sugerido: linea.comprar,
+      final: final,
+      precio: precio,
+      subtotal: final * precio
+    });
+  });
+
+  const select = document.getElementById('filtro-proveedor-pedido');
+  const proveedorNombre = parametros.proveedorId && select && select.selectedIndex >= 0
+    ? select.options[select.selectedIndex].text
+    : 'Todos los proveedores';
+
+  return {
+    version: 1,
+    generado_en: new Date().toISOString(),
+    proveedor_id: parametros.proveedorId || null,
+    proveedor_nombre: proveedorNombre,
+    parametros: parametros,
+    total_elegido: calculadora_totalElegido,
+    resumen: {
+      total_unidades: unidadesStock + unidadesBajoPedido,
+      // Se redondea a dos decimales: la columna de la tabla es numeric(14,2).
+      total_valor: Math.round(totalValor * 100) / 100,
+      unidades_stock: unidadesStock,
+      unidades_bajo_pedido: unidadesBajoPedido,
+      obsequio_unidades: bono.obsequio,
+      // null cuando el pedido no tiene unidades de "varios" contra las cuales
+      // aplicar el descuento. Se conserva el null: un 0 diría otra cosa.
+      descuento_pct: bono.descuentoPct === null
+        ? null
+        : Math.round(bono.descuentoPct * 10000) / 10000,
+      unidades_varios: bono.unidadesVarios,
+      valor_varios: bono.valorVarios,
+      valor_obsequio: bono.valorObsequio,
+      desperdicio: bono.desperdicio,
+      desglose: desglose
+    },
+    lineas: lineas
+  };
+}
+
+/**
+ * Guarda el pedido enviado. Pide una nota opcional, que es a la vez la
+ * confirmación de la acción.
+ */
+async function guardarPedidoEnviado() {
+  const pedido = construirPedidoParaGuardar();
+
+  if (pedido.lineas.length === 0) {
+    if (typeof toastr !== 'undefined') {
+      toastr.warning('No hay líneas con cantidad mayor a cero.');
+    }
+    return;
+  }
+
+  const resumenHtml =
+    `<p><strong>${pedido.resumen.total_unidades.toLocaleString('es-CO')} und</strong> · ` +
+    `${calculadora_formatoMoneda.format(pedido.resumen.total_valor)} · ` +
+    `${pedido.lineas.length} líneas</p>` +
+    `<p style="font-size:0.9em;color:#666;">Obsequio ${pedido.resumen.obsequio_unidades.toLocaleString('es-CO')} und · ` +
+    `descuento ${pedido.resumen.descuento_pct === null ? 'no aplica' : pedido.resumen.descuento_pct.toFixed(2) + ' %'}</p>` +
+    `<p style="font-size:0.9em;color:#666;">Queda como acta de solo lectura para cotejar cuando llegue la mercancía.</p>`;
+
+  let notas = '';
+
+  if (typeof Swal !== 'undefined') {
+    const resultado = await Swal.fire({
+      title: 'Guardar el pedido enviado',
+      html: resumenHtml,
+      icon: 'question',
+      input: 'text',
+      inputPlaceholder: 'Nota opcional (ej. enviado por WhatsApp)',
+      inputAttributes: { maxlength: 200 },
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!resultado.isConfirmed) return;
+    notas = (resultado.value || '').trim();
+
+  } else if (!window.confirm(
+      `Guardar el pedido enviado: ${pedido.resumen.total_unidades} und, ` +
+      `${pedido.lineas.length} líneas.`)) {
+    return;
+  }
+
+  pedido.notas = notas;
+
+  const boton = document.getElementById('btn-guardar-pedido');
+  let textoOriginal = '';
+  if (boton) {
+    textoOriginal = boton.innerHTML;
+    boton.disabled = true;
+    boton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+  }
+
+  const respuesta = await guardarPedidoCalculadoraConSupabase(pedido);
+
+  if (boton) {
+    boton.disabled = false;
+    boton.innerHTML = textoOriginal;
+  }
+
+  if (respuesta.error) {
+    if (typeof toastr !== 'undefined') {
+      toastr.error(respuesta.error, 'No se pudo guardar el pedido');
+    }
+    return;
+  }
+
+  if (typeof toastr !== 'undefined') {
+    toastr.success(
+      `${pedido.lineas.length} líneas · ${pedido.resumen.total_unidades.toLocaleString('es-CO')} und. ` +
+      'Lo encuentras en Compras → Pedidos guardados.',
+      'Pedido guardado');
+  }
 }
 
 /**
@@ -1659,9 +2126,15 @@ function restaurarCantidadesSugeridas() {
     const idProducto = input.dataset.id;
     if (idProducto in calculadora_sugeridos) {
       input.value = calculadora_sugeridos[idProducto];
+      input.dataset.valorPrevio = input.value;
     }
     const fila = input.closest('tr');
     if (fila) fila.classList.remove('calculadora-fila-excluida');
+
+    marcarLineaBajoFaltante(
+      input,
+      calculadora_cantidadesFinales[idProducto] || 0,
+      obtenerFaltanteDeLinea(idProducto));
   });
 
   actualizarTotalesPedido();
@@ -1700,9 +2173,16 @@ function configurarPaginaCalculadoraPedidosYListeners() {
     console.error('[Calculadora] ✗ repartirCapacidad no está disponible. ¿Falta cargar js/reparto_capacidad.js?');
   }
 
+  // Se pinta primero con el caché local para que el panel aparezca lleno al
+  // instante, y luego la base corrige si tiene algo distinto. Sin esperar:
+  // los parámetros no bloquean nada hasta que se pulsa Calcular.
   aplicarParametrosAlFormulario(cargarParametrosCalculadora());
   habilitarAccionesPedido(false);
-  cargarSelectorProveedores();
+
+  // Encadenados a propósito: sincronizar restaura el proveedor guardado, y
+  // asignar un value a un <select> vacío no hace nada. En paralelo, el orden
+  // de llegada decidiría si el proveedor se restaura o no.
+  cargarSelectorProveedores().then(sincronizarParametrosDesdeLaBase);
 
   // ===== TOGGLE DEL PANEL DE PARÁMETROS =====
   const toggleParametros = document.getElementById('btn-toggle-parametros-pedido');
@@ -1771,6 +2251,14 @@ function configurarPaginaCalculadoraPedidosYListeners() {
     const tbody = document.getElementById(idTbody);
     if (!tbody) return;
 
+    // Se guarda el valor con el que entra a la celda: si la advertencia del
+    // faltante se cancela, hay que devolver la cantidad a lo que era.
+    tbody.addEventListener('focusin', (evento) => {
+      const input = evento.target.closest('.calculadora-input-final');
+      if (input) input.dataset.valorPrevio = input.value;
+    });
+
+    // 'input' mantiene los totales vivos mientras se teclea, sin validar.
     tbody.addEventListener('input', (evento) => {
       const input = evento.target.closest('.calculadora-input-final');
       if (!input) return;
@@ -1785,23 +2273,68 @@ function configurarPaginaCalculadoraPedidosYListeners() {
       actualizarTotalesPedido();
     });
 
-    tbody.addEventListener('click', (evento) => {
+    // La validación va en 'change' (al salir de la celda o pulsar Enter) y no
+    // en 'input': este último dispara en cada tecla y preguntaría a media
+    // digitación — al pasar de 150 a 50 el "5" intermedio ya sería inválido.
+    tbody.addEventListener('change', async (evento) => {
+      const input = evento.target.closest('.calculadora-input-final');
+      if (!input) return;
+
+      const idProducto = input.dataset.id;
+      const cantidad = Math.max(0, parseInt(input.value, 10) || 0);
+      const faltante = obtenerFaltanteDeLinea(idProducto);
+
+      if (faltante <= 0 || cantidad >= faltante) {
+        aplicarCantidadFinal(idProducto, cantidad, input);
+        return;
+      }
+
+      const confirmado = await confirmarCantidadBajoFaltante(
+        obtenerNombreDeLinea(idProducto), cantidad, faltante, false);
+
+      if (confirmado) {
+        console.warn('[Calculadora] ⚠ Cantidad por debajo del faltante aceptada:',
+          obtenerNombreDeLinea(idProducto), cantidad, 'de', faltante);
+        aplicarCantidadFinal(idProducto, cantidad, input);
+        return;
+      }
+
+      const previo = parseInt(input.dataset.valorPrevio, 10);
+      const restaurada = isNaN(previo)
+        ? (calculadora_sugeridos[idProducto] || 0)
+        : Math.max(0, previo);
+
+      aplicarCantidadFinal(idProducto, restaurada, input);
+    });
+
+    tbody.addEventListener('click', async (evento) => {
       const boton = evento.target.closest('.calculadora-btn-quitar');
       if (!boton) return;
 
       const idProducto = boton.dataset.id;
-      calculadora_cantidadesFinales[idProducto] = 0;
-
       const fila = boton.closest('tr');
-      if (fila) {
-        fila.classList.add('calculadora-fila-excluida');
-        const input = fila.querySelector('.calculadora-input-final');
-        if (input) input.value = 0;
+      const input = fila ? fila.querySelector('.calculadora-input-final') : null;
+      const faltante = obtenerFaltanteDeLinea(idProducto);
+
+      // Quitar la línea es dejarla en cero: si hay compromisos, es el caso más
+      // grave de todos y merece la misma advertencia.
+      if (faltante > 0) {
+        const confirmado = await confirmarCantidadBajoFaltante(
+          obtenerNombreDeLinea(idProducto), 0, faltante, true);
+
+        if (!confirmado) return;
+
+        console.warn('[Calculadora] ⚠ Línea con compromisos quitada del pedido:',
+          obtenerNombreDeLinea(idProducto), 'faltante', faltante);
       }
 
-      actualizarTotalesPedido();
+      aplicarCantidadFinal(idProducto, 0, input);
     });
   });
+
+  // ===== GUARDAR EL PEDIDO ENVIADO =====
+  const btnGuardarPedido = document.getElementById('btn-guardar-pedido');
+  if (btnGuardarPedido) btnGuardarPedido.addEventListener('click', guardarPedidoEnviado);
 
   // ===== ACCIONES DE EXPORTACIÓN =====
   const btnExportar = document.getElementById('btn-exportar-csv-pedido');

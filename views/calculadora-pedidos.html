@@ -1,8 +1,12 @@
-<div class="page-content-wrapper">
+<div class="page-content-wrapper calculadora-pedidos-vista">
 
   <!-- Encabezado -->
   <div class="page-header-controls">
     <h2 class="page-section-title">Calculadora de Pedidos</h2>
+    <button id="btn-guardar-pedido" class="button button-primary" disabled
+            title="Guarda el pedido tal como quedó, para cotejarlo cuando llegue la mercancía">
+      <i class="fas fa-save"></i> Guardar pedido
+    </button>
     <button id="btn-exportar-csv-pedido" class="button button-success" disabled>
       <i class="fas fa-file-csv"></i> Exportar CSV
     </button>
@@ -180,7 +184,7 @@
   </h3>
 
   <div class="table-wrapper">
-    <table class="data-table-default calculadora-tabla">
+    <table class="data-table-default calculadora-tabla calculadora-tabla-opciones">
       <thead>
         <tr>
           <th class="text-right">Pedido</th>
@@ -212,15 +216,18 @@
   </h3>
 
   <div class="table-wrapper">
-    <table class="data-table-default calculadora-tabla">
+    <table class="data-table-default calculadora-tabla calculadora-tabla-stock">
       <thead>
         <tr>
           <th>Producto</th>
           <th class="text-right">Físico</th>
-          <th class="text-right">Comprometido</th>
+          <!-- El guion suave y el espacio alrededor de la barra le dan al
+               navegador dónde cortar: sin ellos estos dos títulos no caben
+               en su columna y se salen sobre la de al lado. -->
+          <th class="text-right">Compro&shy;metido</th>
           <th class="text-right">Disponible</th>
           <th class="text-right">Pendiente</th>
-          <th class="text-right">Demanda/día</th>
+          <th class="text-right">Demanda / día</th>
           <th class="text-right" title="Unidades que faltan para cumplir los compromisos ya adquiridos">Faltante</th>
           <th class="text-right">Ideal</th>
           <th class="text-right">Sugerido</th>
@@ -254,7 +261,7 @@
   </h3>
 
   <div class="table-wrapper">
-    <table class="data-table-default calculadora-tabla">
+    <table class="data-table-default calculadora-tabla calculadora-tabla-bajopedido">
       <thead>
         <tr>
           <th>Producto</th>

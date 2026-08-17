@@ -237,6 +237,19 @@ function configurarEventListenersMenu() {
     console.warn('[HOME] Enlace #calculadora-pedidos-link no encontrado');
   }
 
+  // Enlace de Pedidos Guardados
+  const pedidosGuardadosLink = document.getElementById('pedidos-guardados-link');
+  if (pedidosGuardadosLink) {
+    pedidosGuardadosLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a pedidos guardados...');
+      cargarVistaPedidosGuardados();
+    });
+    console.log('[HOME] Event listener de Pedidos Guardados configurado');
+  } else {
+    console.warn('[HOME] Enlace #pedidos-guardados-link no encontrado');
+  }
+
   // Enlace de Productos (Lista de productos)
   const productosLink = document.getElementById('link-lista-productos');
   if (productosLink) {
@@ -784,6 +797,47 @@ async function cargarVistaCalculadoraPedidos() {
     } catch (error) {
         console.error('[HOME] Error al cargar vista de calculadora de pedidos:', error);
         workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar la calculadora de pedidos: ${error.message}</div>`;
+    }
+}
+
+/**
+ * Carga dinámicamente la vista de pedidos guardados
+ */
+async function cargarVistaPedidosGuardados() {
+    console.log('[HOME] Cargando vista de pedidos guardados...');
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando pedidos guardados...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/pedidos-guardados.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Inicializar la vista
+        if (typeof configurarPaginaPedidosGuardadosYListeners === 'function') {
+            configurarPaginaPedidosGuardadosYListeners();
+            console.log('[HOME] Vista de pedidos guardados cargada e inicializada');
+        } else {
+            console.error('[HOME] Función configurarPaginaPedidosGuardadosYListeners no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de pedidos guardados:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar los pedidos guardados: ${error.message}</div>`;
     }
 }
 

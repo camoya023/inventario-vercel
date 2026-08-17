@@ -55,24 +55,226 @@
   color: #888;
 }
 
-/* Tabla del pedido */
-.calculadora-tabla td,
-.calculadora-tabla th {
-  white-space: nowrap;
+/* =========================================================================
+   TABLAS DEL PEDIDO — ancho fijo y encabezado pegado
+   -------------------------------------------------------------------------
+   El contenedor que scrollea verticalmente es .work-area (home.css: la
+   cadena .container{height:100vh} -> .main-container{overflow:hidden} ->
+   .work-area{flex:1;overflow-x:auto} deja el alto acotado a la ventana).
+
+   Un `overflow-x: auto` computa `overflow-y: auto`, así que .table-wrapper
+   (components.css:249) y .page-content-wrapper (global.css:297) se vuelven
+   contenedores de scroll propios. Un `thead` con position: sticky dentro se
+   ancla a ESE contenedor, que no scrollea en vertical, y por tanto nunca se
+   pega. Por eso hay que devolverles `overflow: visible`: solo entonces el
+   ancla del sticky pasa a ser .work-area.
+
+   Quitarles el overflow es seguro únicamente porque abajo se fuerza
+   `table-layout: fixed` con anchos en % que suman 100: la tabla no puede
+   desbordar horizontalmente sin importar el contenido.
+   ========================================================================= */
+
+.calculadora-pedidos-vista {
+  overflow: visible;
 }
 
+.calculadora-pedidos-vista .table-wrapper {
+  overflow: visible;
+}
+
+/* La barra de botones del encabezado (clientes.css:206) es un flex sin
+   flex-wrap. Con los seis controles de esta vista desbordaba por debajo de
+   ~1100px y era ella, no las tablas, la que obligaba a scroll horizontal.
+   Solo se le permite envolver: con espacio de sobra el `space-between`
+   sigue repartiendo igual, así que en escritorio no cambia nada. */
+.calculadora-pedidos-vista .page-header-controls {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Los controles nunca se recortan: si la columna de acciones queda corta en
+   pantallas angostas, es preferible que el botón se salga un poco a que
+   quede cortado por el `overflow: hidden` de las celdas. */
+.calculadora-pedidos-vista .calculadora-tabla td.column-actions {
+  overflow: visible;
+}
+
+/* El wrapper ya no recorta: se redondean las esquinas superiores sobre las
+   propias celdas del encabezado para no perder el aspecto de tarjeta. */
+.calculadora-pedidos-vista .calculadora-tabla thead th:first-child {
+  border-top-left-radius: var(--border-radius-lg);
+}
+
+.calculadora-pedidos-vista .calculadora-tabla thead th:last-child {
+  border-top-right-radius: var(--border-radius-lg);
+}
+
+.calculadora-pedidos-vista .calculadora-tabla {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 0.86rem;
+}
+
+/* El padding global (--table-cell-padding: 12px 15px) es demasiado generoso
+   para 12 columnas. */
+.calculadora-pedidos-vista .calculadora-tabla th,
+.calculadora-pedidos-vista .calculadora-tabla td {
+  padding: 8px 6px;
+}
+
+/* Los encabezados sí envuelven, así los títulos largos caen en dos líneas
+   en vez de estirar su columna (los dos que no tenían dónde cortar llevan
+   `&shy;` y espacios en la vista); los datos no, son números. */
+.calculadora-pedidos-vista .calculadora-tabla th {
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  vertical-align: bottom;
+}
+
+.calculadora-pedidos-vista .calculadora-tabla td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Encabezado pegado al borde superior de .work-area.
+   Con border-collapse: collapse el borde inferior de una celda pegada se
+   pierde al scrollear, así que se dibuja con box-shadow inset. */
+.calculadora-pedidos-vista .calculadora-tabla thead th {
+  position: sticky;
+  /* El desplazamiento se mide desde el borde interior de .work-area, que
+     tiene padding: var(--spacing-lg). Con `top: 0` el encabezado quedaba
+     fijado 24px más abajo y las filas asomaban por encima de él; el valor
+     negativo lo pega al borde real del área visible. */
+  top: calc(-1 * var(--spacing-lg));
+  z-index: 5;
+  background-color: var(--bg-light);
+  box-shadow: inset 0 -2px 0 var(--border-color-dark);
+}
+
+/* Fila de totales pegada al borde inferior: con la tabla de stock completa
+   en pantalla, el total sigue visible mientras se editan las cantidades. */
+.calculadora-pedidos-vista .calculadora-tabla tfoot td {
+  position: sticky;
+  bottom: calc(-1 * var(--spacing-lg)); /* mismo motivo que el thead */
+  z-index: 4;
+  /* Misma línea superior que .calculadora-fila-total, pero como sombra: el
+     borde se sustituye para no dibujarlo dos veces (3px + 3px = 6px). */
+  border-top: none;
+  box-shadow: inset 0 3px 0 var(--color-primary, #4a6cf7);
+}
+
+/* Anchos por columna. Cada tabla suma exactamente 100%.
+
+   Los tres selectores llevan el prefijo de la vista a propósito: hay dos
+   reglas globales que fijan el ancho de la última columna y hay que ganarles.
+   components.css:723 (`.column-actions { width: 1% }`, 0-1-0) y sobre todo
+   ventas.css:31 (`.data-table-default th.column-actions { width: 10% }`,
+   0-2-1), que aplica a cualquier tabla con esas clases. Con el prefijo estos
+   selectores quedan en 0-3-0 y mandan ellos. */
+
+/* Opciones de pedido (8 columnas) */
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(1) { width: 11%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(2) { width: 11%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(3) { width: 11%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(4) { width: 13%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(5) { width: 11%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(6) { width: 17%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(7) { width: 12%; }
+.calculadora-pedidos-vista .calculadora-tabla-opciones th:nth-child(8) { width: 14%; }
+
+/* Productos de stock (12 columnas) */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(1)  { width: 18%; }   /* Producto     */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(2)  { width: 6.5%; }  /* Físico       */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(3)  { width: 9%; }    /* Comprometido */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(4)  { width: 7.5%; }  /* Disponible   */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(5)  { width: 7.5%; }  /* Pendiente    */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(6)  { width: 8%; }    /* Demanda/día  */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(7)  { width: 7%; }    /* Faltante     */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(8)  { width: 6.5%; }  /* Ideal        */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(9)  { width: 7.5%; }  /* Sugerido     */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(10) { width: 9%; }    /* Final        */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(11) { width: 8%; }    /* Cobertura    */
+.calculadora-pedidos-vista .calculadora-tabla-stock th:nth-child(12) { width: 5.5%; }  /* Quitar       */
+
+/* Pedidos guardados — lista (9 columnas) */
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(1) { width: 13%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(2) { width: 18%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(3) { width: 7%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(4) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(5) { width: 13%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(6) { width: 8%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(7) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(8) { width: 15%; }
+.calculadora-pedidos-vista .pedidos-tabla-lista th:nth-child(9) { width: 8%; }
+
+/* Pedidos guardados — detalle (9 columnas) */
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(1) { width: 26%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(2) { width: 10%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(3) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(4) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(5) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(6) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(7) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(8) { width: 9%; }
+.calculadora-pedidos-vista .pedidos-tabla-detalle th:nth-child(9) { width: 10%; }
+
+/* Productos bajo pedido (8 columnas) */
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(1) { width: 24%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(2) { width: 22%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(3) { width: 9%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(4) { width: 9%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(5) { width: 10%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(6) { width: 9%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(7) { width: 11%; }
+.calculadora-pedidos-vista .calculadora-tabla-bajopedido th:nth-child(8) { width: 6%; }
+
+/* Bajo table-layout: fixed los min-width que tenían estas dos celdas ya no
+   aportaban nada al ancho de columna, así que se retiraron. Ambas envuelven
+   en varias líneas: son las únicas con texto de largo variable.
+
+   Van con el prefijo de la vista (0-3-0) porque el `white-space: nowrap`
+   de arriba lleva 0-2-1 y les ganaba: sin esto, "BOCADILLO X 200 GRS LONJA"
+   se recortaba con puntos suspensivos en vez de pasar a dos líneas. */
+.calculadora-pedidos-vista .calculadora-tabla .calculadora-nombre-producto,
 .calculadora-tabla .calculadora-nombre-producto {
   white-space: normal;
-  min-width: 200px;
+  overflow-wrap: break-word;
   font-weight: 600;
   text-align: left;
 }
 
+.calculadora-pedidos-vista .calculadora-tabla .calculadora-proveedores,
 .calculadora-tabla .calculadora-proveedores {
   white-space: normal;
-  min-width: 160px;
+  overflow-wrap: break-word;
   font-size: 0.85em;
   color: #666;
+}
+
+/* Pantallas medianas: mismo layout, un escalón más compacto. */
+@media (max-width: 1100px) {
+  .calculadora-pedidos-vista .calculadora-tabla {
+    font-size: 0.8rem;
+  }
+
+  .calculadora-pedidos-vista .calculadora-tabla th,
+  .calculadora-pedidos-vista .calculadora-tabla td {
+    padding: 6px 4px;
+  }
+
+  .calculadora-pedidos-vista .calculadora-tabla th {
+    font-size: 0.74rem;
+  }
+
+  /* Es el único control con texto dentro de una tabla; sin encogerlo, su
+     columna es la primera en quedarse corta. */
+  .calculadora-pedidos-vista .calculadora-btn-elegir {
+    padding: 3px 8px;
+    font-size: 0.72rem;
+  }
 }
 
 /* Celda de cantidad sugerida: es la recomendación del sistema */
@@ -82,9 +284,13 @@
   color: #8a6d1f;
 }
 
-/* Input de cantidad final (editable) */
+/* Input de cantidad final (editable).
+   Ancho fluido con tope: la columna es un % del ancho de la tabla, así que
+   un ancho fijo desbordaría la celda en pantallas medianas. */
 .calculadora-input-final {
-  width: 90px;
+  width: 100%;
+  max-width: 72px;
+  box-sizing: border-box;
   padding: 5px 6px;
   border: 2px solid #e0e0e0;
   border-radius: 5px;
@@ -96,6 +302,15 @@
 .calculadora-input-final:focus {
   outline: none;
   border-color: var(--color-primary, #4a6cf7);
+}
+
+/* Cantidad final por debajo del faltante: hay compromisos con clientes que
+   quedarán sin cubrir. La marca es permanente, no solo el aviso del momento:
+   tras confirmar, la línea sigue señalada. */
+.calculadora-input-bajo-faltante {
+  border-color: #dc3545;
+  background-color: #fdf1f2;
+  color: #721c24;
 }
 
 /* Fila excluida del pedido (cantidad final en cero por acción del usuario) */

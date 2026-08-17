@@ -1,0 +1,151 @@
+<!--
+  Pedidos guardados — acta de solo lectura de lo que se envió al proveedor.
+
+  Dos secciones en un mismo archivo (lista y detalle) que se alternan, para no
+  pagar una segunda petición al abrir un pedido.
+
+  Reusa la clase calculadora-pedidos-vista: de ahí saca el ancho fijo sin
+  scroll horizontal y el encabezado que se queda fijo al bajar.
+-->
+<div class="page-content-wrapper calculadora-pedidos-vista">
+
+  <!-- ================= LISTA ================= -->
+  <section id="pedidos-guardados-lista">
+
+    <div class="page-header-controls">
+      <h2 class="page-section-title">Pedidos guardados</h2>
+      <button id="btn-refrescar-pedidos-guardados" class="button button-secondary">
+        <i class="fas fa-sync"></i> Refrescar
+      </button>
+    </div>
+
+    <p class="calculadora-bloque-hint" style="margin: 0 0 16px">
+      Cada fila es un pedido tal como se envió. No se recalculan ni se editan:
+      sirven para cotejar contra la mercancía cuando llega.
+    </p>
+
+    <div class="table-wrapper">
+      <table class="data-table-default calculadora-tabla pedidos-tabla-lista">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Proveedor</th>
+            <th class="text-right">Líneas</th>
+            <th class="text-right">Unidades</th>
+            <th class="text-right">Valor total</th>
+            <th class="text-right">Obsequio</th>
+            <th class="text-right">Descuento</th>
+            <th>Nota</th>
+            <th class="column-actions text-center">Ver</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-pedidos-guardados">
+          <tr>
+            <td colspan="9" class="text-center" style="padding: 40px; font-style: italic; color: #888">
+              <i class="fas fa-spinner fa-spin"></i> Cargando pedidos guardados...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- ================= DETALLE ================= -->
+  <section id="pedidos-guardados-detalle" style="display: none">
+
+    <div class="page-header-controls">
+      <h2 class="page-section-title" id="detalle-pedido-titulo">Pedido</h2>
+      <button id="btn-volver-pedidos-guardados" class="button button-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a la lista
+      </button>
+      <button id="btn-imprimir-pedido-guardado" class="button button-secondary">
+        <i class="fas fa-print"></i> Imprimir
+      </button>
+    </div>
+
+    <!-- Totales congelados del pedido -->
+    <section class="stock-kpis-grid">
+      <div class="kpi-card kpi-card-blue">
+        <div class="kpi-card-content">
+          <div class="kpi-card-text">
+            <p class="kpi-card-label">Total Unidades</p>
+            <p class="kpi-card-value" id="detalle-kpi-unidades">0</p>
+            <p class="kpi-card-subtitle">Unidades pedidas</p>
+          </div>
+          <div class="kpi-card-icon kpi-icon-blue"><i class="fas fa-boxes"></i></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card-gray">
+        <div class="kpi-card-content">
+          <div class="kpi-card-text">
+            <p class="kpi-card-label">Valor Total</p>
+            <p class="kpi-card-value" id="detalle-kpi-valor">$ 0</p>
+            <p class="kpi-card-subtitle">Al precio del pedido</p>
+          </div>
+          <div class="kpi-card-icon kpi-icon-gray"><i class="fas fa-dollar-sign"></i></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card-yellow">
+        <div class="kpi-card-content">
+          <div class="kpi-card-text">
+            <p class="kpi-card-label">Obsequio</p>
+            <p class="kpi-card-value" id="detalle-kpi-obsequio">0</p>
+            <p class="kpi-card-subtitle">Unidades de regalo</p>
+          </div>
+          <div class="kpi-card-icon kpi-icon-yellow"><i class="fas fa-gift"></i></div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card-red">
+        <div class="kpi-card-content">
+          <div class="kpi-card-text">
+            <p class="kpi-card-label">Descuento</p>
+            <p class="kpi-card-value" id="detalle-kpi-descuento">0 %</p>
+            <p class="kpi-card-subtitle">A aplicar en la compra</p>
+          </div>
+          <div class="kpi-card-icon kpi-icon-red"><i class="fas fa-percent"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cabecera y parámetros con los que se calculó -->
+    <div id="detalle-pedido-cabecera" class="calculadora-resumen-obsequio"></div>
+
+    <h3 class="calculadora-bloque-titulo">
+      <i class="fas fa-list"></i> Líneas del pedido
+      <span class="calculadora-bloque-hint">tal como se enviaron</span>
+    </h3>
+
+    <div class="table-wrapper">
+      <table class="data-table-default calculadora-tabla pedidos-tabla-detalle">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Bloque</th>
+            <th class="text-right">Disponible</th>
+            <th class="text-right">Pendiente</th>
+            <th class="text-right">Faltante</th>
+            <th class="text-right">Sugerido</th>
+            <th class="text-right">Pedido</th>
+            <th class="text-right">Precio</th>
+            <th class="text-right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-detalle-pedido-guardado"></tbody>
+        <tfoot>
+          <tr class="calculadora-fila-total">
+            <td colspan="6" class="text-right"><strong>TOTAL</strong></td>
+            <td class="text-right" id="detalle-total-unidades">0</td>
+            <td></td>
+            <td class="text-right" id="detalle-total-valor">$ 0</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+  </section>
+
+</div>
