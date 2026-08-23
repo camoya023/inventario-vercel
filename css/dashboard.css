@@ -1,0 +1,64 @@
+/* =========================================================================
+   INICIO / DASHBOARD - INVENTRACK VERCEL
+
+   Los colores de las tarjetas (kpi-icon-blue, -red, -yellow, -gray, -purple,
+   -teal, -green) NO se definen aquí: ya están cargados globalmente por
+   informe-stock.css y reporte-ventas.css (todas las hojas de estilo se
+   cargan siempre, sin importar la vista activa). Aquí solo va lo que es
+   propio de esta vista: el grid y el estilo de franja.
+   ========================================================================= */
+
+.dashboard-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-franja-titulo {
+  margin: 24px 0 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #333);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-franja-titulo:first-of-type {
+  margin-top: 4px;
+}
+
+.dashboard-franja-titulo i {
+  color: var(--color-primary, #4a6cf7);
+}
+
+.dashboard-franja-hint {
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-style: italic;
+  color: #888;
+}
+
+/* Cada tarjeta navega al informe completo. La sombra ya sube al pasar el
+   mouse (.kpi-card:hover, definida en informe-stock.css); solo se agrega el
+   cursor para que la afordancia de "esto se puede pulsar" quede clara. */
+.dashboard-card-clickable {
+  cursor: pointer;
+}
+
+/* Aviso de degradación elegante: si una franja falla, la otra sigue
+   funcionando y aquí se explica qué pasó, en vez de dejar guiones sin
+   contexto o romper la pantalla completa. */
+.dashboard-franja-aviso {
+  margin: -0.5rem 0 1.25rem;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: #fff3cd;
+  color: #856404;
+  font-size: 0.88rem;
+}
+
+.dashboard-franja-aviso i {
+  margin-right: 6px;
+}

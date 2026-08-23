@@ -198,6 +198,19 @@ function configurarLogout() {
 function configurarEventListenersMenu() {
   console.log('[HOME] Configurando event listeners del menú...');
 
+  // Enlace de Inicio
+  const inicioLink = document.getElementById('inicio-link');
+  if (inicioLink) {
+    inicioLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('[HOME] Navegando a Inicio...');
+      cargarVistaInicio();
+    });
+    console.log('[HOME] Event listener de Inicio configurado');
+  } else {
+    console.warn('[HOME] Enlace #inicio-link no encontrado');
+  }
+
   // Enlace de Clientes
   const clientesLink = document.getElementById('clientes-link');
   if (clientesLink) {
@@ -680,6 +693,52 @@ function desactivarTodosLosModulos() {
 /**
  * Carga dinámicamente la vista de lista de clientes
  */
+/**
+ * Carga dinámicamente la vista de Inicio (dashboard).
+ */
+async function cargarVistaInicio() {
+    console.log('[HOME] Cargando vista de Inicio...');
+
+    // 🚨 CRÍTICO: Desactivar todos los módulos antes de cargar nueva vista
+    if (typeof desactivarTodosLosModulos === 'function') {
+        desactivarTodosLosModulos();
+    }
+
+    const workArea = document.querySelector('.work-area');
+    if (!workArea) {
+        console.error('[HOME] No se encontró el área de trabajo');
+        return;
+    }
+
+    // Mostrar mensaje de carga
+    workArea.innerHTML = '<div style="padding:20px; text-align:center;"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+
+    try {
+        // Cargar el HTML de la vista
+        const response = await fetch('/views/dashboard.html');
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Insertar el HTML en el área de trabajo
+        workArea.innerHTML = html;
+
+        // Inicializar la vista de Inicio
+        if (typeof configurarPaginaDashboardYListeners === 'function') {
+            configurarPaginaDashboardYListeners();
+            console.log('[HOME] Vista de Inicio cargada e inicializada');
+        } else {
+            console.error('[HOME] Función configurarPaginaDashboardYListeners no encontrada');
+        }
+
+    } catch (error) {
+        console.error('[HOME] Error al cargar vista de Inicio:', error);
+        workArea.innerHTML = `<div style="padding:20px; text-align:center; color:red;">Error al cargar Inicio: ${error.message}</div>`;
+    }
+}
+
 async function cargarVistaClientes() {
     console.log('[HOME] Cargando vista de clientes...');
 

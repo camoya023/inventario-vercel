@@ -1,0 +1,127 @@
+<!--
+  Inicio / Dashboard — franjas 1 y 2 (acordado con el dueño: sin franja de
+  accesos/pendientes por ahora).
+
+  No trae datos propios: reusa fn_reporte_ventas_kpis (con fecha = hoy) y
+  fn_reporte_stock_kpis, las mismas RPC de Informe de Ventas e Informe de
+  Stock. Cada tarjeta navega al informe completo al hacer clic — sin pasarle
+  filtros, sin tocar esos módulos.
+-->
+<div class="page-content-wrapper dashboard-vista">
+
+  <div class="page-header-controls">
+    <h2 class="page-section-title">Inicio</h2>
+    <button id="btn-refrescar-dashboard" class="button button-secondary">
+      <i class="fas fa-sync"></i> Refrescar
+    </button>
+  </div>
+
+  <!-- ================= FRANJA 1: VENTAS DE HOY ================= -->
+  <h3 class="dashboard-franja-titulo">
+    <i class="fas fa-chart-line"></i> Ventas de hoy
+    <span class="dashboard-franja-hint" id="dashboard-fecha-hoy"></span>
+  </h3>
+
+  <section class="dashboard-kpis-grid" id="dashboard-franja-ventas">
+    <div class="kpi-card kpi-card-blue dashboard-card-clickable" data-destino="ventas" title="Ver Informe de Ventas">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Ventas de Hoy</p>
+          <p class="kpi-card-value" id="dashboard-kpi-ventas-hoy">—</p>
+          <p class="kpi-card-subtitle">Total facturado hoy</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-blue"><i class="fas fa-dollar-sign"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-purple dashboard-card-clickable" data-destino="ventas" title="Ver Informe de Ventas">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Cantidad de Ventas</p>
+          <p class="kpi-card-value" id="dashboard-kpi-cantidad-ventas">—</p>
+          <p class="kpi-card-subtitle">Transacciones de hoy</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-purple"><i class="fas fa-shopping-cart"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-teal dashboard-card-clickable" data-destino="ventas" title="Ver Informe de Ventas">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Ticket Promedio</p>
+          <p class="kpi-card-value" id="dashboard-kpi-ticket-promedio">—</p>
+          <p class="kpi-card-subtitle">Promedio por venta</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-teal"><i class="fas fa-receipt"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-green dashboard-card-clickable" data-destino="ventas" title="Ver Informe de Ventas">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Ganancia Estimada</p>
+          <p class="kpi-card-value" id="dashboard-kpi-ganancia-hoy">—</p>
+          <p class="kpi-card-subtitle">Utilidad del día</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-green"><i class="fas fa-chart-line"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="dashboard-aviso-ventas" class="dashboard-franja-aviso" style="display: none"></div>
+
+  <!-- ================= FRANJA 2: ALERTAS DE INVENTARIO ================= -->
+  <h3 class="dashboard-franja-titulo">
+    <i class="fas fa-warehouse"></i> Alertas de inventario
+    <span class="dashboard-franja-hint">estado actual, no del día</span>
+  </h3>
+
+  <section class="dashboard-kpis-grid" id="dashboard-franja-stock">
+    <div class="kpi-card kpi-card-blue dashboard-card-clickable" data-destino="stock" title="Ver Informe de Stock">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Valor Inventario</p>
+          <p class="kpi-card-value" id="dashboard-kpi-valor-inventario">—</p>
+          <p class="kpi-card-subtitle">Costo del stock actual</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-blue"><i class="fas fa-dollar-sign"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-gray dashboard-card-clickable" data-destino="stock" title="Ver Informe de Stock">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Total Referencias</p>
+          <p class="kpi-card-value" id="dashboard-kpi-total-productos">—</p>
+          <p class="kpi-card-subtitle">Productos activos</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-gray"><i class="fas fa-boxes"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-yellow dashboard-card-clickable" data-destino="stock" title="Ver Informe de Stock">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Bajo Stock</p>
+          <p class="kpi-card-value" id="dashboard-kpi-bajo-stock">—</p>
+          <p class="kpi-card-subtitle">Referencias por reponer pronto</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-yellow"><i class="fas fa-exclamation-triangle"></i></div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card-red dashboard-card-clickable" data-destino="stock" title="Ver Informe de Stock">
+      <div class="kpi-card-content">
+        <div class="kpi-card-text">
+          <p class="kpi-card-label">Agotados</p>
+          <p class="kpi-card-value" id="dashboard-kpi-agotados">—</p>
+          <p class="kpi-card-subtitle">Sin stock disponible</p>
+        </div>
+        <div class="kpi-card-icon kpi-icon-red"><i class="fas fa-times-circle"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="dashboard-aviso-stock" class="dashboard-franja-aviso" style="display: none"></div>
+
+</div>
