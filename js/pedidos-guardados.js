@@ -318,6 +318,8 @@ function renderizarDetallePedidoGuardado(pedido) {
     `;
   }
 
+  renderizarDesglosePedidoGuardado(resumen);
+
   // ----- Líneas -----
   const tbody = document.getElementById('tbody-detalle-pedido-guardado');
   if (tbody) {
@@ -364,6 +366,74 @@ function renderizarDetallePedidoGuardado(pedido) {
 }
 
 /**
+ * Pinta el desglose por categoría de precio del bloque de stock.
+ *
+ * Las tres categorías se muestran siempre, incluso en cero: que un pedido no
+ * llevara frutos rojos es un dato, y omitir la fila lo escondería.
+ *
+ * ⚠️ El desglose cubre SOLO el bloque de stock. Es donde se gana el obsequio
+ * y contra lo que se calcula el descuento; el bloque bajo pedido va a otros
+ * proveedores. Por eso su total no coincide con el total del pedido.
+ */
+function renderizarDesglosePedidoGuardado(resumen) {
+  const tbody = document.getElementById('tbody-desglose-pedido-guardado');
+  if (!tbody) return;
+
+  const desglose = (resumen && resumen.desglose) || null;
+
+  const asignarTexto = (id, texto) => {
+    const elemento = document.getElementById(id);
+    if (elemento) elemento.textContent = texto;
+  };
+
+  // Un pedido guardado antes de que existiera el desglose no lo trae. Se dice
+  // en vez de pintar tres ceros, que se leerían como "no llevaba nada".
+  if (!desglose) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center" style="padding:20px; font-style:italic; color:#888;">
+      Este pedido se guardó sin el desglose por categoría.</td></tr>`;
+    // Sin esto el pie conserva los totales del pedido que se miró antes: la
+    // vista es reutilizada, no se vuelve a construir al abrir otro pedido.
+    asignarTexto('desglose-total-unidades', '—');
+    asignarTexto('desglose-total-valor', '—');
+    return;
+  }
+
+  const categorias = [
+    ['varios', 'Sabores varios'],
+    ['frutos_rojos', 'Frutos rojos'],
+    ['sin_azucar', 'Sin azúcar']
+  ];
+
+  const totalUnidades = categorias.reduce(
+    (suma, [clave]) => suma + Number((desglose[clave] || {}).unidades || 0), 0);
+  const totalValor = categorias.reduce(
+    (suma, [clave]) => suma + Number((desglose[clave] || {}).valor || 0), 0);
+
+  let filasHtml = '';
+
+  categorias.forEach(([clave, etiqueta]) => {
+    const dato = desglose[clave] || { unidades: 0, valor: 0 };
+    const unidades = Number(dato.unidades) || 0;
+    const valor = Number(dato.valor) || 0;
+    const porcentaje = totalUnidades > 0 ? (unidades / totalUnidades) * 100 : 0;
+
+    filasHtml += `
+      <tr${unidades === 0 ? ' class="calculadora-fila-excluida"' : ''}>
+        <td>${etiqueta}</td>
+        <td class="text-right">${unidades.toLocaleString('es-CO')}</td>
+        <td class="text-right">${pedidosGuardados_formatoMoneda.format(valor)}</td>
+        <td class="text-right">${porcentaje.toFixed(1)} %</td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = filasHtml;
+
+  asignarTexto('desglose-total-unidades', totalUnidades.toLocaleString('es-CO'));
+  asignarTexto('desglose-total-valor', pedidosGuardados_formatoMoneda.format(totalValor));
+}
+
+/**
  * Abre el pedido en una ventana lista para imprimir, por si se quiere llevar
  * la hoja al momento de recibir la mercancía.
  */
@@ -373,6 +443,27 @@ function imprimirPedidoGuardado() {
 
   const snapshot = pedido.snapshot || {};
   const lineas = snapshot.lineas || [];
+  const desglose = (snapshot.resumen || {}).desglose || null;
+
+  // El desglose también va en el papel: al recibir se cuenta por categoría.
+  const desgloseHtml = !desglose ? '' : `
+    <table style="width:auto; margin-top:12px;">
+      <thead>
+        <tr><th colspan="3">Desglose del pedido de stock</th></tr>
+      </thead>
+      <tbody>
+        ${[['varios', 'Sabores varios'], ['frutos_rojos', 'Frutos rojos'], ['sin_azucar', 'Sin azúcar']]
+          .map(([clave, etiqueta]) => {
+            const dato = desglose[clave] || { unidades: 0, valor: 0 };
+            return `<tr>
+              <td>${etiqueta}</td>
+              <td class="derecha">${Number(dato.unidades || 0).toLocaleString('es-CO')} und</td>
+              <td class="derecha">${pedidosGuardados_formatoMoneda.format(Number(dato.valor) || 0)}</td>
+            </tr>`;
+          }).join('')}
+      </tbody>
+    </table>
+  `;
 
   const filasHtml = lineas.map((linea) => `
     <tr>
@@ -417,6 +508,7 @@ function imprimirPedidoGuardado() {
           obsequio ${Number(pedido.obsequio_unidades || 0).toLocaleString('es-CO')} und ·
           descuento ${formatearDescuentoPedido(pedido.descuento_pct)}
         </p>
+        ${desgloseHtml}
         <table>
           <thead>
             <tr>

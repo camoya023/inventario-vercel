@@ -1491,6 +1491,9 @@ function calcularDiferenciaConTotalElegido() {
  *
  * ⚠️ Solo entran las líneas con cantidad > 0: si el usuario quitó un sabor,
  * no se le devuelven unidades por la puerta de atrás.
+ *
+ * ⚠️ Al quitar unidades nunca se baja del faltante (piso) de cada línea. Si
+ * por eso no se alcanza el total, `restante` trae las unidades que sobran.
  */
 function ajustarPedidoAlTotalElegido(cuantosSabores) {
   const tope = cuantosSabores || CALCULADORA_SABORES_PARA_AJUSTE;
@@ -1526,14 +1529,21 @@ function ajustarPedidoAlTotalElegido(cuantosSabores) {
     diferencia -= 1;
   }
 
-  // Sobran unidades: se quitan al de mayor cobertura, sin bajar de cero.
+  // Sobran unidades: se quitan al de mayor cobertura, nunca por debajo del
+  // faltante de cada línea.
+  //
+  // ⚠️ Antes el tope era cero y este bucle podía dejar líneas por debajo de
+  // sus compromisos en silencio — justo lo que la edición manual sí advierte.
+  // Aquí no se pregunta: el reparto es automático y no hay nadie mirando a
+  // quién se le quita, así que el piso es un tope duro. Si no alcanza, se
+  // devuelve el resto en `restante` y quien llama lo informa.
   while (diferencia < 0) {
-    const conUnidades = candidatos.filter(
-      (linea) => (calculadora_cantidadesFinales[linea.id_producto] || 0) > 0);
-    if (conUnidades.length === 0) break;
+    const conMargen = candidatos.filter(
+      (linea) => (calculadora_cantidadesFinales[linea.id_producto] || 0) > (linea.piso || 0));
+    if (conMargen.length === 0) break;
 
-    let mejor = conUnidades[0];
-    conUnidades.forEach((linea) => {
+    let mejor = conMargen[0];
+    conMargen.forEach((linea) => {
       if (cobertura(linea) > cobertura(mejor)) mejor = linea;
     });
     calculadora_cantidadesFinales[mejor.id_producto] -= 1;
@@ -2369,6 +2379,16 @@ function configurarPaginaCalculadoraPedidosYListeners() {
         const verbo = resultado.ajustada >= 0 ? 'repartidas' : 'retiradas';
         toastr.success(`${Math.abs(resultado.ajustada).toLocaleString('es-CO')} und ${verbo} entre ` +
           `${resultado.candidatos} sabores de mayor demanda.`);
+
+        // El ajuste se detiene antes de dejar líneas por debajo de su
+        // faltante. Callarlo dejaría al usuario creyendo que llegó al total.
+        if (resultado.restante !== 0) {
+          toastr.warning(
+            `Quedan ${Math.abs(resultado.restante).toLocaleString('es-CO')} und por ` +
+            `${resultado.restante > 0 ? 'agregar' : 'quitar'}: bajar más dejaría ` +
+            'pedidos de clientes sin cubrir. Ajústalas a mano si aun así lo quieres.',
+            'Ajuste incompleto');
+        }
       }
 
       console.log('[Calculadora] ✓ Pedido ajustado al total:', resultado);

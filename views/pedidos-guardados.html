@@ -114,6 +114,38 @@
     <!-- Cabecera y parámetros con los que se calculó -->
     <div id="detalle-pedido-cabecera" class="calculadora-resumen-obsequio"></div>
 
+    <!--
+      Desglose por categoría de precio. Solo cubre el bloque de stock: es
+      donde se aplica el obsequio, y el bloque bajo pedido va a otros
+      proveedores. Sale del snapshot, no se recalcula.
+    -->
+    <h3 class="calculadora-bloque-titulo">
+      <i class="fas fa-layer-group"></i> Desglose por categoría
+      <span class="calculadora-bloque-hint">solo el bloque de stock</span>
+    </h3>
+
+    <div class="table-wrapper">
+      <table class="data-table-default calculadora-tabla pedidos-tabla-desglose">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th class="text-right">Unidades</th>
+            <th class="text-right">Valor</th>
+            <th class="text-right">% del pedido de stock</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-desglose-pedido-guardado"></tbody>
+        <tfoot>
+          <tr class="calculadora-fila-total">
+            <td class="text-right"><strong>TOTAL STOCK</strong></td>
+            <td class="text-right" id="desglose-total-unidades">0</td>
+            <td class="text-right" id="desglose-total-valor">$ 0</td>
+            <td class="text-right">100 %</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
     <h3 class="calculadora-bloque-titulo">
       <i class="fas fa-list"></i> Líneas del pedido
       <span class="calculadora-bloque-hint">tal como se enviaron</span>
